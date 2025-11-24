@@ -1,0 +1,12 @@
+# Ignore mobile app files - only deploy server
+android/
+ios/
+src/
+public/
+dist/
+node_modules/
+.git/
+*.md
+vite.config.js
+capacitor.config.json
+index.html
