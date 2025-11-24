@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyB0g31xr19v9K854POfDFYhTJT9DDmtjgI';
+const API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || 'AIzaSyB0g31xr19v9K854POfDFYhTJT9DDmtjgI';
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
 // Health check endpoint
