@@ -1,6 +1,6 @@
-# ☀️ Helio - Your AI Wellness Companion
+# ☀️ WellnessAI - The Health App That Knows You Better Than You Know Yourself
 
-Rise to your best self with AI-powered wellness coaching, smart habit tracking, and personalized health insights. Built as a Progressive Web App (PWA) with React and Vite.
+The world's first AI health platform with **7 KILLER FEATURES** that Samsung Health, Apple Fitness, and competitors don't have. Built as a Progressive Web App (PWA) with React and Capacitor for iOS/Android.
 
 ## 🚀 Quick Start
 
@@ -42,12 +42,71 @@ npm run build
 npm run preview
 ```
 
-## 📦 What's Built
+## ⚡ KILLER FEATURES (What Competitors DON'T Have)
 
-### ✅ Landing Page Features
-- Beautiful, modern hero section with gradient effects
-- Email capture form for waitlist building
-- Pre-order functionality ready for Stripe integration
+### 1. 🧬 Health Avatar - See Your Future Body
+- Real-time health score (0-100) based on BMI, activity, food quality
+- View how you'll look in 1, 5, and 10 years
+- Visual transformations (muscle tone, skin glow, energy levels)
+- Instant impact simulation for food choices
+- **Why it's killer:** Shows REAL consequences of today's choices
+
+### 2. 📸 AR Food Scanner - Augmented Reality Overlay
+- Point camera at food → Instant AR overlay appears
+- Calorie count floating above food
+- Red zones highlight allergens in real-time
+- Portion guide circle shows recommended serving size
+- Nutrition panel with protein/carbs/fat breakdown
+- **Why it's killer:** First AR food scanner with allergen detection
+
+### 3. 🚨 Emergency Health Autopilot
+- 24/7 monitoring (checks every 5 minutes)
+- Detects: inactivity >24h, allergic reactions, unusual patterns
+- Auto-alerts emergency contacts + prepares medical data
+- Simulates ambulance call with ETA
+- **Why it's killer:** Your phone becomes a life-saving device
+
+### 4. 💰 Insurance Premium Discounts
+- Connect to 3 insurance partners (HealthFirst, Wellness Partners, FitLife)
+- Get 20-40% off monthly premiums
+- Requirements: health score, steps, check-ins
+- Cryptographic verification reports
+- **Save $2,400-$4,800 per year**
+- **Why it's killer:** First app that PAYS YOU to be healthy
+
+### 5. 🧬 DNA Personalization
+- Upload 23andMe/AncestryDNA files
+- Analyzes 12 genetic traits (metabolism, lactose, caffeine, muscle type)
+- AI-generated meal plans based on YOUR genetics
+- Exercise recommendations matched to muscle type
+- Disease risk predictions + prevention strategies
+- **Why it's killer:** Health advice from YOUR DNA, not generic tips
+
+### 6. ⚔️ Social Health Battles
+- Challenge friends to health competitions
+- Goals: steps, weight-loss, health-score
+- Real stakes: bragging rights, money, subscription payments
+- Live leaderboards with rankings
+- Winner takes all after 30 days
+- **Why it's killer:** First app with REAL MONEY health betting
+
+### 7. 🍽️ Smart Meal Automation
+- AI generates 7-day meal plans (allergen-safe)
+- One-click grocery ordering (Instacart/Amazon Fresh)
+- Connects to smart appliances (air fryer, instant pot, oven)
+- Pre-programs cooking settings automatically
+- Voice-guided step-by-step instructions
+- **Why it's killer:** From meal plan → groceries → cooking, 100% automated
+
+## 📦 Core Features (Already Built)
+
+### ✅ AI-Powered Features
+- **Gemini Vision API** for food/label recognition
+- **Pattern Learning** for symptom correlations
+- **AI Recommendations** for recipes, restaurants, alternatives
+- **Voice AI Coach** with allergen context
+- **Camera Integration** with Capacitor plugins
+- **Haptic Feedback** (severity-based vibrations)
 - 8 key feature showcases with icons (all clickable and working!)
 - "Why Different" comparison section
 - Pricing tiers (Free, Lifetime Pro, Monthly)

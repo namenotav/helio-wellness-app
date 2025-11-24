@@ -1,0 +1,460 @@
+/* Emergency Panel Styling */
+.emergency-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+.emergency-modal {
+  background: linear-gradient(135deg, rgba(40, 0, 0, 0.95), rgba(60, 0, 20, 0.95));
+  border-radius: 20px;
+  padding: 25px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(255, 0, 0, 0.3);
+  border: 2px solid rgba(255, 0, 0, 0.3);
+  animation: slideUp 0.4s ease;
+  position: relative;
+}
+
+.emergency-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.emergency-close:hover {
+  background: rgba(255, 100, 100, 0.8);
+  transform: rotate(90deg);
+}
+
+.emergency-title {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  background: linear-gradient(90deg, #FF4444, #FF0000);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Monitoring Status */
+.monitoring-status {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.monitoring-status.active {
+  background: rgba(68, 255, 68, 0.1);
+  border-color: #44FF44;
+}
+
+.monitoring-status.inactive {
+  background: rgba(255, 165, 0, 0.1);
+  border-color: #FFA500;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-pulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.monitoring-status.active .status-pulse {
+  background: #44FF44;
+}
+
+.monitoring-status.inactive .status-pulse {
+  background: #FFA500;
+}
+
+.status-text {
+  font-weight: bold;
+  color: white;
+  font-size: 16px;
+}
+
+.toggle-monitoring {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 10px 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-monitoring.active {
+  background: #44FF44;
+  color: black;
+  border-color: #44FF44;
+}
+
+.toggle-monitoring:hover {
+  transform: scale(1.05);
+}
+
+/* Emergency Trigger */
+.emergency-trigger {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.panic-button {
+  background: linear-gradient(135deg, #FF0000, #AA0000);
+  border: 4px solid #FF4444;
+  border-radius: 50%;
+  width: 180px;
+  height: 180px;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 40px rgba(255, 0, 0, 0.6);
+  margin: 0 auto 15px auto;
+  display: block;
+}
+
+.panic-button:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 15px 50px rgba(255, 0, 0, 0.8);
+  animation: shake 0.5s ease;
+}
+
+.panic-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.panic-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.panic-help {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Monitoring Info */
+.monitoring-info {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.monitoring-info h3 {
+  margin: 0 0 15px 0;
+  color: white;
+  font-size: 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.info-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.info-label {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 5px;
+}
+
+.info-value {
+  display: block;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Emergency Contacts */
+.emergency-contacts {
+  margin-bottom: 20px;
+}
+
+.contacts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.contacts-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 18px;
+}
+
+.add-contact-btn {
+  background: #44FF44;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.add-contact-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(68, 255, 68, 0.4);
+}
+
+/* Add Contact Form */
+.add-contact-form {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.contact-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.contact-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.primary-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+.primary-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.save-contact-btn {
+  width: 100%;
+  background: #44FF44;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-contact-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 5px 15px rgba(68, 255, 68, 0.4);
+}
+
+/* Contacts List */
+.contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.no-contacts {
+  text-align: center;
+  padding: 30px 20px;
+  background: rgba(255, 165, 0, 0.1);
+  border: 2px dashed rgba(255, 165, 0, 0.3);
+  border-radius: 15px;
+}
+
+.no-contacts p {
+  margin: 0 0 5px 0;
+  color: #FFA500;
+  font-weight: bold;
+}
+
+.help-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
+.contact-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+}
+
+.contact-card.primary {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+.contact-icon {
+  font-size: 30px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.contact-info {
+  flex: 1;
+}
+
+.contact-name {
+  font-weight: bold;
+  color: white;
+  font-size: 16px;
+  margin-bottom: 3px;
+}
+
+.contact-phone {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.contact-relationship {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+.primary-badge {
+  background: #FFD700;
+  color: black;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+/* Features */
+.emergency-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.feature-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feature-icon {
+  font-size: 24px;
+}
+
+.feature-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Scrollbar */
+.emergency-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.emergency-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.emergency-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 0, 0, 0.5);
+  border-radius: 10px;
+}
+
+.emergency-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 0, 0, 0.7);
+}

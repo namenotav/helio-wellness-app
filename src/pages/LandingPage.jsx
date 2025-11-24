@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { checkoutMonthly, checkoutYearly } from '../services/stripeService'
+import { Capacitor } from '@capacitor/core'
+import AuthModal from '../components/AuthModal'
+import authService from '../services/authService'
 import '../styles/LandingPage.css'
 
 export default function LandingPage() {
@@ -10,6 +13,10 @@ export default function LandingPage() {
   const [showInstallButton, setShowInstallButton] = useState(false)
   const [searchParams] = useSearchParams()
   const [selectedPlan, setSelectedPlan] = useState(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [user, setUser] = useState(null)
+  const navigate = useNavigate()
+  const isNative = Capacitor.isNativePlatform()
 
   // Check for payment success/cancelled
   useEffect(() => {
@@ -51,6 +58,16 @@ export default function LandingPage() {
     }
   }
 
+  // Check if user is already logged in
+  useEffect(() => {
+    authService.initialize();
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
       alert('To install:\n\niPhone: Tap Share → Add to Home Screen\nAndroid: Tap menu → Install app\nPC: Click install icon in address bar')
@@ -64,18 +81,33 @@ export default function LandingPage() {
     setDeferredPrompt(null)
   }
 
+  const handleAuthSuccess = (userData) => {
+    setUser(userData);
+    setShowAuthModal(false);
+    navigate('/dashboard');
+  };
+
   return (
     <div className="landing-page">
+      {showAuthModal && (
+        <AuthModal 
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={handleAuthSuccess}
+        />
+      )}
+
       {/* Hero Section */}
       <header className="hero">
         <nav className="nav">
           <div className="logo">☀️ Helio</div>
           <div className="nav-buttons">
-            <button onClick={handleInstallClick} className="nav-install">
-              📱 Install App
-            </button>
-            <button onClick={() => handleCheckout('yearly')} className="nav-cta">
-              Start Now
+            {!isNative && (
+              <button onClick={handleInstallClick} className="nav-install">
+                📱 Install App
+              </button>
+            )}
+            <button onClick={() => setShowAuthModal(true)} className="nav-cta">
+              Get Started
             </button>
           </div>
         </nav>
@@ -91,9 +123,11 @@ export default function LandingPage() {
           </p>
           
           <div className="hero-cta">
-            <button onClick={handleInstallClick} className="btn-install">
-              📱 Install App Now - Free
-            </button>
+            {!isNative && (
+              <button onClick={handleInstallClick} className="btn-install">
+                📱 Install App Now - Free
+              </button>
+            )}
             <button onClick={() => handleCheckout('yearly')} className="btn-primary">
               Get Started - £99/year
               <span className="price-note">Or £9.99/month</span>
