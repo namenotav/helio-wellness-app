@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Helio</string>
+    <string name="title_activity_main">Helio</string>
+    <string name="package_name">com.helio.wellness</string>
+    <string name="custom_url_scheme">com.helio.wellness</string>
+</resources>
