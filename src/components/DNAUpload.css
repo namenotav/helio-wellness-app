@@ -1,0 +1,500 @@
+/* DNA Upload Styling */
+.dna-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+.dna-modal {
+  background: linear-gradient(135deg, rgba(20, 0, 40, 0.95), rgba(40, 0, 80, 0.95));
+  border-radius: 20px;
+  padding: 25px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+  border: 2px solid rgba(138, 43, 226, 0.3);
+  animation: slideUp 0.4s ease;
+  position: relative;
+}
+
+.dna-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dna-close:hover {
+  background: rgba(255, 100, 100, 0.8);
+  transform: rotate(90deg);
+}
+
+.dna-title {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 25px;
+  background: linear-gradient(90deg, #8A2BE2, #FF00FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Upload Section */
+.dna-upload-section {
+  text-align: center;
+  padding: 20px;
+}
+
+.dna-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.dna-upload-section h3 {
+  font-size: 22px;
+  color: white;
+  margin: 0 0 10px 0;
+}
+
+.dna-upload-section p {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 30px 0;
+  font-size: 14px;
+}
+
+.upload-button {
+  display: inline-block;
+  background: linear-gradient(135deg, #8A2BE2, #FF00FF);
+  border: none;
+  border-radius: 25px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(138, 43, 226, 0.4);
+}
+
+.upload-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(138, 43, 226, 0.6);
+}
+
+.supported-formats {
+  margin: 30px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+}
+
+.supported-formats h4 {
+  color: white;
+  font-size: 14px;
+  margin: 0 0 15px 0;
+}
+
+.format-badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.format-badge {
+  background: rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(138, 43, 226, 0.4);
+  border-radius: 15px;
+  padding: 8px 15px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+}
+
+.privacy-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+.privacy-icon {
+  font-size: 24px;
+}
+
+.privacy-notice p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* DNA Results */
+.dna-results {
+  margin-top: 10px;
+}
+
+/* Tabs */
+.dna-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #8A2BE2, #FF00FF);
+  border-color: #8A2BE2;
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+}
+
+.tab-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Traits View */
+.traits-view h3 {
+  color: white;
+  font-size: 18px;
+  margin: 0 0 15px 0;
+}
+
+.traits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.trait-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+}
+
+.trait-name {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  margin-bottom: 8px;
+  text-transform: capitalize;
+}
+
+.trait-value {
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+/* Meals View */
+.meals-view h3 {
+  color: white;
+  font-size: 18px;
+  margin: 0 0 15px 0;
+}
+
+.meal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.meal-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 15px;
+  border: 2px solid rgba(138, 43, 226, 0.3);
+}
+
+.meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.meal-name {
+  font-weight: bold;
+  color: white;
+  font-size: 16px;
+}
+
+.meal-time {
+  background: rgba(138, 43, 226, 0.3);
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.meal-genetic-reason {
+  background: rgba(138, 43, 226, 0.2);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.meal-nutrients {
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.recommendations-list {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.recommendations-list h4 {
+  color: white;
+  font-size: 14px;
+  margin: 15px 0 10px 0;
+}
+
+.recommendations-list h4:first-child {
+  margin-top: 0;
+}
+
+.recommendations-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rec-item {
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.rec-item.good {
+  background: rgba(68, 255, 68, 0.1);
+  color: #44FF44;
+}
+
+.rec-item.avoid {
+  background: rgba(255, 68, 68, 0.1);
+  color: #FF4444;
+}
+
+/* Exercise View */
+.exercise-view h3 {
+  color: white;
+  font-size: 18px;
+  margin: 0 0 15px 0;
+}
+
+.exercise-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.muscle-type {
+  background: rgba(138, 43, 226, 0.2);
+  border: 2px solid #8A2BE2;
+  border-radius: 15px;
+  padding: 15px;
+  text-align: center;
+}
+
+.type-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.type-value {
+  display: block;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.workout-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.workout-name {
+  font-weight: bold;
+  color: white;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.workout-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.workout-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.detail-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.detail-value {
+  color: white;
+  font-weight: bold;
+}
+
+.workout-reason {
+  background: rgba(138, 43, 226, 0.2);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+/* Risks View */
+.risks-view h3 {
+  color: white;
+  font-size: 18px;
+  margin: 0 0 15px 0;
+}
+
+.risks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.risk-card {
+  background: rgba(255, 165, 0, 0.1);
+  border: 2px solid rgba(255, 165, 0, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.risk-name {
+  color: #FFA500;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.no-risks {
+  background: rgba(68, 255, 68, 0.1);
+  border: 2px solid #44FF44;
+  border-radius: 10px;
+  padding: 20px;
+  color: #44FF44;
+  text-align: center;
+  font-size: 16px;
+}
+
+.risks-view h4 {
+  color: white;
+  font-size: 16px;
+  margin: 20px 0 10px 0;
+}
+
+.prevention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prevention-item {
+  background: rgba(68, 255, 68, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* Scrollbar */
+.dna-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dna-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.dna-modal::-webkit-scrollbar-thumb {
+  background: rgba(138, 43, 226, 0.5);
+  border-radius: 10px;
+}
+
+.dna-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(138, 43, 226, 0.7);
+}

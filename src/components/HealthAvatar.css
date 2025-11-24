@@ -1,0 +1,342 @@
+/* Health Avatar Styling */
+.avatar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+.avatar-modal {
+  background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95));
+  border-radius: 20px;
+  padding: 25px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 255, 255, 0.3);
+  border: 2px solid rgba(0, 255, 255, 0.3);
+  animation: slideUp 0.4s ease;
+  position: relative;
+}
+
+.avatar-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.avatar-close:hover {
+  background: rgba(255, 100, 100, 0.8);
+  transform: rotate(90deg);
+}
+
+.avatar-title {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  background: linear-gradient(90deg, #00FFFF, #FF00FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Timeline Navigation */
+.avatar-timeline {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 25px;
+  justify-content: center;
+}
+
+.timeline-btn {
+  flex: 1;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+}
+
+.timeline-btn.active {
+  background: linear-gradient(135deg, #00FFFF, #FF00FF);
+  border-color: #00FFFF;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.timeline-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Avatar Display */
+.avatar-display {
+  position: relative;
+  margin: 30px 0;
+  text-align: center;
+  padding: 30px;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  transition: all 0.5s ease;
+}
+
+.avatar-display[data-glow="strong"] {
+  box-shadow: 0 0 40px rgba(68, 255, 68, 0.6);
+}
+
+.avatar-display[data-glow="moderate"] {
+  box-shadow: 0 0 30px rgba(255, 165, 0, 0.4);
+}
+
+.avatar-display[data-glow="none"] {
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+}
+
+.avatar-character {
+  margin-bottom: 20px;
+}
+
+.avatar-emoji {
+  font-size: 80px;
+  animation: float 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Health Score Circle */
+.health-score-circle {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.health-score-circle svg {
+  width: 100%;
+  height: 100%;
+}
+
+.score-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.score-number {
+  display: block;
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+}
+
+.score-label {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Age Warning */
+.age-warning {
+  background: rgba(255, 165, 0, 0.2);
+  border: 2px solid #FFA500;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.age-warning h3 {
+  margin: 0 0 5px 0;
+  color: #FFA500;
+  font-size: 18px;
+}
+
+.age-warning p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+/* Avatar Stats */
+.avatar-stats {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.stat-item {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-icon {
+  display: block;
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-transform: capitalize;
+}
+
+/* Warnings & Improvements */
+.avatar-warnings,
+.avatar-improvements {
+  margin: 20px 0;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.avatar-warnings {
+  background: rgba(255, 68, 68, 0.2);
+  border: 2px solid #FF4444;
+}
+
+.avatar-improvements {
+  background: rgba(68, 255, 68, 0.2);
+  border: 2px solid #44FF44;
+}
+
+.avatar-warnings h3 {
+  color: #FF4444;
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.avatar-improvements h3 {
+  color: #44FF44;
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.avatar-warnings ul,
+.avatar-improvements ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.avatar-warnings li,
+.avatar-improvements li {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+/* Call to Action */
+.avatar-cta {
+  background: linear-gradient(135deg, rgba(255, 0, 255, 0.2), rgba(0, 255, 255, 0.2));
+  border: 2px solid #FF00FF;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.avatar-cta h3 {
+  margin: 0 0 10px 0;
+  color: #FF00FF;
+  font-size: 18px;
+}
+
+.avatar-cta p {
+  margin: 0 0 15px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.cta-button {
+  background: linear-gradient(135deg, #FF00FF, #00FFFF);
+  border: none;
+  border-radius: 25px;
+  padding: 15px 30px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(255, 0, 255, 0.4);
+}
+
+.cta-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(255, 0, 255, 0.6);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar Styling */
+.avatar-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.avatar-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.avatar-modal::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.5);
+  border-radius: 10px;
+}
+
+.avatar-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 0.7);
+}

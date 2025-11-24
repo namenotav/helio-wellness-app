@@ -2,49 +2,177 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini AI
-// Get API key from environment variable or use placeholder
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY_HERE';
+// Initialize Gemini AI with hardcoded API key (for mobile compatibility)
+const API_KEY = 'AIzaSyB0g31xr19v9K854POfDFYhTJT9DDmtjgI';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 // Get Gemini Pro model (text-only)
 export const getGeminiModel = () => {
-  return genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  return genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 };
 
-// Get Gemini Pro Vision model (text + images) - 2.5 Flash supports multimodal
+// Get Gemini Pro Vision model (text + images)
 export const getGeminiVisionModel = () => {
-  return genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  return genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 };
 
-// AI Wellness Coach - Chat with personalized advice
+// AI Wellness Coach - Chat with personalized advice (NOW WITH ALLERGEN SUPPORT)
 export const chatWithAI = async (userMessage, userContext = {}) => {
   try {
-    console.log('API Key exists:', !!API_KEY);
-    console.log('API Key starts with:', API_KEY.substring(0, 10));
-    
-    const model = getGeminiModel();
-    
-    // Build context-aware prompt
-    const systemPrompt = `You are a supportive AI wellness coach specializing in fitness, nutrition, and mental health. 
-You provide personalized, encouraging advice. Keep responses concise and actionable.
+    // Call backend API proxy (works on mobile!)
+    const response = await fetch('https://helio-wellness-app.vercel.app/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMessage })
+    });
 
-User Context:
-- Goals: ${userContext.goals || 'Not set'}
-- Current streak: ${userContext.streak || 0} days
-- Recent activity: ${userContext.recentActivity || 'None'}
+    if (!response.ok) {
+      throw new Error('API request failed');
+    }
 
-User Question: ${userMessage}
-
-Respond in a friendly, motivating tone. Give specific, practical advice.`;
-
-    const result = await model.generateContent(systemPrompt);
-    const response = await result.response;
-    return response.text();
+    const data = await response.json();
+    return data.response;
   } catch (error) {
-    console.error('Gemini API Full Error:', error);
-    console.error('Error details:', error.message, error.status);
-    return `Error: ${error.message || "I'm having trouble connecting right now. Please try again in a moment!"}`;
+    console.error('AI Error:', error);
+    return 'I\'m having trouble connecting. Please check your internet connection and try again!';
+  }
+};
+
+// AI Location Pattern Analysis
+export const analyzeLocationPattern = async (locationHistory) => {
+  try {
+    // Prepare location data for analysis
+    const locationData = locationHistory.map(loc => ({
+      lat: loc.latitude.toFixed(4),
+      lng: loc.longitude.toFixed(4),
+      time: new Date(loc.timestamp).toISOString(),
+      speed: loc.speed
+    }));
+
+    const prompt = `Analyze these GPS location points to identify patterns:
+
+${JSON.stringify(locationData, null, 2)}
+
+Identify:
+1. Most frequent location (likely HOME)
+2. Regular visited locations (GYM, WORK, etc.)
+3. Daily routine patterns
+4. Movement habits
+
+Return JSON format:
+{
+  "home": {"latitude": X, "longitude": Y, "confidence": 0-100},
+  "gym": {"latitude": X, "longitude": Y, "confidence": 0-100},
+  "work": {"latitude": X, "longitude": Y, "confidence": 0-100},
+  "routinePatterns": ["description of patterns"]
+}`;
+
+    const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
+    
+    // Extract JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return { home: null, gym: null, work: null, routinePatterns: [] };
+  } catch (error) {
+    console.error('Error analyzing location patterns:', error);
+    return { home: null, gym: null, work: null, routinePatterns: [] };
+  }
+};
+
+// AI Activity Detection
+export const detectActivity = async (locationData, previousActivity) => {
+  try {
+    const prompt = `Based on this movement data, classify the activity:
+
+Current location: ${locationData.latitude}, ${locationData.longitude}
+Speed: ${locationData.speed} m/s
+Previous activity: ${previousActivity}
+
+Classify as one of: stationary, walking, running, cycling, driving, at_gym, at_restaurant, at_home
+
+Return just the activity name.`;
+
+    const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
+    return text.trim().toLowerCase();
+  } catch (error) {
+    console.error('Error detecting activity:', error);
+    return 'stationary';
+  }
+};
+
+// AI Behavior Prediction
+export const predictBehavior = async (activityLog, locationHistory) => {
+  try {
+    
+    // Prepare last 2 weeks of data
+    const twoWeeksAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
+    const recentActivities = activityLog.filter(a => a.startTime > twoWeeksAgo);
+
+    const prompt = `Analyze user behavior and predict future actions:
+
+Recent Activity Log (last 2 weeks):
+${JSON.stringify(recentActivities, null, 2)}
+
+Predict:
+1. Likelihood user will skip next workout (0-100%)
+2. Likely to eat unhealthy today (0-100%)
+3. Stress level based on location changes (low/medium/high)
+4. Recommended intervention
+
+Return JSON:
+{
+  "likelyToSkip": true/false,
+  "skipProbability": 0-100,
+  "unhealthyEatingRisk": 0-100,
+  "stressLevel": "low/medium/high",
+  "recommendation": "specific action to take"
+}`;
+
+    const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
+    
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return { likelyToSkip: false, skipProbability: 0, unhealthyEatingRisk: 0, stressLevel: 'low', recommendation: '' };
+  } catch (error) {
+    console.error('Error predicting behavior:', error);
+    return { likelyToSkip: false, skipProbability: 0, unhealthyEatingRisk: 0, stressLevel: 'low', recommendation: '' };
+  }
+};
+
+// AI Habit Classification (Good vs Bad)
+export const classifyHabits = async (activityLog) => {
+  try {
+    
+    const prompt = `Analyze these activities and classify as good or bad habits:
+
+${JSON.stringify(activityLog, null, 2)}
+
+Identify:
+- Good habits (regular gym, consistent sleep, healthy eating)
+- Bad habits (sedentary behavior, irregular schedule, fast food visits)
+- Habit consistency score (0-100)
+
+Return JSON:
+{
+  "goodHabits": [{"habit": "name", "frequency": "times per week", "consistency": 0-100}],
+  "badHabits": [{"habit": "name", "frequency": "times per week", "impact": "description"}],
+  "overallScore": 0-100
+}`;
+
+    const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
+    
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return { goodHabits: [], badHabits: [], overallScore: 50 };
+  } catch (error) {
+    console.error('Error classifying habits:', error);
+    return { goodHabits: [], badHabits: [], overallScore: 50 };
   }
 };
 
@@ -105,8 +233,6 @@ Format response as:
 // Generate Personalized Workout Plan
 export const generateWorkoutPlan = async (userProfile) => {
   try {
-    const model = getGeminiModel();
-    
     const prompt = `Create a personalized workout plan for:
 - Fitness Level: ${userProfile.fitnessLevel || 'Beginner'}
 - Goal: ${userProfile.goal || 'General fitness'}
@@ -132,8 +258,6 @@ Make it practical and achievable!`;
 // Generate Meal Plan
 export const generateMealPlan = async (userProfile) => {
   try {
-    const model = getGeminiModel();
-    
     const prompt = `Create a daily meal plan for:
 - Goal: ${userProfile.goal || 'Balanced nutrition'}
 - Calories: ${userProfile.targetCalories || '2000'} kcal/day
@@ -160,8 +284,6 @@ Keep meals simple and realistic!`;
 // AI Habit Insights - Analyze patterns and give suggestions
 export const getHabitInsights = async (habitData) => {
   try {
-    const model = getGeminiModel();
-    
     const prompt = `Analyze this user's wellness habits and provide insights:
 
 Habit Data:
@@ -190,8 +312,6 @@ Keep it brief and actionable!`;
 // Motivational Check-in
 export const getMotivationalMessage = async (userContext) => {
   try {
-    const model = getGeminiModel();
-    
     const prompt = `Generate a motivational message for a wellness app user:
 - Current streak: ${userContext.streak || 0} days
 - Progress: ${userContext.progress || 'Starting journey'}
