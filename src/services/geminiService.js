@@ -19,22 +19,33 @@ export const getGeminiVisionModel = () => {
 // AI Wellness Coach - Chat with personalized advice (NOW WITH ALLERGEN SUPPORT)
 export const chatWithAI = async (userMessage, userContext = {}) => {
   try {
-    // Call backend API proxy (works on mobile!)
-    const response = await fetch('https://helio-wellness-app.vercel.app/api/chat', {
+    console.log('🚀 Calling Railway server with message:', userMessage);
+    
+    // Call Railway cloud server (works everywhere!)
+    const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userMessage })
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ message: userMessage }),
+      mode: 'cors'
     });
 
+    console.log('📡 Response status:', response.status);
+
     if (!response.ok) {
-      throw new Error('API request failed');
+      const errorText = await response.text();
+      console.error('❌ API error:', errorText);
+      throw new Error(`API request failed: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('✅ AI response received:', data.response?.substring(0, 50));
     return data.response;
   } catch (error) {
-    console.error('AI Error:', error);
-    return 'I\'m having trouble connecting. Please check your internet connection and try again!';
+    console.error('💥 AI Error:', error.message, error);
+    throw error; // Re-throw to see the real error
   }
 };
 
@@ -347,6 +358,7 @@ async function fileToGenerativePart(file) {
 
 // Export all AI functions
 export default {
+  chat: chatWithAI, // Alias for dashboard compatibility
   chatWithAI,
   analyzeProgressPhoto,
   analyzeFoodPhoto,

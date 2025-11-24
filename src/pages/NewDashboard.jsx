@@ -318,7 +318,42 @@ function VoiceTab({ userName }) {
     setIsListening(true)
     
     try {
-      // Import speech recognition service
+      // Try Web Speech API first (works better on some devices)
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        console.log('Using Web Speech API')
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+        const recognition = new SpeechRecognition()
+        
+        recognition.continuous = false
+        recognition.interimResults = false
+        recognition.lang = 'en-US'
+        
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript
+          console.log('Web Speech result:', transcript)
+          setIsListening(false)
+          processUserMessage(transcript)
+        }
+        
+        recognition.onerror = (event) => {
+          console.error('Web Speech error:', event.error)
+          setIsListening(false)
+          setMessages(prev => [...prev, { 
+            type: 'ai', 
+            text: "I couldn't hear you. Try typing instead!" 
+          }])
+        }
+        
+        recognition.onend = () => {
+          setIsListening(false)
+        }
+        
+        recognition.start()
+        return
+      }
+      
+      // Fallback to Capacitor plugin
+      console.log('Trying Capacitor Speech Recognition plugin')
       const { SpeechRecognition } = await import('@capacitor-community/speech-recognition')
       
       // Check if available first
