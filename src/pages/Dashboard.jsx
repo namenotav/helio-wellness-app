@@ -104,9 +104,19 @@ function AICoachTab() {
   const [showImages, setShowImages] = useState(true)
 
   // Voice recognition with auto-send
-  const startVoiceInput = () => {
+  const startVoiceInput = async () => {
+    // Check browser support
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      alert('Voice recognition not supported in this browser. Use Chrome, Edge, or Safari.')
+      alert('Voice recognition not supported in this browser. Please use Chrome, Edge, or Safari.')
+      return
+    }
+
+    // Request microphone permission first
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch (error) {
+      console.error('Microphone permission denied:', error)
+      alert('Microphone access is required for voice input. Please allow microphone access in your browser settings.')
       return
     }
 
@@ -115,6 +125,7 @@ function AICoachTab() {
     recognition.lang = 'en-US'
     recognition.continuous = false
     recognition.interimResults = false
+    recognition.maxAlternatives = 1
 
     recognition.onstart = () => {
       setIsListening(true)
@@ -124,7 +135,10 @@ function AICoachTab() {
       }])
     }
     
-    recognition.onend = () => setIsListening(false)
+    recognition.onend = () => {
+      setIsListening(false)
+      setMessages(prev => prev.filter(m => m.type !== 'system'))
+    }
     
     recognition.onresult = async (event) => {
       const transcript = event.results[0][0].transcript
@@ -165,10 +179,25 @@ function AICoachTab() {
       console.error('Speech recognition error:', event.error)
       setIsListening(false)
       setMessages(prev => prev.filter(m => m.type !== 'system'))
-      alert('Voice input error. Please try again.')
+      
+      if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        alert('Microphone permission denied. Please enable microphone access in your browser settings.')
+      } else if (event.error === 'no-speech') {
+        alert('No speech detected. Please try again.')
+      } else if (event.error === 'network') {
+        alert('Network error. Please check your internet connection.')
+      } else {
+        alert(`Voice input error: ${event.error}. Please try again.`)
+      }
     }
 
-    recognition.start()
+    try {
+      recognition.start()
+    } catch (error) {
+      console.error('Failed to start recognition:', error)
+      alert('Failed to start voice input. Please try again.')
+      setIsListening(false)
+    }
   }
 
   // Text to speech for AI responses
