@@ -6,7 +6,7 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Enable CORS for all origins (allows your phone to connect)
 app.use(cors());
