@@ -14,10 +14,12 @@ class AIVisionService {
   async captureFoodPhoto() {
     try {
       const photo = await Camera.getPhoto({
-        quality: 80,
+        quality: 50,  // Reduced from 80 to compress image
         allowEditing: false,
         resultType: 'base64',
-        source: 'CAMERA'
+        source: 'CAMERA',
+        width: 1024,  // Limit image width
+        height: 1024  // Limit image height
       });
 
       return {
