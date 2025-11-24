@@ -48,53 +48,40 @@ class AIVisionService {
       const prompt = this.buildAnalysisPrompt(allergenProfile);
       console.log('📝 Analysis Prompt:', prompt.substring(0, 200) + '...');
 
-      // Call Gemini Vision API
-      console.log('📡 Calling Gemini Vision API...');
+      // Call Railway proxy server for Gemini Vision API
+      console.log('📡 Calling Railway server for vision analysis...');
       console.log('🖼️ Image data length:', imageBase64?.length || 0);
       
-      const requestBody = {
-        contents: [{
-          parts: [
-            { text: prompt },
-            {
-              inline_data: {
-                mime_type: 'image/jpeg',
-                data: imageBase64
-              }
-            }
-          ]
-        }]
-      };
-      
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`,
+        'https://helio-wellness-app-production.up.railway.app/api/vision',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            imageData: imageBase64
+          }),
+          mode: 'cors'
         }
       );
 
-      console.log('📥 API Response Status:', response.status, response.statusText);
+      console.log('📥 Railway Response Status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ API Error Response:', errorData);
-        const errorMsg = errorData.error?.message || `API Error: ${response.status} ${response.statusText}`;
+        console.error('❌ Railway Error Response:', errorData);
+        const errorMsg = errorData.error || `Server Error: ${response.status} ${response.statusText}`;
         throw new Error(errorMsg);
       }
 
       const data = await response.json();
-      console.log('✅ API Response Data:', JSON.stringify(data).substring(0, 500));
+      console.log('✅ Railway Response:', JSON.stringify(data).substring(0, 500));
       
-      // Check if response has expected structure
-      if (!data.candidates || !data.candidates[0]) {
-        console.error('❌ Unexpected API response structure:', data);
-        throw new Error('Invalid API response structure');
-      }
-      
-      const aiResponse = data.candidates[0]?.content?.parts?.[0]?.text || '';
-      console.log('🤖 AI Response Text:', aiResponse.substring(0, 300) + '...');
+      const aiResponse = data.response;
+      console.log('🤖 AI Response Text:', aiResponse?.substring(0, 300) + '...');
       
       if (!aiResponse) {
         throw new Error('Empty response from AI');
