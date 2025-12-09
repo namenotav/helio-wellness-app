@@ -1,23 +1,72 @@
 // Authentication Service - Sign Up/Sign In System
+// NOW WITH FIREBASE CLOUD SYNC + PERMANENT STORAGE!
 import { Device } from '@capacitor/device';
+import { Preferences } from '@capacitor/preferences';
+import firebaseService from './firebaseService.js';
+import syncService from './syncService.js';
 
 class AuthService {
   constructor() {
     this.currentUser = null;
     this.authListeners = [];
+    this.useFirebase = false; // Enable Firebase when available
   }
 
   async initialize() {
-    // Load saved user session
-    const savedUser = localStorage.getItem('wellnessai_user');
-    if (savedUser) {
-      try {
-        this.currentUser = JSON.parse(savedUser);
-        this.notifyAuthStateChanged();
-      } catch (error) {
-        console.error('Error loading saved session:', error);
-        localStorage.removeItem('wellnessai_user');
+    try {
+      // Try to initialize Firebase
+      this.useFirebase = firebaseService.initialize();
+      
+      if (this.useFirebase) {
+        if(import.meta.env.DEV)console.log('✅ Auth service with Firebase cloud sync enabled');
+        
+        // Check if user is logged in to Firebase
+        const firebaseUser = firebaseService.getCurrentUser();
+        if (firebaseUser) {
+          // Load from Firebase
+          const profile = await firebaseService.getUserProfile(firebaseUser.uid);
+          if (profile) {
+            this.currentUser = profile;
+            localStorage.setItem('wellnessai_user', JSON.stringify(this.currentUser));
+            await syncService.onUserLogin(firebaseUser.uid);
+            this.notifyAuthStateChanged();
+            return;
+          }
+        }
+      } else {
+        if(import.meta.env.DEV)console.log('⚠️ Auth service running in offline-only mode');
       }
+
+      // Fallback to Preferences (permanent storage)
+      const { value: savedUser } = await Preferences.get({ key: 'wellnessai_user' });
+      if (savedUser) {
+        try {
+          this.currentUser = JSON.parse(savedUser);
+          
+          // 🔥 CRITICAL: Check if profile is empty and restore from Firebase cloud
+          if (this.currentUser && (!this.currentUser.profile || !this.currentUser.profile.profileCompleted)) {
+            console.log('🔄 Profile empty locally, checking Firebase cloud...');
+            try {
+              const cloudProfile = await syncService.getData('user_profile');
+              if (cloudProfile && cloudProfile.profileCompleted) {
+                console.log('☁️ Profile found in cloud! Restoring...');
+                this.currentUser.profile = cloudProfile;
+                await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
+                console.log('✅ Profile restored from Firebase successfully');
+              }
+            } catch (e) {
+              console.warn('⚠️ Could not restore profile from cloud:', e);
+            }
+          }
+          
+          this.notifyAuthStateChanged();
+        } catch (error) {
+          if(import.meta.env.DEV)console.error('Error loading saved session:', error);
+          await Preferences.remove({ key: 'wellnessai_user' });
+        }
+      }
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Auth initialize error:', error);
     }
   }
 
@@ -29,16 +78,21 @@ class AuthService {
         throw new Error('All fields are required');
       }
 
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters');
+      if (password.length < 8) {
+        throw new Error('Password must be at least 8 characters');
       }
 
       if (!this.isValidEmail(email)) {
         throw new Error('Invalid email format');
       }
 
+      // Password strength check
+      if (!this.isStrongPassword(password)) {
+        throw new Error('Password must contain uppercase, lowercase, number, and special character');
+      }
+
       // Check if user already exists
-      const existingUsers = this.getAllUsers();
+      const existingUsers = await this.getAllUsers();
       if (existingUsers.find(u => u.email === email)) {
         throw new Error('Email already registered');
       }
@@ -51,7 +105,7 @@ class AuthService {
         id: this.generateUserId(),
         email: email.toLowerCase().trim(),
         name: name.trim(),
-        password: this.hashPassword(password), // In production, use proper encryption
+        password: await this.hashPasswordSecure(password), // IMPROVED: Secure PBKDF2 hashing
         createdAt: new Date().toISOString(),
         deviceId: deviceInfo.identifier,
         profile: {
@@ -83,14 +137,28 @@ class AuthService {
         }
       };
 
-      // Save to users database
+      // Save to users database (Preferences for permanent storage)
       existingUsers.push(user);
-      localStorage.setItem('wellnessai_users', JSON.stringify(existingUsers));
+      await Preferences.set({ key: 'wellnessai_users', value: JSON.stringify(existingUsers) });
 
       // Set as current user (auto login after signup)
       this.currentUser = { ...user };
       delete this.currentUser.password; // Don't store password in session
-      localStorage.setItem('wellnessai_user', JSON.stringify(this.currentUser));
+      await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
+
+      // If Firebase enabled, create cloud account
+      if (this.useFirebase) {
+        try {
+          const firebaseResult = await firebaseService.signUp(email, password, name);
+          if (firebaseResult.success) {
+            if(import.meta.env.DEV)console.log('☁️ User created in Firebase cloud');
+            // Sync initial data
+            await syncService.onUserLogin(firebaseResult.user.uid);
+          }
+        } catch (error) {
+          if(import.meta.env.DEV)console.warn('⚠️ Firebase signup failed, but local account created:', error);
+        }
+      }
 
       this.notifyAuthStateChanged();
 
@@ -99,7 +167,7 @@ class AuthService {
         user: this.currentUser
       };
     } catch (error) {
-      console.error('Sign up error:', error);
+      if(import.meta.env.DEV)console.error('Sign up error:', error);
       return {
         success: false,
         error: error.message
@@ -114,7 +182,29 @@ class AuthService {
         throw new Error('Email and password are required');
       }
 
-      const users = this.getAllUsers();
+      // If Firebase enabled, try cloud login first
+      if (this.useFirebase) {
+        try {
+          const firebaseResult = await firebaseService.signIn(email, password);
+          if (firebaseResult.success) {
+            // Load profile from Firebase
+            const profile = await firebaseService.getUserProfile(firebaseResult.user.uid);
+            if (profile) {
+              this.currentUser = profile;
+              await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
+              await syncService.onUserLogin(firebaseResult.user.uid);
+              this.notifyAuthStateChanged();
+              if(import.meta.env.DEV)console.log('☁️ Signed in with Firebase cloud');
+              return { success: true, user: this.currentUser };
+            }
+          }
+        } catch (firebaseError) {
+          if(import.meta.env.DEV)console.warn('⚠️ Firebase login failed, trying local:', firebaseError);
+        }
+      }
+
+      // Fallback to local authentication
+      const users = await this.getAllUsers();
       const user = users.find(u => u.email === email.toLowerCase().trim());
 
       if (!user) {
@@ -129,7 +219,7 @@ class AuthService {
       // Create session
       this.currentUser = { ...user };
       delete this.currentUser.password; // Don't store password in session
-      localStorage.setItem('wellnessai_user', JSON.stringify(this.currentUser));
+      await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
 
       this.notifyAuthStateChanged();
 
@@ -138,7 +228,7 @@ class AuthService {
         user: this.currentUser
       };
     } catch (error) {
-      console.error('Sign in error:', error);
+      if(import.meta.env.DEV)console.error('Sign in error:', error);
       return {
         success: false,
         error: error.message
@@ -150,6 +240,7 @@ class AuthService {
   async signOut() {
     this.currentUser = null;
     localStorage.removeItem('wellnessai_user');
+    await Preferences.remove({ key: 'wellnessai_user' });
     this.notifyAuthStateChanged();
 
     return { success: true };
@@ -172,11 +263,56 @@ class AuthService {
     }
 
     try {
-      const users = this.getAllUsers();
+      const users = await this.getAllUsers();
+      if(import.meta.env.DEV)console.log('🔍 Looking for user ID:', this.currentUser.id);
+      if(import.meta.env.DEV)console.log('📋 All users in storage:', users.length, 'users');
+      if(import.meta.env.DEV)console.log('👤 Current user:', this.currentUser.email);
+      
+      // Fix corrupted state: if user ID is undefined, create new user record
+      if (!this.currentUser.id) {
+        if(import.meta.env.DEV)console.warn('⚠️ User ID is undefined - auto-creating user record...');
+        const newUserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const newUser = {
+          id: newUserId,
+          email: this.currentUser.email,
+          displayName: this.currentUser.displayName || this.currentUser.email,
+          emailVerified: this.currentUser.emailVerified || false,
+          createdAt: new Date().toISOString(),
+          profile: updates
+        };
+        users.push(newUser);
+        await Preferences.set({ key: 'wellnessai_users', value: JSON.stringify(users) });
+        
+        // Update current user with new ID
+        this.currentUser.id = newUserId;
+        this.currentUser.profile = updates;
+        await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
+        
+        if(import.meta.env.DEV)console.log('✅ User record created with ID:', newUserId);
+        return;
+      }
+      
       const userIndex = users.findIndex(u => u.id === this.currentUser.id);
 
       if (userIndex === -1) {
-        throw new Error('User not found');
+        if(import.meta.env.DEV)console.error('❌ User ID not found in storage! Creating new record...');
+        // User has ID but not in storage - recreate
+        const newUser = {
+          id: this.currentUser.id,
+          email: this.currentUser.email,
+          displayName: this.currentUser.displayName || this.currentUser.email,
+          emailVerified: this.currentUser.emailVerified || false,
+          createdAt: new Date().toISOString(),
+          profile: updates
+        };
+        users.push(newUser);
+        localStorage.setItem('wellnessai_users', JSON.stringify(users));
+        await Preferences.set({ key: 'wellnessai_users', value: JSON.stringify(users) });
+        this.currentUser.profile = updates;
+        localStorage.setItem('wellnessai_user', JSON.stringify(this.currentUser));
+        await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
+        if(import.meta.env.DEV)console.log('✅ User record recreated');
+        return;
       }
 
       // Update user data
@@ -188,26 +324,37 @@ class AuthService {
         }
       };
 
-      // Save to database
+      // Save to database (both localStorage and Preferences for persistence)
       localStorage.setItem('wellnessai_users', JSON.stringify(users));
+      await Preferences.set({ key: 'wellnessai_users', value: JSON.stringify(users) });
 
       // Update current user session
       this.currentUser = { ...users[userIndex] };
       delete this.currentUser.password;
-      localStorage.setItem('wellnessai_user', JSON.stringify(this.currentUser));
+      await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
+
+      // Sync to Firebase via syncService
+      if (this.useFirebase) {
+        try {
+          await syncService.saveData('user_profile', this.currentUser.profile);
+          if(import.meta.env.DEV)console.log('✅ Profile synced to Firebase');
+        } catch (syncError) {
+          if(import.meta.env.DEV)console.warn('Profile Firebase sync failed (offline?):', syncError);
+        }
+      }
 
       this.notifyAuthStateChanged();
 
       return { success: true, user: this.currentUser };
     } catch (error) {
-      console.error('Update profile error:', error);
+      if(import.meta.env.DEV)console.error('Update profile error:', error);
       return { success: false, error: error.message };
     }
   }
 
   // Reset password
   async resetPassword(email) {
-    const users = this.getAllUsers();
+    const users = await this.getAllUsers();
     const user = users.find(u => u.email === email.toLowerCase().trim());
 
     if (!user) {
@@ -216,7 +363,7 @@ class AuthService {
     }
 
     // In production, send email with reset link
-    console.log('Password reset requested for:', email);
+    if(import.meta.env.DEV)console.log('Password reset requested for:', email);
     
     return { 
       success: true, 
@@ -242,8 +389,8 @@ class AuthService {
   }
 
   // Helper: Get all users
-  getAllUsers() {
-    const users = localStorage.getItem('wellnessai_users');
+  async getAllUsers() {
+    const { value: users } = await Preferences.get({ key: 'wellnessai_users' });
     return users ? JSON.parse(users) : [];
   }
 
@@ -258,16 +405,119 @@ class AuthService {
     return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
-  // Helper: Simple password hashing (use bcrypt in production)
-  hashPassword(password) {
-    // This is NOT secure - use proper hashing in production
-    let hash = 0;
-    for (let i = 0; i < password.length; i++) {
-      const char = password.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
+  // Legacy hashPassword() function removed for security
+  // All passwords now use PBKDF2 with 100,000 iterations (hashPasswordSecure)
+
+  // NEW: Secure password hashing with PBKDF2 (100,000 iterations)
+  async hashPasswordSecure(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      data,
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    );
+
+    const derived = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000, // 100k iterations = bcrypt-level security
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      256
+    );
+
+    // Combine salt + hash for storage
+    const hashArray = new Uint8Array(derived);
+    const combined = new Uint8Array(salt.length + hashArray.length);
+    combined.set(salt, 0);
+    combined.set(hashArray, salt.length);
+    
+    return this.arrayBufferToBase64(combined);
+  }
+
+  // Verify password against secure hash
+  async verifyPasswordSecure(password, storedHash) {
+    try {
+      const combined = this.base64ToArrayBuffer(storedHash);
+      const salt = combined.slice(0, 16);
+      const originalHash = combined.slice(16);
+
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        data,
+        { name: 'PBKDF2' },
+        false,
+        ['deriveBits']
+      );
+
+      const derived = await crypto.subtle.deriveBits(
+        {
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        256
+      );
+
+      const newHash = new Uint8Array(derived);
+      
+      // Constant-time comparison to prevent timing attacks
+      return this.constantTimeCompare(originalHash, newHash);
+    } catch (error) {
+      return false;
     }
-    return hash.toString();
+  }
+
+  // Password strength validation
+  isStrongPassword(password) {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    return hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar && password.length >= 8;
+  }
+
+  // Helper: Array buffer to base64
+  arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+
+  // Helper: Base64 to array buffer
+  base64ToArrayBuffer(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  // Constant-time comparison to prevent timing attacks
+  constantTimeCompare(a, b) {
+    if (a.length !== b.length) return false;
+    let result = 0;
+    for (let i = 0; i < a.length; i++) {
+      result |= a[i] ^ b[i];
+    }
+    return result === 0;
   }
 
   // Helper: Get default avatar
@@ -317,11 +567,28 @@ class AuthService {
     if (!this.currentUser) return { success: false, error: 'Not logged in' };
     
     const foodLog = this.currentUser.profile.foodLog || [];
-    foodLog.push({
+    const logEntry = {
       ...foodItem,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
+      date: new Date().toISOString().split('T')[0],
       id: 'food_' + Date.now()
+    };
+    foodLog.push(logEntry);
+    
+    // 💾 SAVE TO CAPACITOR PREFERENCES (persistent storage)
+    const { value: foodLogJson } = await Preferences.get({ key: 'foodLog' });
+    const dashboardFoodLog = foodLogJson ? JSON.parse(foodLogJson) : [];
+    dashboardFoodLog.push({
+      name: foodItem.name || 'Food item',
+      calories: foodItem.calories || 0,
+      timestamp: Date.now(),
+      date: new Date().toISOString().split('T')[0]
     });
+    await Preferences.set({ key: 'foodLog', value: JSON.stringify(dashboardFoodLog) });
+    
+    // Also keep localStorage for backwards compatibility
+    localStorage.setItem('foodLog', JSON.stringify(dashboardFoodLog));
+    if(import.meta.env.DEV)console.log('✅ Meal saved to persistent storage');
     
     return this.updateProfile({ foodLog });
   }
@@ -364,3 +631,6 @@ class AuthService {
 
 export const authService = new AuthService();
 export default authService;
+
+
+

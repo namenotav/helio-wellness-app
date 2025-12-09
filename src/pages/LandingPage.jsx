@@ -41,7 +41,7 @@ export default function LandingPage() {
 
   const handleEmailSubmit = (e) => {
     e.preventDefault()
-    console.log('Email submitted:', email)
+    if(import.meta.env.DEV)console.log('Email submitted:', email)
     setSubmitted(true)
     setTimeout(() => {
       setSubmitted(false)
@@ -60,12 +60,15 @@ export default function LandingPage() {
 
   // Check if user is already logged in
   useEffect(() => {
-    authService.initialize();
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-      navigate('/dashboard');
-    }
+    const checkAuth = async () => {
+      await authService.initialize();
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        navigate('/dashboard', { replace: true });
+      }
+    };
+    checkAuth();
   }, [navigate]);
 
   const handleInstallClick = async () => {
@@ -321,3 +324,6 @@ export default function LandingPage() {
     </div>
   )
 }
+
+
+

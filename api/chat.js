@@ -20,7 +20,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const API_KEY = 'AIzaSyB0g31xr19v9K854POfDFYhTJT9DDmtjgI';
+    // SECURITY: Load API key from environment (set in Vercel/Railway dashboard)
+    const API_KEY = process.env.VITE_GEMINI_API_KEY || 'YOUR_KEY_HERE';
     const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
     const prompt = `You are a friendly AI wellness coach. Answer this question in a helpful, encouraging way (2-3 sentences max):

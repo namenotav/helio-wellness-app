@@ -1,6 +1,7 @@
 // Authentication Modal - Sign Up & Sign In
 import { useState } from 'react';
 import authService from '../services/authService';
+import SocialLogin from './SocialLogin';
 import './AuthModal.css';
 
 export default function AuthModal({ onClose, onSuccess }) {
@@ -161,6 +162,12 @@ export default function AuthModal({ onClose, onSuccess }) {
             </button>
           </form>
 
+          {/* Social Login Integration */}
+          <SocialLogin 
+            onSuccess={onSuccess}
+            onError={(err) => setError(err)}
+          />
+
           <div className="auth-toggle">
             {isSignUp ? (
               <p>
@@ -183,3 +190,6 @@ export default function AuthModal({ onClose, onSuccess }) {
     </div>
   );
 }
+
+
+

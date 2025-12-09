@@ -39,21 +39,21 @@ class TensorFlowService {
    */
   async initialize() {
     try {
-      console.log('Initializing TensorFlow.js...');
+      if(import.meta.env.DEV)console.log('Initializing TensorFlow.js...');
       
       // Wait for TensorFlow backend to be ready
       await tf.ready();
-      console.log('TensorFlow.js backend:', tf.getBackend());
+      if(import.meta.env.DEV)console.log('TensorFlow.js backend:', tf.getBackend());
       
       // Load pre-trained models
       // Note: These are placeholder URLs - replace with actual model URLs
       await this.loadActivityRecognitionModel();
       
       this.isInitialized = true;
-      console.log('TensorFlow service initialized successfully');
+      if(import.meta.env.DEV)console.log('TensorFlow service initialized successfully');
       return true;
     } catch (error) {
-      console.error('Failed to initialize TensorFlow:', error);
+      if(import.meta.env.DEV)console.error('Failed to initialize TensorFlow:', error);
       return false;
     }
   }
@@ -67,10 +67,10 @@ class TensorFlowService {
       // In production, you would load a pre-trained model:
       // this.activityModel = await tf.loadLayersModel('https://your-server.com/models/activity-recognition/model.json');
       
-      console.log('Activity recognition model ready (using rule-based system)');
+      if(import.meta.env.DEV)console.log('Activity recognition model ready (using rule-based system)');
       this.activityModel = 'rule-based'; // Placeholder
     } catch (error) {
-      console.error('Failed to load activity model:', error);
+      if(import.meta.env.DEV)console.error('Failed to load activity model:', error);
       throw error;
     }
   }
@@ -123,7 +123,7 @@ class TensorFlowService {
       
       return activity;
     } catch (error) {
-      console.error('Activity detection error:', error);
+      if(import.meta.env.DEV)console.error('Activity detection error:', error);
       return {
         activity: 'unknown',
         confidence: 0
@@ -365,3 +365,6 @@ class TensorFlowService {
 // Export singleton instance
 export const tensorflowService = new TensorFlowService();
 export default tensorflowService;
+
+
+

@@ -1,0 +1,9 @@
+{
+  "plugins": [
+    {
+      "id": "HealthConnect",
+      "pkg": "com.helio.wellness",
+      "classpath": "com.helio.wellness.HealthConnectPlugin"
+    }
+  ]
+}

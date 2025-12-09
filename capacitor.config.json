@@ -1,5 +1,25 @@
 {
   "appId": "com.helio.wellness",
   "appName": "Helio",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "cleartext": false,
+    "androidScheme": "https",
+    "allowedHostnames": [
+      "wellnessai-app-e01be-default-rtdb.europe-west1.firebasedatabase.app",
+      "googleapis.com",
+      "api.stripe.com",
+      "generativelanguage.googleapis.com"
+    ]
+  },
+  "plugins": {
+    "BackgroundRunner": {
+      "label": "com.helio.wellness.background",
+      "src": "background.js",
+      "event": "backgroundRunnerTask",
+      "repeat": true,
+      "interval": 1,
+      "autoStart": true
+    }
+  }
 }

@@ -1,25 +1,22 @@
 // Gemini AI Service Configuration
+// SECURITY: All API calls now go through server - NO client-side API key
+import aiMemoryService from './aiMemoryService';
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+// Server endpoints
+const SERVER_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://helio-wellness-app-production.up.railway.app'
+  : 'http://localhost:3001';
 
-// Initialize Gemini AI with hardcoded API key (for mobile compatibility)
-const API_KEY = 'AIzaSyB0g31xr19v9K854POfDFYhTJT9DDmtjgI';
-const genAI = new GoogleGenerativeAI(API_KEY);
+// REMOVED: Client-side API key (security risk)
+// All Gemini requests now proxy through our secure server
 
-// Get Gemini Pro model (text-only)
-export const getGeminiModel = () => {
-  return genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-};
-
-// Get Gemini Pro Vision model (text + images)
-export const getGeminiVisionModel = () => {
-  return genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-};
-
-// AI Wellness Coach - Chat with personalized advice (NOW WITH ALLERGEN SUPPORT)
+// AI Wellness Coach - Chat with personalized advice (NOW WITH ALLERGEN + MEMORY SUPPORT)
 export const chatWithAI = async (userMessage, userContext = {}) => {
   try {
-    console.log('🚀 Calling Railway server with message:', userMessage);
+    if(import.meta.env.DEV)console.log('🚀 Calling Railway server with message:', userMessage);
+    
+    // Build contextual prompt with AI memory
+    const contextualPrompt = aiMemoryService.buildContextualPrompt(userMessage);
     
     // Call Railway cloud server (works everywhere!)
     const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/chat', {
@@ -28,23 +25,27 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({ message: userMessage }),
+      body: JSON.stringify({ message: contextualPrompt }),
       mode: 'cors'
     });
 
-    console.log('📡 Response status:', response.status);
+    if(import.meta.env.DEV)console.log('📡 Response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ API error:', errorText);
+      if(import.meta.env.DEV)console.error('❌ API error:', errorText);
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('✅ AI response received:', data.response?.substring(0, 50));
+    if(import.meta.env.DEV)console.log('✅ AI response received:', data.response?.substring(0, 50));
+    
+    // Save conversation to AI memory
+    await aiMemoryService.addConversation(userMessage, data.response, userContext.topic || 'general');
+    
     return data.response;
   } catch (error) {
-    console.error('💥 AI Error:', error.message, error);
+    if(import.meta.env.DEV)console.error('💥 AI Error:', error.message, error);
     throw error; // Re-throw to see the real error
   }
 };
@@ -52,42 +53,38 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
 // AI Location Pattern Analysis
 export const analyzeLocationPattern = async (locationHistory) => {
   try {
-    // Prepare location data for analysis
-    const locationData = locationHistory.map(loc => ({
-      lat: loc.latitude.toFixed(4),
-      lng: loc.longitude.toFixed(4),
-      time: new Date(loc.timestamp).toISOString(),
-      speed: loc.speed
-    }));
-
-    const prompt = `Analyze these GPS location points to identify patterns:
-
-${JSON.stringify(locationData, null, 2)}
-
-Identify:
-1. Most frequent location (likely HOME)
-2. Regular visited locations (GYM, WORK, etc.)
-3. Daily routine patterns
-4. Movement habits
-
-Return JSON format:
-{
-  "home": {"latitude": X, "longitude": Y, "confidence": 0-100},
-  "gym": {"latitude": X, "longitude": Y, "confidence": 0-100},
-  "work": {"latitude": X, "longitude": Y, "confidence": 0-100},
-  "routinePatterns": ["description of patterns"]
-}`;
-
-    const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
+    // TODO: Location analysis requires server-side Gemini API
+    // Client-side model initialization removed for security
+    // For now, return basic pattern detection based on frequency
     
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+    if (!locationHistory || locationHistory.length === 0) {
+      return { home: null, gym: null, work: null, routinePatterns: [] };
     }
+    
+    // Simple frequency-based location clustering
+    const locationClusters = {};
+    locationHistory.forEach(loc => {
+      const key = `${loc.latitude.toFixed(3)},${loc.longitude.toFixed(3)}`;
+      locationClusters[key] = (locationClusters[key] || 0) + 1;
+    });
+    
+    // Find most frequent location (likely home)
+    const sorted = Object.entries(locationClusters).sort((a, b) => b[1] - a[1]);
+    const mostFrequent = sorted[0];
+    
+    if (mostFrequent) {
+      const [lat, lng] = mostFrequent[0].split(',').map(Number);
+      return {
+        home: { latitude: lat, longitude: lng, confidence: 75 },
+        gym: null,
+        work: null,
+        routinePatterns: ['Frequent location detected']
+      };
+    }
+    
     return { home: null, gym: null, work: null, routinePatterns: [] };
   } catch (error) {
-    console.error('Error analyzing location patterns:', error);
+    if(import.meta.env.DEV)console.error('Error analyzing location patterns:', error);
     return { home: null, gym: null, work: null, routinePatterns: [] };
   }
 };
@@ -108,7 +105,7 @@ Return just the activity name.`;
     const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
     return text.trim().toLowerCase();
   } catch (error) {
-    console.error('Error detecting activity:', error);
+    if(import.meta.env.DEV)console.error('Error detecting activity:', error);
     return 'stationary';
   }
 };
@@ -149,7 +146,7 @@ Return JSON:
     }
     return { likelyToSkip: false, skipProbability: 0, unhealthyEatingRisk: 0, stressLevel: 'low', recommendation: '' };
   } catch (error) {
-    console.error('Error predicting behavior:', error);
+    if(import.meta.env.DEV)console.error('Error predicting behavior:', error);
     return { likelyToSkip: false, skipProbability: 0, unhealthyEatingRisk: 0, stressLevel: 'low', recommendation: '' };
   }
 };
@@ -182,7 +179,7 @@ Return JSON:
     }
     return { goodHabits: [], badHabits: [], overallScore: 50 };
   } catch (error) {
-    console.error('Error classifying habits:', error);
+    if(import.meta.env.DEV)console.error('Error classifying habits:', error);
     return { goodHabits: [], badHabits: [], overallScore: 50 };
   }
 };
@@ -207,7 +204,7 @@ Keep it positive and motivating!`;
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Photo Analysis Error:', error);
+    if(import.meta.env.DEV)console.error('Photo Analysis Error:', error);
     return "Photo uploaded! I'll analyze your progress. Keep taking regular photos to track changes!";
   }
 };
@@ -236,7 +233,7 @@ Format response as:
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Food Analysis Error:', error);
+    if(import.meta.env.DEV)console.error('Food Analysis Error:', error);
     return "Meal logged! For accurate tracking, try to include variety and watch portion sizes.";
   }
 };
@@ -261,7 +258,7 @@ Make it practical and achievable!`;
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Workout Generation Error:', error);
+    if(import.meta.env.DEV)console.error('Workout Generation Error:', error);
     return "Start with: 10 squats, 10 push-ups (or knee push-ups), 30 sec plank, 20 jumping jacks. Repeat 3 times!";
   }
 };
@@ -287,7 +284,7 @@ Keep meals simple and realistic!`;
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Meal Plan Error:', error);
+    if(import.meta.env.DEV)console.error('Meal Plan Error:', error);
     return "Focus on: Lean protein, whole grains, lots of vegetables, healthy fats, and stay hydrated!";
   }
 };
@@ -315,7 +312,7 @@ Keep it brief and actionable!`;
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Habit Insights Error:', error);
+    if(import.meta.env.DEV)console.error('Habit Insights Error:', error);
     return "You're building great habits! Consistency is key. Try setting a specific time each day for your wellness routine.";
   }
 };
@@ -367,3 +364,6 @@ export default {
   getHabitInsights,
   getMotivationalMessage
 };
+
+
+

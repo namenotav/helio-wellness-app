@@ -9,3 +9,6 @@ export const checkoutMonthly = () => {
 export const checkoutYearly = () => {
   window.location.href = 'https://buy.stripe.com/4gMeVc4f52060wo7Yk6kg01';
 };
+
+
+

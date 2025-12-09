@@ -24,6 +24,7 @@
   overflow-y: auto;
   padding: 40px;
   animation: slideUp 0.4s ease;
+  position: relative;
 }
 
 .profile-setup h2 {
@@ -345,6 +346,128 @@
 .step-buttons .back-btn,
 .step-buttons .next-btn {
   flex: 1;
+}
+
+/* Medical History Styles */
+.condition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.condition-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.condition-card.selected {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: #FF4444;
+}
+
+.condition-icon {
+  font-size: 28px;
+}
+
+.condition-name {
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.medications-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  margin: 10px 0;
+  resize: vertical;
+}
+
+.medications-input:focus {
+  outline: none;
+  border-color: #44FF44;
+}
+
+.family-history-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.family-history-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+  color: white;
+  font-size: 13px;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.family-history-btn.selected {
+  background: rgba(255, 165, 0, 0.2);
+  border-color: #FFA500;
+}
+
+.subtitle-small {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 5px 0 10px 0;
+}
+
+/* Completion Summary */
+.completion-summary {
+  background: linear-gradient(135deg, rgba(68, 255, 68, 0.1), rgba(68, 255, 255, 0.1));
+  border: 2px solid rgba(68, 255, 68, 0.3);
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.completion-summary h4 {
+  margin: 0 0 10px 0;
+  color: #44FF44;
+  font-size: 18px;
+}
+
+.completion-summary p {
+  margin: 10px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+}
+
+.completion-summary ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+
+.completion-summary li {
+  padding: 8px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.completion-summary li:last-child {
+  border-bottom: none;
 }
 
 /* Animations */

@@ -63,7 +63,7 @@ Return as JSON array:
       return { success: false, error: 'Failed to parse recipes' };
 
     } catch (error) {
-      console.error('Recipe generation error:', error);
+      if(import.meta.env.DEV)console.error('Recipe generation error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -110,7 +110,7 @@ Return as JSON array.`;
       return { success: false, error: 'Failed to parse restaurants' };
 
     } catch (error) {
-      console.error('Restaurant search error:', error);
+      if(import.meta.env.DEV)console.error('Restaurant search error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -158,7 +158,7 @@ Return as JSON array.`;
       return { success: false, error: 'Failed to parse alternatives' };
 
     } catch (error) {
-      console.error('Alternatives search error:', error);
+      if(import.meta.env.DEV)console.error('Alternatives search error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -221,7 +221,7 @@ Return as JSON:
       return { success: false, error: 'Failed to parse meal plan' };
 
     } catch (error) {
-      console.error('Meal plan error:', error);
+      if(import.meta.env.DEV)console.error('Meal plan error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -276,7 +276,7 @@ Return as JSON:
       return { success: false, error: 'Failed to parse guidance' };
 
     } catch (error) {
-      console.error('Nutrition guidance error:', error);
+      if(import.meta.env.DEV)console.error('Nutrition guidance error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -318,7 +318,7 @@ Return as JSON array of strings: ["snack1", "snack2", ...]`;
       return { success: false, error: 'Failed to parse snacks' };
 
     } catch (error) {
-      console.error('Snacks error:', error);
+      if(import.meta.env.DEV)console.error('Snacks error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -326,3 +326,6 @@ Return as JSON array of strings: ["snack1", "snack2", ...]`;
 
 export const recommendationService = new RecommendationService();
 export default recommendationService;
+
+
+

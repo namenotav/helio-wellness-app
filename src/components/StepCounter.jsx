@@ -54,7 +54,7 @@ export default function StepCounter() {
 
   const updateHealthData = () => {
     const summary = nativeHealthService.getHealthSummary();
-    console.log('🔄 Updating UI with:', summary);
+    if(import.meta.env.DEV)console.log('🔄 Updating UI with:', summary);
     setHealthData(summary);
   };
 
@@ -75,7 +75,7 @@ export default function StepCounter() {
     const info = nativeHealthService.getDiagnosticInfo();
     setDiagnosticInfo(info);
     setShowDiagnostics(true);
-    console.log('🔍 Diagnostics:', info);
+    if(import.meta.env.DEV)console.log('🔍 Diagnostics:', info);
   };
   
   const addTestSteps = () => {
@@ -231,3 +231,6 @@ export default function StepCounter() {
     </div>
   );
 }
+
+
+

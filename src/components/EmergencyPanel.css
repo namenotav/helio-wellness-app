@@ -50,11 +50,78 @@
 .emergency-title {
   text-align: center;
   font-size: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   background: linear-gradient(90deg, #FF4444, #FF0000);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.emergency-disclaimer {
+  color: #FFB84D;
+  font-size: 11px;
+  text-align: center;
+  margin: -5px 0 20px 0;
+  padding: 8px 12px;
+  background: rgba(255, 184, 77, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 184, 77, 0.3);
+  line-height: 1.4;
+}
+
+.fall-detection-section {
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(255, 152, 77, 0.1);
+  border: 2px solid rgba(255, 152, 77, 0.3);
+  border-radius: 12px;
+}
+
+.fall-detection-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fall-icon {
+  font-size: 32px;
+}
+
+.fall-info {
+  flex: 1;
+}
+
+.fall-info h3 {
+  color: #FF984D;
+  font-size: 16px;
+  margin: 0 0 4px 0;
+}
+
+.fall-description {
+  color: #999;
+  font-size: 12px;
+  margin: 0;
+}
+
+.toggle-fall-detection {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-fall-detection.active {
+  background: #44FF44;
+  border-color: #44FF44;
+  color: black;
+}
+
+.toggle-fall-detection:hover {
+  transform: scale(1.05);
 }
 
 /* Monitoring Status */
@@ -125,6 +192,95 @@
 
 .toggle-monitoring:hover {
   transform: scale(1.05);
+}
+
+/* GPS Location Status */
+.location-status {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.location-status.tracking {
+  background: rgba(68, 255, 68, 0.1);
+  border-color: #44FF44;
+}
+
+.location-status.inactive {
+  background: rgba(255, 165, 0, 0.1);
+  border-color: #FFA500;
+}
+
+.location-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.location-icon {
+  font-size: 20px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.location-status.tracking .location-icon {
+  color: #44FF44;
+}
+
+.location-details {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.location-coord,
+.location-accuracy,
+.location-time {
+  margin: 8px 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.location-coord strong,
+.location-accuracy strong,
+.location-time strong {
+  color: #44FF44;
+  margin-right: 8px;
+}
+
+.share-location-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+.share-location-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+}
+
+.share-location-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.share-location-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Emergency Trigger */
@@ -457,4 +613,105 @@
 
 .emergency-modal::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 0, 0, 0.7);
+}
+
+/* Fall Alert Dialog */
+.fall-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  animation: fadeIn 0.3s ease;
+}
+
+.fall-alert-dialog {
+  background: linear-gradient(145deg, #ff3333, #cc0000);
+  border: 3px solid #ff6666;
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(255, 0, 0, 0.6);
+  animation: slideUp 0.4s ease;
+}
+
+.fall-alert-title {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.fall-alert-message {
+  color: white;
+  font-size: 18px;
+  margin-bottom: 25px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.fall-alert-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fall-alert-btn {
+  padding: 18px;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ok-btn {
+  background: linear-gradient(145deg, #44ff44, #00cc00);
+  color: #003300;
+}
+
+.ok-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(68, 255, 68, 0.6);
+}
+
+.contact-btn {
+  background: linear-gradient(145deg, #ffaa00, #ff8800);
+  color: white;
+}
+
+.contact-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(255, 170, 0, 0.6);
+}
+
+.emergency-btn {
+  background: linear-gradient(145deg, #ffffff, #eeeeee);
+  color: #cc0000;
+  border: 2px solid #ff0000;
+}
+
+.emergency-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(255, 255, 255, 0.6);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

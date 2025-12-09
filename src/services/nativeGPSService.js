@@ -26,7 +26,7 @@ export const getCurrentPosition = async () => {
       timestamp: position.timestamp
     };
   } catch (error) {
-    console.error('GPS error:', error);
+    if(import.meta.env.DEV)console.error('GPS error:', error);
     throw error;
   }
 };
@@ -41,7 +41,7 @@ export const startGPSTracking = async (callback) => {
       maximumAge: 0
     }, (position, err) => {
       if (err) {
-        console.error('GPS tracking error:', err);
+        if(import.meta.env.DEV)console.error('GPS tracking error:', err);
         return;
       }
       
@@ -57,7 +57,7 @@ export const startGPSTracking = async (callback) => {
     
     return watchId;
   } catch (error) {
-    console.error('GPS tracking start error:', error);
+    if(import.meta.env.DEV)console.error('GPS tracking start error:', error);
     throw error;
   }
 };
@@ -117,7 +117,7 @@ export const startMotionTracking = async (callback) => {
       });
     });
   } catch (error) {
-    console.error('Motion tracking error:', error);
+    if(import.meta.env.DEV)console.error('Motion tracking error:', error);
   }
 };
 
@@ -143,3 +143,6 @@ ${routePoints.map(point => `      <trkpt lat="${point.latitude}" lon="${point.lo
   
   return gpx;
 };
+
+
+

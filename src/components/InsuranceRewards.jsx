@@ -9,9 +9,10 @@ export default function InsuranceRewards({ onClose }) {
   const [applying, setApplying] = useState(false);
 
   const partners = [
-    { id: 'healthfirst', name: 'HealthFirst Insurance', maxDiscount: 40, color: '#44FF44' },
-    { id: 'wellness', name: 'Wellness Partners Inc', maxDiscount: 35, color: '#00FFFF' },
-    { id: 'fitlife', name: 'FitLife Insurance', maxDiscount: 30, color: '#FF00FF' }
+    { id: 'bupa', name: 'Bupa Health Insurance', maxDiscount: 40, color: '#44FF44', logo: '🏥' },
+    { id: 'vitality', name: 'Vitality Health', maxDiscount: 35, color: '#00FFFF', logo: '💚' },
+    { id: 'axa', name: 'AXA Health', maxDiscount: 30, color: '#FF00FF', logo: '🛡️' },
+    { id: 'aviva', name: 'Aviva Health', maxDiscount: 25, color: '#FFD700', logo: '⭐' }
   ];
 
   useEffect(() => {
@@ -161,3 +162,6 @@ export default function InsuranceRewards({ onClose }) {
     </div>
   );
 }
+
+
+

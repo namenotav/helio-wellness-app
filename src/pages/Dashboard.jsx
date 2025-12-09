@@ -526,11 +526,11 @@ function AICoachTab() {
     if (isNative) {
       // Use Capacitor native speech recognition on mobile
       try {
-        console.log('🎤 Starting native speech recognition...')
+        if(import.meta.env.DEV)console.log('🎤 Starting native speech recognition...')
         
         // Check if speech recognition is available
         const available = await SpeechRecognition.available()
-        console.log('Speech recognition available:', available)
+        if(import.meta.env.DEV)console.log('Speech recognition available:', available)
         
         if (!available.available) {
           alert('Speech recognition is not available on this device.')
@@ -539,7 +539,7 @@ function AICoachTab() {
         
         // Check and request permissions
         const permStatus = await SpeechRecognition.requestPermissions()
-        console.log('Permission status:', permStatus)
+        if(import.meta.env.DEV)console.log('Permission status:', permStatus)
         
         if (permStatus.speechRecognition !== 'granted') {
           alert('Microphone permission is required for voice input.')
@@ -561,14 +561,14 @@ function AICoachTab() {
           popup: false  // Use app's UI instead of Google's dialog
         })
         
-        console.log('✅ Speech recognition result:', result)
+        if(import.meta.env.DEV)console.log('✅ Speech recognition result:', result)
         
         setIsListening(false)
         setMessages(prev => prev.filter(m => m.type !== 'system'))
         
         if (result && result.matches && result.matches.length > 0) {
           const transcript = result.matches[0]
-          console.log('✅ Transcribed text:', transcript)
+          if(import.meta.env.DEV)console.log('✅ Transcribed text:', transcript)
           
           // Auto-send the transcribed message
           setMessages(prev => [...prev, { type: 'user', text: transcript }])
@@ -591,18 +591,18 @@ function AICoachTab() {
             }])
             speakResponse(aiResponse)
           } catch (error) {
-            console.error('❌ AI Error:', error)
+            if(import.meta.env.DEV)console.error('❌ AI Error:', error)
             const errorMsg = 'I\'m having trouble connecting. Please check your API key and try again!'
             setMessages(prev => [...prev, { type: 'ai', text: errorMsg }])
           } finally {
             setIsLoading(false)
           }
         } else {
-          console.log('⚠️ No speech detected')
+          if(import.meta.env.DEV)console.log('⚠️ No speech detected')
         }
         
       } catch (error) {
-        console.error('❌ Native speech recognition error:', error)
+        if(import.meta.env.DEV)console.error('❌ Native speech recognition error:', error)
         setIsListening(false)
         setMessages(prev => prev.filter(m => m.type !== 'system'))
         
@@ -622,9 +622,9 @@ function AICoachTab() {
 
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true })
-        console.log('✅ Microphone permission granted')
+        if(import.meta.env.DEV)console.log('✅ Microphone permission granted')
       } catch (error) {
-        console.error('❌ Microphone permission denied:', error)
+        if(import.meta.env.DEV)console.error('❌ Microphone permission denied:', error)
         alert('Microphone access is required for voice input.')
         return
       }
@@ -639,7 +639,7 @@ function AICoachTab() {
       let finalTranscript = ''
 
       recognition.onstart = () => {
-        console.log('🎤 Web speech recognition started')
+        if(import.meta.env.DEV)console.log('🎤 Web speech recognition started')
         setIsListening(true)
         setMessages(prev => [...prev, { 
           type: 'system', 
@@ -648,7 +648,7 @@ function AICoachTab() {
       }
       
       recognition.onend = () => {
-        console.log('🛑 Speech recognition ended')
+        if(import.meta.env.DEV)console.log('🛑 Speech recognition ended')
         setIsListening(false)
         setMessages(prev => prev.filter(m => m.type !== 'system'))
         
@@ -658,7 +658,7 @@ function AICoachTab() {
       }
       
       recognition.onresult = (event) => {
-        console.log('📥 Results received')
+        if(import.meta.env.DEV)console.log('📥 Results received')
         let interimTranscript = ''
         
         for (let i = 0; i < event.results.length; i++) {
@@ -667,10 +667,10 @@ function AICoachTab() {
           
           if (result.isFinal) {
             finalTranscript += transcript
-            console.log('✅ Final transcript:', transcript)
+            if(import.meta.env.DEV)console.log('✅ Final transcript:', transcript)
           } else {
             interimTranscript += transcript
-            console.log('⏳ Interim transcript:', transcript)
+            if(import.meta.env.DEV)console.log('⏳ Interim transcript:', transcript)
           }
         }
         
@@ -680,7 +680,7 @@ function AICoachTab() {
       const processWebTranscript = async (transcript) => {
         if (!transcript.trim()) return
         
-        console.log('✅ Processing transcript:', transcript)
+        if(import.meta.env.DEV)console.log('✅ Processing transcript:', transcript)
         setMessages(prev => [...prev, { type: 'user', text: transcript }])
         setIsLoading(true)
         setUserInput('')
@@ -701,7 +701,7 @@ function AICoachTab() {
           }])
           speakResponse(aiResponse)
         } catch (error) {
-          console.error('❌ AI Error:', error)
+          if(import.meta.env.DEV)console.error('❌ AI Error:', error)
           const errorMsg = 'I\'m having trouble connecting. Please check your API key and try again!'
           setMessages(prev => [...prev, { type: 'ai', text: errorMsg }])
         } finally {
@@ -710,7 +710,7 @@ function AICoachTab() {
       }
 
       recognition.onerror = (event) => {
-        console.error('❌ Speech recognition error:', event.error)
+        if(import.meta.env.DEV)console.error('❌ Speech recognition error:', event.error)
         setIsListening(false)
         setMessages(prev => prev.filter(m => m.type !== 'system'))
         
@@ -726,7 +726,7 @@ function AICoachTab() {
       try {
         recognition.start()
       } catch (error) {
-        console.error('Failed to start recognition:', error)
+        if(import.meta.env.DEV)console.error('Failed to start recognition:', error)
         alert('Failed to start voice input. Please try again.')
         setIsListening(false)
       }
@@ -749,7 +749,7 @@ function AICoachTab() {
           category: 'ambient'
         })
       } catch (error) {
-        console.error('TTS error:', error)
+        if(import.meta.env.DEV)console.error('TTS error:', error)
       }
     } else {
       // Use Web Speech API on desktop/web
@@ -1411,3 +1411,6 @@ function RemindersTab() {
     </div>
   )
 }
+
+
+

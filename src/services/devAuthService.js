@@ -6,13 +6,20 @@ import { Capacitor } from '@capacitor/core';
 
 class DevAuthService {
   constructor() {
-    // Your device's unique identifier will be set on first launch
-    this.authorizedDeviceId = null;
+    // LOCKED: Multiple authorized devices for development
+    this.authorizedDeviceIds = [
+      '85e89dbedd0cda70',  // ACTUAL OPPO CPH2551 device ID
+      'a8f5d227622e766f',  // Backup device ID
+      'CPH2551',            // OPPO device model
+      'OPPO CPH2551',       // Full device name
+      'cph2551',            // Lowercase variant
+      'oppo cph2551',       // Lowercase full name
+    ];
     
-    // Developer password (change this to your preferred password)
+    // Developer password
     this.devPassword = 'helio2025dev';
     
-    // Developer mode state
+    // Developer mode state - starts disabled
     this.isDevMode = false;
     
     // Storage key
@@ -24,46 +31,56 @@ class DevAuthService {
    */
   async initialize() {
     try {
+      if(import.meta.env.DEV)console.log('🚀 DevAuth: Starting initialization...');
+      if(import.meta.env.DEV)console.log('🌐 Platform:', Capacitor.getPlatform());
+      if(import.meta.env.DEV)console.log('📱 Is Native?', Capacitor.isNativePlatform());
+      
       if (!Capacitor.isNativePlatform()) {
-        // On web, always enable dev mode for testing
-        this.isDevMode = true;
-        return true;
+        // On web, BLOCK dev mode for security (production safety)
+        this.isDevMode = false;
+        if(import.meta.env.DEV)console.log('❌ Web platform - Developer mode BLOCKED for security');
+        if(import.meta.env.DEV)console.warn('🔒 WEB BLOCKED: Only native devices can access dev mode');
+        return false; // CHANGED: Block web access
       }
 
       // Get device info
       const deviceInfo = await Device.getId();
       const deviceId = deviceInfo.identifier;
 
-      console.log('Device ID:', deviceId);
+      if(import.meta.env.DEV)console.log('🔐 Device ID:', deviceId);
+      if(import.meta.env.DEV)console.log('🔑 Authorized Device IDs:', this.authorizedDeviceIds);
 
-      // First time setup: set this device as authorized
-      if (!this.authorizedDeviceId) {
-        // Store the first device ID that runs this
-        const stored = localStorage.getItem('authorized_device_id');
-        if (stored) {
-          this.authorizedDeviceId = stored;
-        } else {
-          // First launch - this is YOUR device
-          this.authorizedDeviceId = deviceId;
-          localStorage.setItem('authorized_device_id', deviceId);
-          console.log('Authorized device registered:', deviceId);
-        }
+      // SECURITY: Check if device is in authorized list
+      const isAuthorized = this.authorizedDeviceIds.some(authId => {
+        const match = deviceId.includes(authId) || authId.includes(deviceId);
+        if(import.meta.env.DEV)console.log(`   Checking ${authId}: ${match ? '✅ MATCH' : '❌ no match'}`);
+        return match;
+      });
+
+      if(import.meta.env.DEV)console.log('🎯 Authorization result:', isAuthorized ? '✅ AUTHORIZED' : '❌ BLOCKED');
+
+      if (!isAuthorized) {
+        this.isDevMode = false;
+        if(import.meta.env.DEV)console.log('❌ Unauthorized device - Developer mode BLOCKED');
+        if(import.meta.env.DEV)console.log('💡 Add this device ID to authorizedDeviceIds:', deviceId);
+        return false;
       }
 
-      // Check if this is the authorized device
-      const isAuthorizedDevice = deviceId === this.authorizedDeviceId;
-
-      // Check if dev mode was previously unlocked
+      // Check if dev mode was previously unlocked with password
       const savedDevMode = localStorage.getItem(this.storageKey);
-      if (savedDevMode === 'true' && isAuthorizedDevice) {
+      if(import.meta.env.DEV)console.log('💾 Saved dev mode state:', savedDevMode);
+      
+      if (savedDevMode === 'true') {
         this.isDevMode = true;
-        console.log('Developer mode restored from storage');
+        if(import.meta.env.DEV)console.log('✅ Developer mode restored (authorized device)');
         return true;
       }
 
-      return isAuthorizedDevice;
+      // Device is authorized but needs password unlock
+      if(import.meta.env.DEV)console.log('🔒 Authorized device detected - password required for dev mode');
+      return true; // Device is authorized, but dev mode needs password
     } catch (error) {
-      console.error('DevAuth initialization error:', error);
+      if(import.meta.env.DEV)console.error('DevAuth initialization error:', error);
       return false;
     }
   }
@@ -74,15 +91,39 @@ class DevAuthService {
   async isAuthorizedDevice() {
     try {
       if (!Capacitor.isNativePlatform()) {
-        return true; // Web always authorized for testing
+        if(import.meta.env.DEV)console.log('🌐 Web platform - BLOCKED for security');
+        return false; // Block web access for security
       }
 
       const deviceInfo = await Device.getId();
-      const deviceId = deviceInfo.identifier;
+      const deviceId = deviceInfo.identifier || deviceInfo.uuid;
+      const deviceIdLower = (deviceId || '').toLowerCase();
 
-      return deviceId === this.authorizedDeviceId;
+      if(import.meta.env.DEV)console.log('🔍 Full device info:', deviceInfo);
+      if(import.meta.env.DEV)console.log('🔍 Checking authorization for device:', deviceId);
+      if(import.meta.env.DEV)console.log('🔍 Device ID (lowercase):', deviceIdLower);
+      if(import.meta.env.DEV)console.log('🔑 Authorized IDs:', this.authorizedDeviceIds);
+
+      const isAuthorized = this.authorizedDeviceIds.some(authId => {
+        const authIdLower = authId.toLowerCase();
+        const matches = deviceIdLower.includes(authIdLower) || authIdLower.includes(deviceIdLower);
+        if(import.meta.env.DEV)console.log(`🔍 Comparing "${deviceIdLower}" with "${authIdLower}": ${matches}`);
+        if (matches) {
+          if(import.meta.env.DEV)console.log('✅ MATCH FOUND:', authId);
+        }
+        return matches;
+      });
+
+      if(import.meta.env.DEV)console.log('🔐 Authorization result:', isAuthorized);
+      
+      // TEMPORARY: If no match, show what to add
+      if (!isAuthorized) {
+        if(import.meta.env.DEV)console.error('❌ NO MATCH - Add this to authorized IDs:', deviceId);
+      }
+      
+      return isAuthorized;
     } catch (error) {
-      console.error('Device check error:', error);
+      if(import.meta.env.DEV)console.error('Device check error:', error);
       return false;
     }
   }
@@ -92,35 +133,47 @@ class DevAuthService {
    */
   async unlockDevMode(password) {
     try {
+      if(import.meta.env.DEV)console.log('🔓 Attempting to unlock dev mode...');
+      
+      // Get device info for logging
+      if (Capacitor.isNativePlatform()) {
+        const deviceInfo = await Device.getId();
+        if(import.meta.env.DEV)console.log('📱 Current device ID:', deviceInfo.identifier);
+      }
+      
       // Check if this is authorized device first
       const isAuthorized = await this.isAuthorizedDevice();
       
       if (!isAuthorized) {
+        if(import.meta.env.DEV)console.log('❌ Device not authorized');
         return {
           success: false,
-          message: 'Unauthorized device'
+          message: 'Unauthorized device - Check console for device ID'
         };
       }
+
+      if(import.meta.env.DEV)console.log('✅ Device authorized, checking password...');
 
       // Verify password
       if (password === this.devPassword) {
         this.isDevMode = true;
         localStorage.setItem(this.storageKey, 'true');
         
-        console.log('Developer mode unlocked!');
+        if(import.meta.env.DEV)console.log('✅ Password correct - Developer mode unlocked!');
         
         return {
           success: true,
           message: 'Developer mode enabled'
         };
       } else {
+        if(import.meta.env.DEV)console.log('❌ Password incorrect');
         return {
           success: false,
           message: 'Incorrect password'
         };
       }
     } catch (error) {
-      console.error('Unlock error:', error);
+      if(import.meta.env.DEV)console.error('Unlock error:', error);
       return {
         success: false,
         message: 'Authentication failed'
@@ -134,7 +187,7 @@ class DevAuthService {
   lockDevMode() {
     this.isDevMode = false;
     localStorage.removeItem(this.storageKey);
-    console.log('Developer mode locked');
+    if(import.meta.env.DEV)console.log('Developer mode locked');
   }
 
   /**
@@ -158,7 +211,7 @@ class DevAuthService {
         isAuthorized: await this.isAuthorizedDevice()
       };
     } catch (error) {
-      console.error('Device info error:', error);
+      if(import.meta.env.DEV)console.error('Device info error:', error);
       return null;
     }
   }
@@ -169,7 +222,7 @@ class DevAuthService {
   changePassword(oldPassword, newPassword) {
     if (oldPassword === this.devPassword) {
       this.devPassword = newPassword;
-      console.log('Developer password changed');
+      if(import.meta.env.DEV)console.log('Developer password changed');
       return true;
     }
     return false;
@@ -183,10 +236,13 @@ class DevAuthService {
     localStorage.removeItem(this.storageKey);
     this.authorizedDeviceId = null;
     this.isDevMode = false;
-    console.log('Authorization reset');
+    if(import.meta.env.DEV)console.log('Authorization reset');
   }
 }
 
 // Export singleton instance
 export const devAuthService = new DevAuthService();
 export default devAuthService;
+
+
+

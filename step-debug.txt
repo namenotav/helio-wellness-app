@@ -1,0 +1,6 @@
+﻿console.log('=== STEP COUNTER DEBUG ===')
+console.log('Current Step Baseline:', localStorage.getItem('stepBaseline'))
+console.log('Baseline Date:', localStorage.getItem('stepBaselineDate'))
+console.log('Today Date:', new Date().toISOString().split('T')[0])
+console.log('Weekly Steps:', localStorage.getItem('weeklySteps'))
+console.log('=========================')

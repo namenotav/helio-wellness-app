@@ -135,13 +135,21 @@ npx cap open ios
 
 ## 🔑 Environment Variables
 
+⚠️ **SECURITY WARNING:** Never commit real API keys to Git!
+
 Create `.env` file with:
 ```env
-VITE_GEMINI_API_KEY=AIzaSyCKyEoqo9pdsZ6b1nZxuQ6v7gEEJR7QUVY
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51SNC8tD2EDcoPFLNnFfzg3Zj5JdphAYlTEm4ih6XaLjdKKoLjOfGabS3q8AXWe4oove490TgcobslOgYAEUjsFEu00LffkKXy0
-VITE_STRIPE_MONTHLY_PRICE_ID=price_1SWmLpD2EDcoPFLN71TSxHKL
-VITE_STRIPE_YEARLY_PRICE_ID=price_1SWmMjD2EDcoPFLNjnlXLQn4
+VITE_GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
+VITE_STRIPE_PUBLISHABLE_KEY=YOUR_STRIPE_PUBLISHABLE_KEY_HERE
+VITE_STRIPE_MONTHLY_PRICE_ID=YOUR_MONTHLY_PRICE_ID_HERE
+VITE_STRIPE_YEARLY_PRICE_ID=YOUR_YEARLY_PRICE_ID_HERE
 ```
+
+Get your API keys from:
+- **Gemini:** https://aistudio.google.com/app/apikey
+- **Stripe:** https://dashboard.stripe.com/apikeys
+
+📖 See `SECURITY-SETUP.md` for complete security guide
 
 ## 📱 Testing
 

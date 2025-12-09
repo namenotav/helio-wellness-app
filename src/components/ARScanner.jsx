@@ -11,11 +11,22 @@ export default function ARScanner({ onClose }) {
   const handleStartScan = async () => {
     setScanning(true);
     try {
+      if(import.meta.env.DEV)console.log('🚀 Starting AR scan...');
       const result = await arScannerService.startARMode();
-      setCapturedImage(result.imageData);
-      setArOverlay(result.arOverlay);
+      if(import.meta.env.DEV)console.log('📥 AR scan result:', result);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'AR scan failed');
+      }
+      
+      setCapturedImage(`data:image/jpeg;base64,${result.imageData}`);
+      setArOverlay({
+        ...result.overlayData,
+        databaseMatches: result.databaseMatches || [] // Store database results
+      });
+      if(import.meta.env.DEV)console.log('✅ AR overlay set with database matches:', result.overlayData);
     } catch (error) {
-      console.error('AR scan error:', error);
+      if(import.meta.env.DEV)console.error('❌ AR scan error:', error);
       alert('Failed to start AR scan: ' + error.message);
     }
     setScanning(false);
@@ -48,92 +59,90 @@ export default function ARScanner({ onClose }) {
           </div>
         ) : (
           <div className="ar-view">
-            {/* Camera Feed with AR Overlay */}
+            {/* Camera Feed - ONLY food name overlay */}
             <div className="ar-camera-feed">
               <img src={capturedImage} alt="Scanned food" className="ar-image" />
               
-              {arOverlay && (
-                <>
-                  {/* Main Info (Top Center) */}
-                  {arOverlay.mainInfo && (
-                    <div 
-                      className="ar-main-info"
-                      style={{ color: arOverlay.mainInfo.color }}
-                    >
-                      <div className="ar-food-name">{arOverlay.mainInfo.foodName}</div>
-                      <div className="ar-calories">{arOverlay.mainInfo.calories} cal</div>
-                    </div>
-                  )}
-
-                  {/* Allergen Zones (Red Overlays) */}
-                  {arOverlay.allergenZones && arOverlay.allergenZones.map((zone, idx) => (
-                    <div
-                      key={idx}
-                      className="ar-allergen-zone"
-                      style={{
-                        top: zone.position.y,
-                        left: zone.position.x,
-                        borderColor: zone.color,
-                        opacity: zone.intensity,
-                        animationDelay: `${idx * 0.2}s`
-                      }}
-                    >
-                      <span className="allergen-label">⚠️ {zone.allergen}</span>
-                    </div>
-                  ))}
-
-                  {/* Portion Guide (Circle) */}
-                  {arOverlay.portionGuide && (
-                    <div 
-                      className="ar-portion-guide"
-                      style={{
-                        width: arOverlay.portionGuide.diameter,
-                        height: arOverlay.portionGuide.diameter,
-                        borderColor: arOverlay.portionGuide.color,
-                        opacity: arOverlay.portionGuide.opacity
-                      }}
-                    >
-                      <span className="portion-label">{arOverlay.portionGuide.label}</span>
-                    </div>
-                  )}
-
-                  {/* Nutrition Panel (Right Side) */}
-                  {arOverlay.nutritionPanel && (
-                    <div className="ar-nutrition-panel">
-                      <div className="nutrition-item">
-                        <span className="nutrition-icon">💪</span>
-                        <span className="nutrition-value">{arOverlay.nutritionPanel.protein}</span>
-                        <span className="nutrition-label">Protein</span>
-                      </div>
-                      <div className="nutrition-item">
-                        <span className="nutrition-icon">🍞</span>
-                        <span className="nutrition-value">{arOverlay.nutritionPanel.carbs}</span>
-                        <span className="nutrition-label">Carbs</span>
-                      </div>
-                      <div className="nutrition-item">
-                        <span className="nutrition-icon">🥑</span>
-                        <span className="nutrition-value">{arOverlay.nutritionPanel.fat}</span>
-                        <span className="nutrition-label">Fat</span>
-                      </div>
-                      <div className="nutrition-item">
-                        <span className="nutrition-icon">🌾</span>
-                        <span className="nutrition-value">{arOverlay.nutritionPanel.fiber}</span>
-                        <span className="nutrition-label">Fiber</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Safety Banner (Bottom) */}
-                  {arOverlay.safetyBanner && (
-                    <div 
-                      className={`ar-safety-banner ${arOverlay.safetyBanner.level} ${arOverlay.safetyBanner.animated ? 'animated' : ''}`}
-                    >
-                      {arOverlay.safetyBanner.message}
-                    </div>
-                  )}
-                </>
+              {arOverlay && arOverlay.mainInfo && (
+                <div className="ar-food-label">
+                  {arOverlay.mainInfo.foodName}
+                </div>
               )}
             </div>
+
+            {/* ALL INFO BELOW IMAGE */}
+            {arOverlay && (
+              <div className="ar-info-panel">
+                {/* Database Match Badge */}
+                {arOverlay.mainInfo && arOverlay.mainInfo.databaseMatch && (
+                  <div style={{fontSize: '12px', color: '#0284c7', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                    ✓ Verified from {arOverlay.mainInfo.source}
+                  </div>
+                )}
+                
+                {/* Calories */}
+                {arOverlay.mainInfo && (
+                  <div className="info-calories">
+                    🔥 {arOverlay.mainInfo.calories} Calories
+                    {arOverlay.mainInfo.protein > 0 && (
+                      <span style={{fontSize: '13px', marginLeft: '10px', color: '#666'}}>
+                        💪 {arOverlay.mainInfo.protein}g | 🍞 {arOverlay.mainInfo.carbs}g | 🥑 {arOverlay.mainInfo.fats}g
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Nutrition Grid */}
+                {arOverlay.nutritionPanel && (
+                  <div className="info-nutrition-grid">
+                    <div className="nutrition-card">
+                      <div className="nutrition-icon">💪</div>
+                      <div className="nutrition-value">{arOverlay.nutritionPanel.protein}</div>
+                      <div className="nutrition-label">Protein</div>
+                    </div>
+                    <div className="nutrition-card">
+                      <div className="nutrition-icon">🍞</div>
+                      <div className="nutrition-value">{arOverlay.nutritionPanel.carbs}</div>
+                      <div className="nutrition-label">Carbs</div>
+                    </div>
+                    <div className="nutrition-card">
+                      <div className="nutrition-icon">🥑</div>
+                      <div className="nutrition-value">{arOverlay.nutritionPanel.fat}</div>
+                      <div className="nutrition-label">Fat</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Database Matches */}
+                {arOverlay.databaseMatches && arOverlay.databaseMatches.length > 1 && (
+                  <details style={{marginTop: '10px', fontSize: '13px', background: '#f0f9ff', padding: '10px', borderRadius: '8px'}}>
+                    <summary style={{cursor: 'pointer', fontWeight: 'bold', color: '#0284c7'}}>
+                      🔍 {arOverlay.databaseMatches.length} database matches available
+                    </summary>
+                    <div style={{maxHeight: '120px', overflowY: 'auto', marginTop: '8px'}}>
+                      {arOverlay.databaseMatches.slice(0, 5).map((match, idx) => (
+                        <div key={idx} style={{background: 'white', padding: '6px', marginBottom: '4px', borderRadius: '6px', fontSize: '11px'}}>
+                          <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                            <span>{match.sourceBadge}</span>
+                            <strong>{match.name}</strong>
+                          </div>
+                          <div style={{color: '#666', fontSize: '10px'}}>
+                            {match.calories} cal | P: {match.protein}g | C: {match.carbs || match.carbohydrates}g
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
+                {/* Safety Alert */}
+                {arOverlay.safetyBanner && (
+                  <div className={`info-safety-alert ${arOverlay.safetyBanner.level}`}>
+                    {arOverlay.safetyBanner.message}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="ar-actions">
@@ -166,3 +175,6 @@ export default function ARScanner({ onClose }) {
     </div>
   );
 }
+
+
+

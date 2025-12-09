@@ -5,6 +5,7 @@ import healthAvatarService from '../services/healthAvatarService';
 import authService from '../services/authService';
 
 export default function HealthAvatar({ onClose }) {
+  // Always start fresh - no cached state to ensure real-time data
   const [avatarState, setAvatarState] = useState(null);
   const [activeView, setActiveView] = useState('current'); // current, 1year, 5years, 10years
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,8 @@ export default function HealthAvatar({ onClose }) {
   }, []);
 
   const loadAvatarData = async () => {
-    const state = await healthAvatarService.getAvatarState();
+    // Force refresh - always get latest data
+    const state = await healthAvatarService.getAvatarState(true);
     setAvatarState(state);
     setLoading(false);
   };
@@ -124,6 +126,48 @@ export default function HealthAvatar({ onClose }) {
               </div>
             )}
 
+            {/* REAL Data Sources (Current View Only) */}
+            {activeView === 'current' && activeData.dataBreakdown && (
+              <div className="data-sources">
+                <h3>📊 Your Real Health Data</h3>
+                <div className="data-grid">
+                  <div className="data-source">
+                    <span className="data-icon">👟</span>
+                    <span className="data-label">Daily Steps</span>
+                    <span className="data-value">{(activeData.dataBreakdown.todaySteps || activeData.dataBreakdown.avgDailySteps).toLocaleString()}</span>
+                    <span className="data-subtext">{activeData.dataBreakdown.stepsDays} days tracked</span>
+                  </div>
+                  <div className="data-source">
+                    <span className="data-icon">🍽️</span>
+                    <span className="data-label">Food Scans</span>
+                    <span className="data-value">{activeData.dataBreakdown.foodLogsCount}</span>
+                    <span className="data-subtext">Last 30 days</span>
+                  </div>
+                  <div className="data-source">
+                    <span className="data-icon">💪</span>
+                    <span className="data-label">Workouts</span>
+                    <span className="data-value">{activeData.dataBreakdown.workoutsCount}</span>
+                    <span className="data-subtext">Last 30 days</span>
+                  </div>
+                  <div className="data-source">
+                    <span className="data-icon">🧬</span>
+                    <span className="data-label">DNA Analysis</span>
+                    <span className="data-value">{activeData.dataBreakdown.hasDNAAnalysis ? '✅' : '❌'}</span>
+                    <span className="data-subtext">{activeData.dataBreakdown.hasDNAAnalysis ? 'Uploaded' : 'Not uploaded'}</span>
+                  </div>
+                  <div className="data-source">
+                    <span className="data-icon">😴</span>
+                    <span className="data-label">Sleep Logs</span>
+                    <span className="data-value">{activeData.dataBreakdown.sleepLogsCount}</span>
+                    <span className="data-subtext">Total tracked</span>
+                  </div>
+                </div>
+                <p className="data-note">
+                  💡 Your health score is calculated from <strong>real activity data</strong> - not estimates!
+                </p>
+              </div>
+            )}
+
             {/* Health Status */}
             <div className="avatar-stats">
               <div className="stat-item">
@@ -183,3 +227,6 @@ export default function HealthAvatar({ onClose }) {
     </div>
   );
 }
+
+
+

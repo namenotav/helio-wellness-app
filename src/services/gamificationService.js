@@ -102,18 +102,39 @@ const ACHIEVEMENTS = {
 
 class GamificationService {
   constructor() {
-    this.data = this.loadData()
+    this.syncService = null; // Will be injected
+    this.loadData()
   }
 
-  // Load gamification data from localStorage
-  loadData() {
-    const stored = localStorage.getItem(GAMIFICATION_STORAGE_KEY)
-    if (stored) {
-      return JSON.parse(stored)
+  // Set sync service dependency
+  setSyncService(syncService) {
+    this.syncService = syncService;
+  }
+
+  // Load gamification data from syncService (Preferences + Firebase)
+  async loadData() {
+    if (this.syncService) {
+      const stored = await this.syncService.getData('gamification_data');
+      if (stored) {
+        this.data = stored;
+        return;
+      }
+    }
+    
+    // Fallback to localStorage for migration
+    const localStored = localStorage.getItem(GAMIFICATION_STORAGE_KEY);
+    if (localStored) {
+      this.data = JSON.parse(localStored);
+      // Migrate to new system
+      if (this.syncService) {
+        await this.syncService.saveData('gamification_data', this.data);
+        if(import.meta.env.DEV)console.log('⬆️ Migrated gamification data to Preferences');
+      }
+      return;
     }
     
     // Default data structure
-    return {
+    this.data = {
       level: 1,
       xp: 0,
       totalXP: 0,
@@ -130,21 +151,26 @@ class GamificationService {
         totalMeditations: 0,
         perfectDays: 0
       }
+    };
+  }
+
+  // Save gamification data via syncService (Preferences + Firebase + localStorage)
+  async saveData() {
+    if (this.syncService) {
+      await this.syncService.saveData('gamification_data', this.data);
+    } else {
+      // Fallback to localStorage
+      localStorage.setItem(GAMIFICATION_STORAGE_KEY, JSON.stringify(this.data));
     }
   }
 
-  // Save gamification data to localStorage
-  saveData() {
-    localStorage.setItem(GAMIFICATION_STORAGE_KEY, JSON.stringify(this.data))
-  }
-
   // Add XP and check for level up
-  addXP(amount, reason = '') {
+  async addXP(amount, reason = '') {
     this.data.xp += amount
     this.data.totalXP += amount
     
     const leveledUp = this.checkLevelUp()
-    this.saveData()
+    await this.saveData()
     
     return {
       xpGained: amount,
@@ -198,7 +224,7 @@ class GamificationService {
   }
 
   // Check in for today (updates streak)
-  checkIn() {
+  async checkIn() {
     const today = new Date().toDateString()
     const lastCheckIn = this.data.lastCheckIn ? new Date(this.data.lastCheckIn).toDateString() : null
     
@@ -233,12 +259,12 @@ class GamificationService {
     }
     
     // Award XP for check-in
-    const xpResult = this.addXP(10, 'Daily check-in')
+    const xpResult = await this.addXP(10, 'Daily check-in')
     
     // Check for streak achievements
     this.checkStreakAchievements()
     
-    this.saveData()
+    await this.saveData()
     
     return {
       alreadyCheckedIn: false,
@@ -260,7 +286,7 @@ class GamificationService {
   }
 
   // Unlock an achievement
-  unlockAchievement(achievement) {
+  async unlockAchievement(achievement) {
     if (this.hasAchievement(achievement.id)) {
       return { alreadyUnlocked: true }
     }
@@ -270,8 +296,8 @@ class GamificationService {
       unlockedAt: new Date().toISOString()
     })
     
-    const xpResult = this.addXP(achievement.xp, `Achievement: ${achievement.name}`)
-    this.saveData()
+    const xpResult = await this.addXP(achievement.xp, `Achievement: ${achievement.name}`)
+    await this.saveData()
     
     return {
       alreadyUnlocked: false,
@@ -412,7 +438,7 @@ class GamificationService {
   }
 
   // Reset all data (for testing)
-  reset() {
+  async reset() {
     this.data = {
       level: 1,
       xp: 0,
@@ -431,9 +457,112 @@ class GamificationService {
         perfectDays: 0
       }
     }
-    this.saveData()
+    await this.saveData()
+  }
+
+  // PRO: Get global leaderboard
+  getGlobalLeaderboard(metric = 'totalXP', limit = 50) {
+    // Simulate global leaderboard data
+    const leaderboardData = []
+    
+    // Add current user
+    leaderboardData.push({
+      userId: 'You',
+      username: 'You',
+      level: this.data.level,
+      totalXP: this.data.totalXP,
+      streak: this.data.streak,
+      totalSteps: this.data.stats.totalSteps,
+      profilePic: '👤',
+      isCurrentUser: true
+    })
+    
+    // Generate demo users
+    const demoUsers = [
+      { name: 'FitnessFanatic', level: 18, xp: 12800, streak: 45, steps: 485000 },
+      { name: 'HealthHero22', level: 15, xp: 9500, streak: 28, steps: 320000 },
+      { name: 'WellnessWarrior', level: 20, xp: 17500, streak: 67, steps: 620000 },
+      { name: 'StepMaster', level: 12, xp: 5800, streak: 15, steps: 280000 },
+      { name: 'GymLegend', level: 16, xp: 11200, streak: 32, steps: 410000 },
+      { name: 'ZenQueen', level: 14, xp: 8100, streak: 21, steps: 195000 },
+      { name: 'CardioKing', level: 19, xp: 14900, streak: 52, steps: 550000 },
+      { name: 'NutritionNerd', level: 13, xp: 6900, streak: 18, steps: 245000 },
+      { name: 'MarathonMike', level: 17, xp: 12100, streak: 38, steps: 480000 },
+      { name: 'YogaYoda', level: 11, xp: 4900, streak: 12, steps: 165000 }
+    ]
+    
+    demoUsers.forEach((user, idx) => {
+      leaderboardData.push({
+        userId: `user_${idx}`,
+        username: user.name,
+        level: user.level,
+        totalXP: user.xp,
+        streak: user.streak,
+        totalSteps: user.steps,
+        profilePic: ['🏃', '💪', '🧘', '🚴', '⚡'][idx % 5],
+        isCurrentUser: false
+      })
+    })
+    
+    // Sort by selected metric
+    leaderboardData.sort((a, b) => {
+      switch(metric) {
+        case 'totalXP': return b.totalXP - a.totalXP
+        case 'level': return b.level - a.level
+        case 'streak': return b.streak - a.streak
+        case 'totalSteps': return b.totalSteps - a.totalSteps
+        default: return b.totalXP - a.totalXP
+      }
+    })
+    
+    // Add rank
+    leaderboardData.forEach((user, idx) => {
+      user.rank = idx + 1
+    })
+    
+    return leaderboardData.slice(0, limit)
+  }
+
+  // PRO: Get battle rewards
+  getBattleRewards() {
+    return {
+      availableRewards: [
+        { id: 'xp_boost', name: 'XP Boost (2x)', cost: 500, icon: '⚡', description: '2x XP for 24 hours' },
+        { id: 'streak_freeze', name: 'Streak Freeze', cost: 300, icon: '❄️', description: 'Protect streak for 1 day' },
+        { id: 'power_up', name: 'Battle Power-Up', cost: 400, icon: '💥', description: '+10% performance in battles' },
+        { id: 'legendary_badge', name: 'Legendary Badge', cost: 1000, icon: '👑', description: 'Exclusive profile badge' },
+        { id: 'custom_avatar', name: 'Custom Avatar', cost: 800, icon: '🎨', description: 'Unlock avatar customization' }
+      ],
+      userCoins: this.data.totalXP / 10, // 10 XP = 1 coin
+      purchasedRewards: []
+    }
+  }
+
+  // PRO: Award battle victory
+  awardBattleVictory(battleType, performance) {
+    const baseXP = {
+      'quick': 50,
+      'weekly': 100,
+      'monthly': 250,
+      'tournament': 500
+    }[battleType] || 50
+    
+    // Bonus for performance
+    const performanceMultiplier = performance >= 90 ? 1.5 : performance >= 75 ? 1.25 : 1.0
+    const totalXP = Math.floor(baseXP * performanceMultiplier)
+    
+    this.addXP(totalXP)
+    
+    return {
+      xpAwarded: totalXP,
+      newLevel: this.data.level,
+      totalXP: this.data.totalXP
+    }
   }
 }
 
 // Export singleton instance
 export default new GamificationService()
+
+
+

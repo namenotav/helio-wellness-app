@@ -252,7 +252,7 @@ Return as JSON array:
       return [];
 
     } catch (error) {
-      console.error('AI insights error:', error);
+      if(import.meta.env.DEV)console.error('AI insights error:', error);
       return [];
     }
   }
@@ -324,7 +324,7 @@ Return JSON: {"safe": true/false, "reason": "explanation", "confidence": 0-100, 
       }
 
     } catch (error) {
-      console.error('Prediction error:', error);
+      if(import.meta.env.DEV)console.error('Prediction error:', error);
     }
 
     return {
@@ -393,3 +393,6 @@ Return JSON: {"safe": true/false, "reason": "explanation", "confidence": 0-100, 
 
 export const learningService = new LearningService();
 export default learningService;
+
+
+

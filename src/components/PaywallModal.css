@@ -1,0 +1,236 @@
+.paywall-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: paywall-fade-in 0.3s ease-out;
+}
+
+@keyframes paywall-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.paywall-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 24px;
+  max-width: 500px;
+  width: 100%;
+  padding: 40px 30px;
+  position: relative;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+  animation: paywall-slide-up 0.4s ease-out;
+  text-align: center;
+}
+
+@keyframes paywall-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.paywall-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.paywall-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.paywall-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: lock-shake 0.8s ease-in-out;
+}
+
+@keyframes lock-shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.paywall-modal h2 {
+  font-size: 28px;
+  margin: 0 0 12px;
+  color: white;
+}
+
+.paywall-message {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 30px;
+}
+
+.paywall-required-plan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.plan-icon {
+  font-size: 48px;
+}
+
+.plan-details {
+  text-align: left;
+}
+
+.plan-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.plan-price {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.paywall-benefits {
+  text-align: left;
+  margin-bottom: 30px;
+}
+
+.paywall-benefits h3 {
+  font-size: 18px;
+  color: white;
+  margin: 0 0 16px;
+}
+
+.paywall-benefits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.paywall-benefits li {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+}
+
+.paywall-benefits li:last-child {
+  border-bottom: none;
+}
+
+.paywall-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.upgrade-btn {
+  width: 100%;
+  padding: 18px;
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.upgrade-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+}
+
+.upgrade-btn:active {
+  transform: translateY(-1px);
+}
+
+.later-btn {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.later-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.paywall-footer {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .paywall-modal {
+    padding: 32px 24px;
+  }
+
+  .paywall-icon {
+    font-size: 64px;
+  }
+
+  .paywall-modal h2 {
+    font-size: 24px;
+  }
+
+  .plan-icon {
+    font-size: 40px;
+  }
+
+  .plan-name {
+    font-size: 18px;
+  }
+
+  .upgrade-btn {
+    font-size: 16px;
+    padding: 16px;
+  }
+}

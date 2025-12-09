@@ -36,7 +36,7 @@ class AITrackingService {
   async initialize() {
     try {
       if (!Capacitor.isNativePlatform()) {
-        console.log('GPS tracking only available on native platforms')
+        if(import.meta.env.DEV)console.log('GPS tracking only available on native platforms')
         return false
       }
 
@@ -55,10 +55,10 @@ class AITrackingService {
       // Load saved data from storage
       await this.loadSavedData()
 
-      console.log('AI Tracking Service initialized (Hybrid: TensorFlow + Gemini)')
+      if(import.meta.env.DEV)console.log('AI Tracking Service initialized (Hybrid: TensorFlow + Gemini)')
       return true
     } catch (error) {
-      console.error('Failed to initialize tracking:', error)
+      if(import.meta.env.DEV)console.error('Failed to initialize tracking:', error)
       return false
     }
   }
@@ -85,7 +85,7 @@ class AITrackingService {
     // Initial tracking
     await this.trackCurrentLocation()
 
-    console.log('Hybrid tracking started - TensorFlow (real-time) + GPS (5 min) + Gemini (daily)')
+    if(import.meta.env.DEV)console.log('Hybrid tracking started - TensorFlow (real-time) + GPS (5 min) + Gemini (daily)')
   }
 
   // Stop tracking
@@ -106,7 +106,7 @@ class AITrackingService {
     }
     
     this.isTracking = false
-    console.log('Hybrid tracking stopped')
+    if(import.meta.env.DEV)console.log('Hybrid tracking stopped')
   }
   
   // Start motion sensor tracking for TensorFlow
@@ -125,9 +125,9 @@ class AITrackingService {
         })
       })
       
-      console.log('Motion sensors started for TensorFlow activity recognition')
+      if(import.meta.env.DEV)console.log('Motion sensors started for TensorFlow activity recognition')
     } catch (error) {
-      console.error('Failed to start motion tracking:', error)
+      if(import.meta.env.DEV)console.error('Failed to start motion tracking:', error)
     }
   }
   
@@ -152,7 +152,7 @@ class AITrackingService {
             duration: Date.now() - this.lastActivityChange
           })
           
-          console.log(`Activity changed: ${previousActivity} → ${result.activity} (${Math.round(result.confidence * 100)}% confidence)`)
+          if(import.meta.env.DEV)console.log(`Activity changed: ${previousActivity} → ${result.activity} (${Math.round(result.confidence * 100)}% confidence)`)
           
           // Auto-log activities
           if (result.activity === 'workout') {
@@ -161,7 +161,7 @@ class AITrackingService {
         }
       }
     } catch (error) {
-      console.error('TensorFlow activity detection error:', error)
+      if(import.meta.env.DEV)console.error('TensorFlow activity detection error:', error)
     }
   }
 
@@ -201,7 +201,7 @@ class AITrackingService {
       await this.saveData()
 
     } catch (error) {
-      console.error('Error tracking location:', error)
+      if(import.meta.env.DEV)console.error('Error tracking location:', error)
     }
   }
 
@@ -314,7 +314,7 @@ class AITrackingService {
       // Auto-log workout if running detected for > 10 minutes
       if (detectedActivity === 'running' || detectedActivity === 'walking') {
         // Will auto-log when activity ends
-        console.log(`${detectedActivity} detected - will auto-log workout`)
+        if(import.meta.env.DEV)console.log(`${detectedActivity} detected - will auto-log workout`)
       }
     }
   }
@@ -339,7 +339,7 @@ class AITrackingService {
       // Good habit detected
       this.addGoodHabit('Regular gym visits')
 
-      console.log('Gym visit detected ✅')
+      if(import.meta.env.DEV)console.log('Gym visit detected ✅')
     }
   }
 
@@ -355,7 +355,7 @@ class AITrackingService {
 
     // Check if this is fast food (would need POI database)
     // For now, just log it
-    console.log('Restaurant visit detected - prompting for meal log')
+    if(import.meta.env.DEV)console.log('Restaurant visit detected - prompting for meal log')
 
     // Send notification to log meal
     await this.sendNotification(
@@ -405,9 +405,9 @@ class AITrackingService {
       // Learn daily routines (Gemini handles complex pattern analysis)
       await this.learnDailyRoutines(patterns)
 
-      console.log('Gemini AI learned new patterns:', patterns)
+      if(import.meta.env.DEV)console.log('Gemini AI learned new patterns:', patterns)
     } catch (error) {
-      console.error('Error learning patterns:', error)
+      if(import.meta.env.DEV)console.error('Error learning patterns:', error)
     }
   }
 
@@ -457,7 +457,7 @@ class AITrackingService {
         }]
       })
     } catch (error) {
-      console.error('Error sending notification:', error)
+      if(import.meta.env.DEV)console.error('Error sending notification:', error)
     }
   }
 
@@ -520,7 +520,7 @@ class AITrackingService {
       localStorage.setItem('knownLocations', JSON.stringify(this.knownLocations))
       localStorage.setItem('detectedHabits', JSON.stringify(this.detectedHabits))
     } catch (error) {
-      console.error('Error saving tracking data:', error)
+      if(import.meta.env.DEV)console.error('Error saving tracking data:', error)
     }
   }
 
@@ -539,9 +539,9 @@ class AITrackingService {
       const detectedHabits = localStorage.getItem('detectedHabits')
       if (detectedHabits) this.detectedHabits = JSON.parse(detectedHabits)
 
-      console.log('Loaded saved tracking data')
+      if(import.meta.env.DEV)console.log('Loaded saved tracking data')
     } catch (error) {
-      console.error('Error loading tracking data:', error)
+      if(import.meta.env.DEV)console.error('Error loading tracking data:', error)
     }
   }
 
@@ -572,3 +572,6 @@ class AITrackingService {
 
 // Export singleton instance
 export const aiTrackingService = new AITrackingService()
+
+
+

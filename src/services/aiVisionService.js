@@ -6,7 +6,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 class AIVisionService {
   constructor() {
-    this.apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    // All API calls proxied through secure Railway server
     this.analyzing = false;
   }
 
@@ -28,7 +28,7 @@ class AIVisionService {
         format: photo.format
       };
     } catch (error) {
-      console.error('Camera capture error:', error);
+      if(import.meta.env.DEV)console.error('Camera capture error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -44,15 +44,15 @@ class AIVisionService {
 
       // Get user's allergen profile
       const allergenProfile = authService.getUserAllergenProfile();
-      console.log('🔍 Allergen Profile:', allergenProfile);
+      if(import.meta.env.DEV)console.log('🔍 Allergen Profile:', allergenProfile);
       
       // Build detailed prompt for Gemini
       const prompt = this.buildAnalysisPrompt(allergenProfile);
-      console.log('📝 Analysis Prompt:', prompt.substring(0, 200) + '...');
+      if(import.meta.env.DEV)console.log('📝 Analysis Prompt:', prompt.substring(0, 200) + '...');
 
       // Call Railway proxy server for Gemini Vision API
-      console.log('📡 Calling Railway server for vision analysis...');
-      console.log('🖼️ Image data length:', imageBase64?.length || 0);
+      if(import.meta.env.DEV)console.log('📡 Calling Railway server for vision analysis...');
+      if(import.meta.env.DEV)console.log('🖼️ Image data length:', imageBase64?.length || 0);
       
       const response = await fetch(
         'https://helio-wellness-app-production.up.railway.app/api/vision',
@@ -70,39 +70,47 @@ class AIVisionService {
         }
       );
 
-      console.log('📥 Railway Response Status:', response.status, response.statusText);
+      if(import.meta.env.DEV)console.log('📥 Railway Response Status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Railway Error Response:', errorData);
+        if(import.meta.env.DEV)console.error('❌ Railway Error Response:', errorData);
         const errorMsg = errorData.error || `Server Error: ${response.status} ${response.statusText}`;
         throw new Error(errorMsg);
       }
 
       const data = await response.json();
-      console.log('✅ Railway Response:', JSON.stringify(data).substring(0, 500));
+      if(import.meta.env.DEV)console.log('✅ Railway Response:', JSON.stringify(data).substring(0, 500));
       
       const aiResponse = data.response;
-      console.log('🤖 AI Response Text:', aiResponse?.substring(0, 300) + '...');
+      if(import.meta.env.DEV)console.log('🤖 AI Response Text:', aiResponse?.substring(0, 300) + '...');
       
       if (!aiResponse) {
         throw new Error('Empty response from AI');
       }
 
       // Parse AI response
+      if(import.meta.env.DEV)console.log('🔄 Parsing AI response...');
       const analysis = this.parseAIResponse(aiResponse, allergenProfile);
+      if(import.meta.env.DEV)console.log('✅ Parsed analysis:', {
+        foodName: analysis.foodName,
+        safetyLevel: analysis.safetyLevel,
+        detectedAllergens: analysis.detectedAllergens?.length || 0,
+        confidence: analysis.confidence
+      });
 
       // Trigger haptic feedback based on safety level
       await this.triggerSafetyHaptic(analysis.safetyLevel);
 
       this.analyzing = false;
+      if(import.meta.env.DEV)console.log('🎉 Analysis complete! Returning success.');
       return {
         success: true,
         analysis
       };
 
     } catch (error) {
-      console.error('Food analysis error:', error);
+      if(import.meta.env.DEV)console.error('Food analysis error:', error);
       this.analyzing = false;
       return { success: false, error: error.message };
     }
@@ -187,7 +195,7 @@ Format your response as JSON:
       };
 
     } catch (error) {
-      console.error('Response parsing error:', error);
+      if(import.meta.env.DEV)console.error('Response parsing error:', error);
       
       // Fallback: Return raw text analysis
       return {
@@ -286,7 +294,7 @@ Format your response as JSON:
           break;
       }
     } catch (error) {
-      console.log('Haptics not available:', error);
+      if(import.meta.env.DEV)console.log('Haptics not available:', error);
     }
   }
 
@@ -355,7 +363,7 @@ Return as JSON with same format as food analysis.`;
       return { success: true, analysis };
 
     } catch (error) {
-      console.error('Label analysis error:', error);
+      if(import.meta.env.DEV)console.error('Label analysis error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -406,3 +414,6 @@ Return as JSON with same format as food analysis.`;
 
 export const aiVisionService = new AIVisionService();
 export default aiVisionService;
+
+
+

@@ -7,7 +7,7 @@ export const requestNotificationPermissions = async () => {
     const result = await LocalNotifications.requestPermissions();
     return result.display === 'granted';
   } catch (error) {
-    console.error('Notification permission error:', error);
+    if(import.meta.env.DEV)console.error('Notification permission error:', error);
     return false;
   }
 };
@@ -41,7 +41,7 @@ export const scheduleWaterReminders = async () => {
     await LocalNotifications.schedule({ notifications });
     return true;
   } catch (error) {
-    console.error('Water reminder error:', error);
+    if(import.meta.env.DEV)console.error('Water reminder error:', error);
     return false;
   }
 };
@@ -69,7 +69,7 @@ export const scheduleWorkoutReminder = async (hour = 18, minute = 0) => {
     
     return true;
   } catch (error) {
-    console.error('Workout reminder error:', error);
+    if(import.meta.env.DEV)console.error('Workout reminder error:', error);
     return false;
   }
 };
@@ -108,7 +108,7 @@ export const scheduleDailyMotivation = async () => {
     
     return true;
   } catch (error) {
-    console.error('Motivation reminder error:', error);
+    if(import.meta.env.DEV)console.error('Motivation reminder error:', error);
     return false;
   }
 };
@@ -132,7 +132,7 @@ export const sendStreakNotification = async (streakDays) => {
     
     return true;
   } catch (error) {
-    console.error('Streak notification error:', error);
+    if(import.meta.env.DEV)console.error('Streak notification error:', error);
     return false;
   }
 };
@@ -143,7 +143,7 @@ export const cancelNotification = async (id) => {
     await LocalNotifications.cancel({ notifications: [{ id }] });
     return true;
   } catch (error) {
-    console.error('Cancel notification error:', error);
+    if(import.meta.env.DEV)console.error('Cancel notification error:', error);
     return false;
   }
 };
@@ -154,7 +154,7 @@ export const cancelAllNotifications = async () => {
     await LocalNotifications.cancel({ notifications: [] });
     return true;
   } catch (error) {
-    console.error('Cancel all notifications error:', error);
+    if(import.meta.env.DEV)console.error('Cancel all notifications error:', error);
     return false;
   }
 };
@@ -165,7 +165,7 @@ export const getPendingNotifications = async () => {
     const result = await LocalNotifications.getPending();
     return result.notifications;
   } catch (error) {
-    console.error('Get pending notifications error:', error);
+    if(import.meta.env.DEV)console.error('Get pending notifications error:', error);
     return [];
   }
 };
@@ -173,7 +173,7 @@ export const getPendingNotifications = async () => {
 // Setup notification listeners
 export const setupNotificationListeners = () => {
   LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-    console.log('Notification action:', notification.actionId);
+    if(import.meta.env.DEV)console.log('Notification action:', notification.actionId);
     
     // Handle different notification actions
     switch (notification.notification.extra?.actionTypeId) {
@@ -192,3 +192,6 @@ export const setupNotificationListeners = () => {
     }
   });
 };
+
+
+

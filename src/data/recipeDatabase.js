@@ -379,3 +379,6 @@ export const getHighProteinRecipes = () => {
 export const getQuickRecipes = () => {
   return recipeDatabase.filter(recipe => recipe.tags.includes('Quick'))
 }
+
+
+

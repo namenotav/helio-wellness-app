@@ -12,31 +12,47 @@ class ARScannerService {
   async startARMode() {
     try {
       this.isScanning = true;
+      if(import.meta.env.DEV)console.log('📷 Capturing photo for AR scan...');
       
-      // Capture photo in high quality for AR processing
+      // Capture photo with compression for faster processing
       const photo = await Camera.getPhoto({
-        quality: 90,
+        quality: 50,  // Compressed for faster upload
         allowEditing: false,
         resultType: 'base64',
-        source: 'CAMERA'
+        source: 'CAMERA',
+        width: 1024,  // Limit size
+        height: 1024
       });
 
+      if(import.meta.env.DEV)console.log('🤖 Analyzing food with AI...');
       // Analyze food with AI
       const analysis = await aiVisionService.analyzeFoodImage(photo.base64String);
+      if(import.meta.env.DEV)console.log('📊 Analysis result:', analysis);
       
       if (analysis.success) {
-        // Create AR overlay data
-        this.overlayData = this.createAROverlay(analysis.analysis);
+        if(import.meta.env.DEV)console.log('✅ Creating AR overlay...');
+        
+        // Search ALL databases for accurate nutrition data
+        const foodName = analysis.analysis.foodName || analysis.analysis.food;
+        const smartFoodSearch = (await import('./smartFoodSearch')).default;
+        const databaseMatches = await smartFoodSearch.searchAllDatabases(foodName);
+        if(import.meta.env.DEV)console.log(`🔍 Found ${databaseMatches.length} database matches for: ${foodName}`);
+        
+        // Create AR overlay data with database nutrition
+        this.overlayData = this.createAROverlay(analysis.analysis, databaseMatches);
+        if(import.meta.env.DEV)console.log('🎨 AR overlay created:', this.overlayData);
         return {
           success: true,
           imageData: photo.base64String,
-          overlayData: this.overlayData
+          overlayData: this.overlayData,
+          databaseMatches: databaseMatches
         };
       }
 
-      return { success: false, error: 'Analysis failed' };
+      if(import.meta.env.DEV)console.error('❌ Analysis failed');
+      return { success: false, error: analysis.error || 'Analysis failed' };
     } catch (error) {
-      console.error('AR Mode error:', error);
+      if(import.meta.env.DEV)console.error('❌ AR Mode error:', error);
       return { success: false, error: error.message };
     } finally {
       this.isScanning = false;
@@ -44,20 +60,38 @@ class ARScannerService {
   }
 
   // Create AR overlay data structure
-  createAROverlay(analysis) {
+  createAROverlay(analysis, databaseMatches = []) {
     const { foodName, ingredients, detectedAllergens, safetyLevel } = analysis;
     
-    // Calculate estimated calories (simple estimation)
-    const estimatedCalories = this.estimateCalories(foodName, ingredients);
+    // Use database nutrition if available, otherwise estimate
+    let calories, protein, carbs, fats, source;
+    if (databaseMatches && databaseMatches.length > 0) {
+      const bestMatch = databaseMatches[0];
+      calories = bestMatch.calories || 0;
+      protein = bestMatch.protein || 0;
+      carbs = bestMatch.carbs || bestMatch.carbohydrates || 0;
+      fats = bestMatch.fat || bestMatch.fats || 0;
+      source = bestMatch.source;
+      if(import.meta.env.DEV)console.log(`✅ Using ${source} nutrition data: ${calories} cal`);
+    } else {
+      calories = this.estimateCalories(foodName, ingredients);
+      protein = carbs = fats = 0;
+      source = 'Estimated';
+    }
     
     // Calculate portion recommendation
-    const portionGuide = this.calculatePortionSize(foodName, estimatedCalories);
+    const portionGuide = this.calculatePortionSize(foodName, calories);
     
     return {
       // Main info box (top of food)
       mainInfo: {
         foodName,
-        calories: estimatedCalories,
+        calories,
+        protein,
+        carbs,
+        fats,
+        source,
+        databaseMatch: databaseMatches.length > 0,
         position: 'top-center',
         color: this.getARColor(safetyLevel)
       },
@@ -205,3 +239,6 @@ class ARScannerService {
 
 export const arScannerService = new ARScannerService();
 export default arScannerService;
+
+
+

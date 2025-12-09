@@ -15,7 +15,7 @@ export const vibrate = async (style = 'medium') => {
     
     await Haptics.impact({ style: styles[style] || ImpactStyle.Medium });
   } catch (error) {
-    console.error('Haptic error:', error);
+    if(import.meta.env.DEV)console.error('Haptic error:', error);
   }
 };
 
@@ -40,7 +40,7 @@ export const shareProgress = async (text, title = 'My Helio Progress') => {
       dialogTitle: 'Share your progress'
     });
   } catch (error) {
-    console.error('Share error:', error);
+    if(import.meta.env.DEV)console.error('Share error:', error);
   }
 };
 
@@ -53,7 +53,7 @@ export const shareProgressWithImage = async (imageUrl, text) => {
       dialogTitle: 'Share your achievement'
     });
   } catch (error) {
-    console.error('Share error:', error);
+    if(import.meta.env.DEV)console.error('Share error:', error);
   }
 };
 
@@ -62,7 +62,7 @@ export const setStatusBarLight = async () => {
   try {
     await StatusBar.setStyle({ style: Style.Light });
   } catch (error) {
-    console.error('Status bar error:', error);
+    if(import.meta.env.DEV)console.error('Status bar error:', error);
   }
 };
 
@@ -70,7 +70,7 @@ export const setStatusBarDark = async () => {
   try {
     await StatusBar.setStyle({ style: Style.Dark });
   } catch (error) {
-    console.error('Status bar error:', error);
+    if(import.meta.env.DEV)console.error('Status bar error:', error);
   }
 };
 
@@ -78,7 +78,7 @@ export const hideStatusBar = async () => {
   try {
     await StatusBar.hide();
   } catch (error) {
-    console.error('Status bar error:', error);
+    if(import.meta.env.DEV)console.error('Status bar error:', error);
   }
 };
 
@@ -86,7 +86,7 @@ export const showStatusBar = async () => {
   try {
     await StatusBar.show();
   } catch (error) {
-    console.error('Status bar error:', error);
+    if(import.meta.env.DEV)console.error('Status bar error:', error);
   }
 };
 
@@ -95,7 +95,7 @@ export const hideSplashScreen = async () => {
   try {
     await SplashScreen.hide();
   } catch (error) {
-    console.error('Splash screen error:', error);
+    if(import.meta.env.DEV)console.error('Splash screen error:', error);
   }
 };
 
@@ -103,6 +103,9 @@ export const showSplashScreen = async () => {
   try {
     await SplashScreen.show();
   } catch (error) {
-    console.error('Splash screen error:', error);
+    if(import.meta.env.DEV)console.error('Splash screen error:', error);
   }
 };
+
+
+

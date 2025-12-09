@@ -167,7 +167,7 @@
 
 .tab-btn {
   flex: 1;
-  padding: 12px;
+  padding: 10px 6px;
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
@@ -175,8 +175,14 @@
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 12px;
-  white-space: nowrap;
+  font-size: 10px;
+  white-space: normal;
+  line-height: 1.2;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .tab-btn.active {
@@ -193,42 +199,201 @@
 .traits-view h3 {
   color: white;
   font-size: 18px;
+  margin: 20px 0 15px 0;
+}
+
+.dna-summary {
+  background: rgba(138, 43, 226, 0.2);
+  border: 2px solid rgba(138, 43, 226, 0.5);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.dna-summary h3 {
+  color: #8A2BE2;
+  font-size: 20px;
   margin: 0 0 15px 0;
 }
 
-.traits-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+.snp-count {
+  color: white;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.snp-count strong {
+  color: #FF00FF;
+  font-size: 24px;
+}
+
+.source-info {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.export-btn {
+  margin-top: 15px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #00C9FF, #92FE9D);
+  border: none;
+  border-radius: 25px;
+  color: #000;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 201, 255, 0.3);
+}
+
+.export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 201, 255, 0.5);
+}
+
+.traits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .trait-card {
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
   padding: 15px;
-  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.trait-card.risk-high {
+  border-color: rgba(255, 100, 100, 0.5);
+  background: rgba(255, 100, 100, 0.1);
+}
+
+.trait-card.risk-medium {
+  border-color: rgba(255, 200, 100, 0.5);
+  background: rgba(255, 200, 100, 0.1);
+}
+
+.trait-card.risk-low {
+  border-color: rgba(100, 255, 100, 0.5);
+  background: rgba(100, 255, 100, 0.1);
+}
+
+.trait-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.trait-gene {
+  background: linear-gradient(135deg, #8A2BE2, #FF00FF);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.trait-genotype {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  font-family: monospace;
 }
 
 .trait-name {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
-  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  margin-bottom: 5px;
   text-transform: capitalize;
+  font-weight: 500;
 }
 
 .trait-value {
   color: white;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: bold;
   text-transform: capitalize;
+  margin-bottom: 10px;
+}
+
+.trait-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.trait-rsid {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  margin-top: 8px;
+  font-family: monospace;
 }
 
 /* Meals View */
 .meals-view h3 {
   color: white;
   font-size: 18px;
-  margin: 0 0 15px 0;
+  margin: 0 0 20px 0;
+}
+
+.diet-section {
+  margin-bottom: 25px;
+}
+
+.diet-section h4 {
+  color: white;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.food-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.food-tag {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.food-tag.good {
+  background: rgba(100, 255, 100, 0.2);
+  border: 2px solid rgba(100, 255, 100, 0.5);
+  color: #00ff00;
+}
+
+.food-tag.avoid {
+  background: rgba(255, 100, 100, 0.2);
+  border: 2px solid rgba(255, 100, 100, 0.5);
+  color: #ff6b6b;
+}
+
+.food-tag.supplement {
+  background: rgba(138, 43, 226, 0.2);
+  border: 2px solid rgba(138, 43, 226, 0.5);
+  color: #8A2BE2;
+}
+
+.loading-msg {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 30px;
+  font-size: 14px;
 }
 
 .meal-list {
@@ -325,13 +490,40 @@
 .exercise-view h3 {
   color: white;
   font-size: 18px;
-  margin: 0 0 15px 0;
+  margin: 0 0 20px 0;
 }
 
 .exercise-plan {
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
+
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exercise-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(138, 43, 226, 0.3);
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.exercise-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.exercise-content {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .muscle-type {
@@ -405,27 +597,46 @@
 .risks-view h3 {
   color: white;
   font-size: 18px;
-  margin: 0 0 15px 0;
+  margin: 0 0 20px 0;
 }
 
 .risks-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 25px;
 }
 
 .risk-card {
   background: rgba(255, 165, 0, 0.1);
-  border: 2px solid rgba(255, 165, 0, 0.3);
-  border-radius: 10px;
-  padding: 12px;
+  border: 2px solid rgba(255, 165, 0, 0.4);
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.risk-icon {
+  font-size: 24px;
+  flex-shrink: 0;
 }
 
 .risk-name {
   color: #FFA500;
-  font-weight: bold;
+  font-weight: 500;
   font-size: 14px;
+  line-height: 1.5;
+}
+
+.prevention-section {
+  margin-top: 25px;
+}
+
+.prevention-section h4 {
+  color: white;
+  font-size: 16px;
+  margin-bottom: 12px;
 }
 
 .no-risks {
@@ -497,4 +708,485 @@
 
 .dna-modal::-webkit-scrollbar-thumb:hover {
   background: rgba(138, 43, 226, 0.7);
+}
+
+
+/* PRO FEATURES CSS */
+.ancestry-view, .athletic-view, .meds-view, .nutrition-view-pro {
+  padding: 20px;
+}
+
+.diversity-score {
+  margin-bottom: 25px;
+  padding: 15px;
+  background: rgba(138, 43, 226, 0.1);
+  border-radius: 10px;
+}
+
+.diversity-bar {
+  height: 8px;
+  background: linear-gradient(90deg, #8B5FE8, #B794F6);
+  border-radius: 4px;
+  margin-top: 10px;
+  transition: width 0.5s ease;
+}
+
+.ancestry-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.ancestry-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.ancestry-region {
+  font-weight: 600;
+  color: #B794F6;
+}
+
+.ancestry-percentage {
+  font-size: 18px;
+  font-weight: bold;
+  color: #44FF44;
+}
+
+.ancestry-bar-container {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.ancestry-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #B794F6, #8B5FE8);
+  transition: width 0.5s ease;
+}
+
+.ancestry-countries {
+  color: #aaa;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.athletic-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.score-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.score-label {
+  color: #B794F6;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.score-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #44FF44;
+  margin-bottom: 10px;
+}
+
+.score-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.score-bar > div {
+  height: 100%;
+  background: linear-gradient(90deg, #44FF44, #00FF88);
+  transition: width 0.5s ease;
+}
+
+.athletic-traits {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 20px 0;
+}
+
+.trait-row {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.trait-row:last-child {
+  border-bottom: none;
+}
+
+.genes-list {
+  display: grid;
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.gene-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid #B794F6;
+}
+
+.gene-name {
+  font-weight: 600;
+  color: #B794F6;
+  margin-bottom: 5px;
+}
+
+.gene-trait {
+  color: #ddd;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.gene-score {
+  color: #44FF44;
+  font-size: 13px;
+}
+
+.recommendation {
+  padding: 10px;
+  background: rgba(68, 255, 68, 0.1);
+  border-left: 3px solid #44FF44;
+  margin: 8px 0;
+  border-radius: 5px;
+}
+
+.meds-list {
+  display: grid;
+  gap: 15px;
+}
+
+.med-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 4px solid;
+}
+
+.med-card.risk-low {
+  border-left-color: #44FF44;
+}
+
+.med-card.risk-medium {
+  border-left-color: #FFB84D;
+}
+
+.med-card.risk-high {
+  border-left-color: #FF4444;
+}
+
+.med-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.med-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+}
+
+.risk-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.risk-badge.low {
+  background: #44FF44;
+  color: #000;
+}
+
+.risk-badge.medium {
+  background: #FFB84D;
+  color: #000;
+}
+
+.risk-badge.high {
+  background: #FF4444;
+  color: white;
+}
+
+.med-gene {
+  color: #B794F6;
+  font-size: 13px;
+  margin: 5px 0;
+}
+
+.med-recommendation {
+  color: #44FF44;
+  margin: 8px 0;
+}
+
+.med-description {
+  color: #ccc;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.warning-text, .info-text {
+  background: rgba(255, 184, 77, 0.1);
+  border-left: 3px solid #FFB84D;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: #FFB84D;
+}
+
+.risks-detailed-list {
+  display: grid;
+  gap: 20px;
+}
+
+.risk-detailed-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid;
+}
+
+.risk-detailed-card.slightly-elevated {
+  border-left-color: #FFB84D;
+}
+
+.risk-detailed-card.elevated {
+  border-left-color: #FF8844;
+}
+
+.risk-detailed-card.lower-than-average, .risk-detailed-card.average {
+  border-left-color: #44FF44;
+}
+
+.risk-detailed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.condition-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.risk-level-badge {
+  padding: 6px 14px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.risk-level-badge.slightly-elevated {
+  background: #FFB84D;
+  color: #000;
+}
+
+.risk-level-badge.elevated {
+  background: #FF8844;
+  color: white;
+}
+
+.risk-level-badge.lower-than-average, .risk-level-badge.average {
+  background: #44FF44;
+  color: #000;
+}
+
+.risk-comparison {
+  margin: 15px 0;
+}
+
+.risk-bar-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 60px;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.risk-bar-container {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.risk-bar {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.risk-bar.your-risk {
+  background: linear-gradient(90deg, #FF8844, #FF4444);
+}
+
+.risk-bar.avg-risk {
+  background: linear-gradient(90deg, #8B5FE8, #B794F6);
+}
+
+.risk-genes {
+  color: #B794F6;
+  font-size: 13px;
+  margin: 10px 0;
+}
+
+.prevention-tips {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(68, 255, 68, 0.05);
+  border-radius: 8px;
+}
+
+.prevention-tips ul {
+  margin: 10px 0 0 0;
+  padding-left: 20px;
+}
+
+.prevention-tips li {
+  color: #ccc;
+  margin: 5px 0;
+}
+
+.macro-section, .intolerance-section, .vitamin-section, .diet-recommendation {
+  margin-bottom: 30px;
+}
+
+.macro-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.macro-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.macro-name {
+  color: #B794F6;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.macro-value {
+  color: #44FF44;
+  font-size: 14px;
+  margin: 8px 0;
+  font-weight: 500;
+}
+
+.macro-tolerance {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.intolerance-card, .vitamin-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 12px 0;
+  border-left: 3px solid #8B5FE8;
+}
+
+.food-name, .vitamin-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.gene-info, .vitamin-gene {
+  color: #B794F6;
+  font-size: 13px;
+  margin: 5px 0;
+}
+
+.metabolism, .likelihood, .safe-amount, .vitamin-absorption, .dosage {
+  color: #ccc;
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.can-consume {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: 15px;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.can-consume.yes {
+  background: rgba(68, 255, 68, 0.2);
+  color: #44FF44;
+}
+
+.can-consume.no {
+  background: rgba(255, 68, 68, 0.2);
+  color: #FF4444;
+}
+
+.vitamin-recommendation {
+  color: #44FF44;
+  margin-top: 8px;
+}
+
+.diet-recommendation {
+  background: rgba(138, 43, 226, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.diet-type {
+  font-size: 24px;
+  font-weight: bold;
+  color: #B794F6;
+  margin: 10px 0;
+}
+
+.diet-reason {
+  color: #ddd;
+  line-height: 1.6;
+}
+
+/* Mobile responsive for PRO features */
+@media (max-width: 600px) {
+  .athletic-scores {
+    grid-template-columns: 1fr;
+  }
+  
+  .macro-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .risk-bar-row {
+    grid-template-columns: 80px 1fr 50px;
+    font-size: 13px;
+  }
 }
