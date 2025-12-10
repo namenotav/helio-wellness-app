@@ -1,6 +1,7 @@
 // Social Health Battles Service - Compete with friends on health goals
 import authService from './authService';
 import healthAvatarService from './healthAvatarService';
+import firestoreService from './firestoreService';
 
 class SocialBattlesService {
   constructor() {
@@ -26,8 +27,7 @@ class SocialBattlesService {
       }
 
       // Merge with Firebase (cloud backup)
-      const { default: syncService } = await import('./syncService.js');
-      const firebaseData = await syncService.getData('battles_data');
+      const firebaseData = await firestoreService.get('battles_data', authService.getCurrentUser()?.uid);
       
       if (firebaseData) {
         // Merge active battles (dedupe by id)
@@ -73,8 +73,7 @@ class SocialBattlesService {
       localStorage.setItem('battles_data', JSON.stringify(data));
 
       // Save to Firebase (cloud backup)
-      const { default: syncService } = await import('./syncService.js');
-      await syncService.saveData('battles_data', data);
+      await firestoreService.save('battles_data', data, authService.getCurrentUser()?.uid);
 
       if(import.meta.env.DEV) console.log('💾 Battles saved to localStorage + Firebase');
     } catch (error) {

@@ -4,6 +4,7 @@ import { Device } from '@capacitor/device';
 import { Preferences } from '@capacitor/preferences';
 import firebaseService from './firebaseService.js';
 import syncService from './syncService.js';
+import firestoreService from './firestoreService.js';
 
 class AuthService {
   constructor() {
@@ -43,16 +44,16 @@ class AuthService {
         try {
           this.currentUser = JSON.parse(savedUser);
           
-          // 🔥 CRITICAL: Check if profile is empty and restore from Firebase cloud
+          // 🔥 CRITICAL: Check if profile is empty and restore from Firestore cloud
           if (this.currentUser && (!this.currentUser.profile || !this.currentUser.profile.profileCompleted)) {
-            console.log('🔄 Profile empty locally, checking Firebase cloud...');
+            console.log('🔄 Profile empty locally, checking Firestore cloud...');
             try {
-              const cloudProfile = await syncService.getData('user_profile');
+              const cloudProfile = await firestoreService.get('user_profile', this.currentUser.uid);
               if (cloudProfile && cloudProfile.profileCompleted) {
                 console.log('☁️ Profile found in cloud! Restoring...');
                 this.currentUser.profile = cloudProfile;
                 await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
-                console.log('✅ Profile restored from Firebase successfully');
+                console.log('✅ Profile restored from Firestore successfully');
               }
             } catch (e) {
               console.warn('⚠️ Could not restore profile from cloud:', e);
@@ -134,6 +135,14 @@ class AuthService {
           totalDays: 0,
           longestStreak: 0,
           currentStreak: 0
+        },
+        subscription: {
+          plan: 'free', // free | essential | premium | vip
+          active: false,
+          startDate: null,
+          endDate: null,
+          stripeCustomerId: null,
+          stripeSubscriptionId: null
         }
       };
 
@@ -333,13 +342,13 @@ class AuthService {
       delete this.currentUser.password;
       await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
 
-      // Sync to Firebase via syncService
+      // Sync to Firestore via firestoreService
       if (this.useFirebase) {
         try {
-          await syncService.saveData('user_profile', this.currentUser.profile);
-          if(import.meta.env.DEV)console.log('✅ Profile synced to Firebase');
+          await firestoreService.save('user_profile', this.currentUser.profile, this.currentUser.uid);
+          if(import.meta.env.DEV)console.log('✅ Profile synced to Firestore');
         } catch (syncError) {
-          if(import.meta.env.DEV)console.warn('Profile Firebase sync failed (offline?):', syncError);
+          if(import.meta.env.DEV)console.warn('Profile Firestore sync failed (offline?):', syncError);
         }
       }
 

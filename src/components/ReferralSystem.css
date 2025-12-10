@@ -1,0 +1,23 @@
+.referral-system {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.referral-system button:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s;
+}
+
+.referral-system button:active {
+  transform: scale(0.95);
+}

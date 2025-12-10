@@ -1,6 +1,8 @@
 // DNA Personalization Service - Genetic-based health recommendations
 import geminiService from './geminiService';
 import { Preferences } from '@capacitor/preferences';
+import firestoreService from './firestoreService';
+import authService from './authService';
 
 class DNAService {
   constructor() {
@@ -263,13 +265,13 @@ class DNAService {
         // Also save to localStorage for Health Avatar compatibility
         localStorage.setItem('dnaAnalysis', JSON.stringify(this.geneticData));
         
-        // Sync to Firebase via syncService
+        // Sync to Firestore via firestoreService
         try {
-          const syncService = (await import('./syncService.js')).default;
-          await syncService.saveData('dnaAnalysis', this.geneticData);
-          if(import.meta.env.DEV)console.log('✅ DNA data saved to storage (Preferences + localStorage + Firebase)');
+          const userId = authService.getCurrentUser()?.uid;
+          await firestoreService.save('dnaAnalysis', this.geneticData, userId);
+          if(import.meta.env.DEV)console.log('✅ DNA data saved to storage (Preferences + localStorage + Firestore)');
         } catch (syncError) {
-          if(import.meta.env.DEV)console.warn('DNA Firebase sync failed (offline?):', syncError);
+          if(import.meta.env.DEV)console.warn('DNA Firestore sync failed (offline?):', syncError);
           if(import.meta.env.DEV)console.log('✅ DNA data saved to storage (Preferences + localStorage)');
         }
         
@@ -600,22 +602,15 @@ Generate personalized health recommendations in JSON format:
     // Also save to localStorage for Health Avatar compatibility
     localStorage.setItem('dnaAnalysis', JSON.stringify(this.analysis));
     
-    // Sync to Firebase via syncService
+    // Sync to Firestore via firestoreService
     try {
-      const syncService = (await import('./syncService.js')).default;
-      await syncService.saveData('dnaAnalysis', this.analysis);
+      const userId = authService.getCurrentUser()?.uid;
+      await firestoreService.save('dnaAnalysis', this.analysis, userId);
+      if(import.meta.env.DEV)console.log('✅ DNA analysis saved to storage (Preferences + localStorage + Firestore)');
     } catch (syncError) {
-      if(import.meta.env.DEV)console.warn('DNA analysis Firebase sync failed (offline?):', syncError);
+      if(import.meta.env.DEV)console.warn('DNA analysis Firestore sync failed (offline?):', syncError);
+      if(import.meta.env.DEV)console.log('✅ DNA analysis saved to storage (Preferences + localStorage)');
     }
-    
-    // Sync to Firebase via syncService
-    try {
-      const syncService = (await import('./syncService.js')).default;
-      await syncService.saveData('dnaAnalysis', this.analysis);
-    } catch (syncError) {
-      if(import.meta.env.DEV)console.warn('DNA analysis Firebase sync failed (offline?):', syncError);
-    }
-    if(import.meta.env.DEV)console.log('✅ DNA analysis saved to storage (Preferences + localStorage)');
   }
 
   // Get personalized meal plan based on DNA

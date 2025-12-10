@@ -1,5 +1,7 @@
 // Sleep Tracking Service - Triple Storage (localStorage + Preferences + Firebase)
 import syncService from './syncService.js';
+import firestoreService from './firestoreService';
+import authService from './authService';
 
 class SleepService {
   constructor() {
@@ -92,7 +94,7 @@ class SleepService {
       localStorage.setItem('sleepLog', JSON.stringify(recentSleep));
 
       // Save to syncService (Preferences + Firebase)
-      await syncService.saveData('sleepLog', recentSleep);
+      await firestoreService.save('sleepLog', recentSleep, authService.getCurrentUser()?.uid);
 
       if(import.meta.env.DEV)console.log('💾 Sleep log saved (localStorage + Preferences + Firebase)');
     } catch (error) {
@@ -106,7 +108,7 @@ class SleepService {
   async loadSleepLog() {
     try {
       // Try syncService first (Preferences + Firebase)
-      const log = await syncService.getData('sleepLog');
+      const log = await firestoreService.get('sleepLog', authService.getCurrentUser()?.uid);
       if (log && Array.isArray(log)) {
         this.sleepLog = log;
         if(import.meta.env.DEV)console.log('✅ Loaded sleep log from syncService:', log.length, 'entries');

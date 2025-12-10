@@ -9,63 +9,190 @@ class SyncService {
     this.syncQueue = [];
     this.isOnline = navigator.onLine;
     this.lastSyncTime = null;
+    this.retryTimer = null;
+    this.authCheckInterval = null;
+    this.maxRetries = 10;
     
-    // Critical data keys that MUST survive app updates
+    // Critical data keys that MUST survive app updates/uninstalls
     this.criticalKeys = [
+      // ===== STEP TRACKING =====
       'stepBaseline',
       'stepBaselineDate', 
       'weeklySteps',
       'todaySteps',
+      'stepHistory',
+      'step_counter_baseline',
+      'step_counter_date',
+      
+      // ===== WATER TRACKING =====
       'water_daily_goal',
       'water_today_intake',
       'water_intake_history',
       'water_reminders',
+      'waterLog',
+      
+      // ===== MEALS & FOOD =====
       'foodLog',
+      'meal_plans',
+      'meal_preferences',
+      'saved_recipes',
+      
+      // ===== WORKOUTS & EXERCISE =====
       'workoutHistory',
+      'workoutLog',
       'activityLog',
+      'rep_history',
+      'exercise_preferences',
+      
+      // ===== HEART RATE =====
+      'heart_rate_history',
+      'hr_device_name',
+      'heartRateData',
+      
+      // ===== SLEEP TRACKING =====
       'sleepLog',
+      'sleep_history',
+      'current_sleep_session',
+      
+      // ===== MENTAL HEALTH =====
       'meditationLog',
-      'stepHistory',
+      'meditation_history',
+      'gratitudeLog',
+      'journalEntries',
+      'gratitude_entries',
+      'stressLog',
+      'mood_history',
+      
+      // ===== PROFILE & USER DATA =====
+      'user_profile',
+      'profile_data',
+      'user_preferences',
+      'allergens',
+      'dietary_restrictions',
+      'health_goals',
+      
+      // ===== HEALTH AVATAR =====
+      'health_avatar_data',
+      'avatar_predictions',
+      'avatar_history',
+      
+      // ===== EMERGENCY =====
+      'emergency_data',
+      'emergency_contacts',
+      'emergencyHistory',
+      'medical_info',
+      
+      // ===== DNA ANALYSIS =====
+      'dnaAnalysis',
+      'dnaRawData',
+      'dna_last_tip',
+      'dna_last_tip_date',
+      'genetic_predictions',
+      
+      // ===== SOCIAL BATTLES =====
+      'battles_data',
+      'battle_history',
+      'battle_stats',
+      
+      // ===== MEAL AUTOMATION =====
+      'meal_automation_settings',
+      'automated_meals',
+      'meal_schedule',
+      
+      // ===== AUTHENTICATION =====
       'loginHistory',
+      'social_login_provider',
+      'social_login_data',
+      'user_credentials',
+      
+      // ===== GAMIFICATION =====
       'gamification_data',
+      'achievements',
+      'level_data',
+      'xp_history',
+      'streaks',
+      
+      // ===== GENERAL HEALTH =====
+      'healthMetrics',
+      'health_data',
+      'health_history',
+      'ml_user_patterns',
+      
+      // ===== SETTINGS =====
       'notificationSettings',
       'themeSettings',
       'dark_mode',
       'dark_mode_auto',
       'onboardingCompleted',
-      'emergency_data'
+      'subscription_plan',
+      'paywall_interactions'
     ];
     
     // Listen for online/offline events
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
+    
+    // Start aggressive Firebase auth checker (every 2 seconds until auth ready)
+    this.startAuthChecker();
+  }
+  
+  // Start checking for Firebase auth every 2 seconds
+  startAuthChecker() {
+    if (this.authCheckInterval) return;
+    
+    console.log('⚡ SYNC SERVICE: Auth checker started (checks every 2s)');
+    
+    this.authCheckInterval = setInterval(async () => {
+      if (firebaseService.isAuthenticated() && this.syncQueue.length > 0) {
+        console.log('✅ SYNC SERVICE: Auth ready! Processing', this.syncQueue.length, 'queued items');
+        await this.processSyncQueue();
+      }
+    }, 2000); // Check every 2 seconds
+  }
+
+  // Stop auth checker
+  stopAuthChecker() {
+    if (this.authCheckInterval) {
+      clearInterval(this.authCheckInterval);
+      this.authCheckInterval = null;
+    }
   }
 
   // Initialize sync service
   async initialize() {
     try {
+      console.log('🔄 SYNC SERVICE: Initializing...');
+      
       // Initialize Firebase
       const initialized = firebaseService.initialize();
       if (!initialized) {
-        if(import.meta.env.DEV)console.log('⚠️ Sync service running in offline-only mode (Firebase not configured)');
+        console.warn('⚠️ SYNC SERVICE: Firebase not configured, offline-only mode');
         return false;
       }
+
+      console.log('🔄 SYNC SERVICE: Firebase initialized');
 
       // Check if user is authenticated
       const user = firebaseService.getCurrentUser();
       if (user) {
-        if(import.meta.env.DEV)console.log('✅ Sync service initialized for user:', user.email);
+        console.log('✅ SYNC SERVICE: Initialized for user:', user.email);
+        console.log('📋 SYNC SERVICE: Queue has', this.syncQueue.length, 'pending items');
+        
         // Sync pending data if online
         if (this.isOnline) {
-          await this.syncAllData();
+          console.log('🌐 SYNC SERVICE: Online, starting aggressive sync...');
+          await this.aggressiveSyncAllData();
+        } else {
+          console.log('📴 SYNC SERVICE: Offline, will sync when online');
         }
         return true;
       } else {
-        if(import.meta.env.DEV)console.log('⚠️ No user logged in, sync service in standby');
+        console.log('⚠️ SYNC SERVICE: No user logged in yet, waiting for auth...');
+        console.log('⚡ SYNC SERVICE: Auth checker running (checks every 2s)');
         return false;
       }
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Sync service initialization failed:', error);
+      console.error('❌ SYNC SERVICE: Initialization failed:', error);
       return false;
     }
   }
@@ -74,7 +201,7 @@ class SyncService {
   async handleOnline() {
     if(import.meta.env.DEV)console.log('🌐 Device is ONLINE - syncing data...');
     this.isOnline = true;
-    await this.syncAllData();
+    await this.aggressiveSyncAllData();
   }
 
   // Handle going offline
@@ -87,14 +214,14 @@ class SyncService {
   // HYBRID STORAGE METHODS (localStorage + Firebase)
   // ========================================
 
-  // Save data (works offline and online)
+  // Save data with AGGRESSIVE Firebase retry (works offline and online)
   async saveData(key, value, userId = null) {
     try {
       const isCritical = this.criticalKeys.includes(key);
       
       // ALWAYS save to localStorage (for backward compatibility & caching)
       localStorage.setItem(key, JSON.stringify(value));
-      if(import.meta.env.DEV)console.log(`💾 Saved to localStorage: ${key}`);
+      console.log(`💾 SYNC: Saved to localStorage: ${key}`);
 
       // Save critical data to Preferences (survives app updates)
       if (isCritical) {
@@ -102,24 +229,41 @@ class SyncService {
           key: `wellnessai_${key}`,
           value: JSON.stringify(value)
         });
-        if(import.meta.env.DEV)console.log(`🔒 Saved to Preferences (permanent): ${key}`);
+        console.log(`🔒 SYNC: Saved to Preferences (permanent): ${key}`);
       }
 
-      // If online and user logged in, sync to Firebase
+      // AGGRESSIVE Firebase sync - try immediately, queue if fails
       if (this.isOnline && firebaseService.isAuthenticated()) {
         const uid = userId || firebaseService.getCurrentUserId();
         if (uid) {
-          await firebaseService.updateUserProfile(uid, { [key]: value });
-          if(import.meta.env.DEV)console.log(`☁️ Synced to Firebase: ${key}`);
+          try {
+            await firebaseService.updateUserProfile(uid, { [key]: value });
+            console.log(`☁️ ✅ SYNC: Firebase synced: ${key}`);
+            return { success: true };
+          } catch (firebaseError) {
+            console.error(`☁️ ❌ SYNC: Firebase failed for ${key}:`, firebaseError.message);
+            // Queue for retry
+            this.addToSyncQueue({ key, value, action: 'save', userId: uid });
+          }
+        } else {
+          console.log(`📋 SYNC: No user ID, queuing: ${key}`);
+          // No user ID yet, queue for when auth is ready
+          this.addToSyncQueue({ key, value, action: 'save' });
         }
       } else {
-        // Queue for later sync
-        this.addToSyncQueue({ key, value, action: 'save' });
+        // Not online or not authenticated - queue for later
+        console.log(`📋 SYNC: Queued: ${key} (auth: ${firebaseService.isAuthenticated()}, online: ${this.isOnline})`);
+        this.addToSyncQueue({ key, value, action: 'save', userId });
+        
+        // Start aggressive retry timer if not already running
+        this.startAggressiveRetry();
       }
 
       return { success: true };
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Save data failed:', error);
+      // Even if everything fails, queue it
+      this.addToSyncQueue({ key, value, action: 'save', userId });
       return { success: false, error: error.message };
     }
   }
@@ -280,26 +424,97 @@ class SyncService {
   // SYNC QUEUE MANAGEMENT
   // ========================================
 
-  // Add item to sync queue
+  // Add item to sync queue (with deduplication)
   addToSyncQueue(item) {
-    this.syncQueue.push({
-      ...item,
-      timestamp: new Date().toISOString()
-    });
-    if(import.meta.env.DEV)console.log(`📋 Added to sync queue (${this.syncQueue.length} items)`);
+    // Don't add duplicates
+    const existing = this.syncQueue.findIndex(q => 
+      q.key === item.key && q.action === item.action
+    );
+    
+    if (existing >= 0) {
+      // Update existing item with latest value
+      this.syncQueue[existing] = {
+        ...item,
+        timestamp: Date.now(),
+        retryCount: (this.syncQueue[existing].retryCount || 0)
+      };
+      if(import.meta.env.DEV)console.log(`📋 Updated in sync queue: ${item.key}`);
+    } else {
+      // Add new item
+      this.syncQueue.push({
+        ...item,
+        timestamp: Date.now(),
+        retryCount: 0
+      });
+      if(import.meta.env.DEV)console.log(`📋 Added to sync queue: ${item.key} (${this.syncQueue.length} items)`);
+    }
+    
+    // Start aggressive retry immediately
+    this.startAggressiveRetry();
+  }
+  
+  // Start aggressive retry timer (tries every 5 seconds with exponential backoff)
+  startAggressiveRetry() {
+    if (this.retryTimer) return; // Already running
+    
+    console.log('⚡ SYNC: Starting aggressive retry timer');
+    
+    let retryDelay = 5000; // Start with 5 seconds
+    const maxDelay = 60000; // Max 60 seconds between retries
+    
+    const retry = async () => {
+      if (this.syncQueue.length === 0) {
+        // Queue empty, stop timer
+        if (this.retryTimer) {
+          clearTimeout(this.retryTimer);
+          this.retryTimer = null;
+          console.log('✅ SYNC: Queue empty, stopping retry timer');
+        }
+        return;
+      }
+      
+      // Try to process queue
+      if (firebaseService.isAuthenticated() && this.isOnline) {
+        console.log('🔄 SYNC: Retry attempt -', this.syncQueue.length, 'items in queue');
+        await this.processSyncQueue();
+        retryDelay = 5000; // Reset delay on successful attempt
+      } else {
+        console.log('⏳ SYNC: Waiting... (auth:', firebaseService.isAuthenticated(), ', online:', this.isOnline, ')');
+        // Exponential backoff
+        retryDelay = Math.min(retryDelay * 1.5, maxDelay);
+      }
+      
+      // Schedule next retry
+      this.retryTimer = setTimeout(retry, retryDelay);
+    };
+    
+    // Start first retry
+    this.retryTimer = setTimeout(retry, retryDelay);
   }
 
-  // Process sync queue
+  // Process sync queue with retry logic
   async processSyncQueue() {
     if (this.syncQueue.length === 0) {
       return;
     }
 
     if(import.meta.env.DEV)console.log(`🔄 Processing sync queue (${this.syncQueue.length} items)...`);
+
+    // Check if user is authenticated
+    if (!firebaseService.isAuthenticated()) {
+      if(import.meta.env.DEV)console.log('⚠️ Not authenticated yet, will retry in 5 seconds');
+      return;
+    }
     
-    const userId = firebaseService.getCurrentUserId();
-    if (!userId) {
-      if(import.meta.env.DEV)console.log('⚠️ No user logged in, skipping sync');
+    // Check if online
+    if (!this.isOnline) {
+      if(import.meta.env.DEV)console.log('⚠️ Offline, will retry when online');
+      return;
+    }
+
+    const uid = firebaseService.getCurrentUserId();
+    if (!uid) {
+      if(import.meta.env.DEV)console.log('⚠️ No user ID, will retry');
       return;
     }
 
@@ -309,27 +524,47 @@ class SyncService {
     for (const item of this.syncQueue) {
       try {
         if (item.action === 'save') {
-          await firebaseService.updateUserProfile(userId, { [item.key]: item.value });
+          await firebaseService.updateUserProfile(
+            item.userId || uid,
+            { [item.key]: item.value }
+          );
+          console.log(`☁️ ✅ SYNC: Firebase synced queued item: ${item.key}`);
           processed.push(item);
         } else if (item.action === 'saveHealth') {
-          await firebaseService.saveHealthData(userId, item.date, item.dataType, item.data);
+          await firebaseService.saveHealthData(uid, item.date, item.dataType, item.data);
+          console.log(`☁️ ✅ SYNC: Firebase synced health data: ${item.dataType}`);
           processed.push(item);
         }
       } catch (error) {
-        if(import.meta.env.DEV)console.error('❌ Sync failed for item:', item, error);
-        failed.push(item);
+        console.error(`☁️ ❌ SYNC: Failed to sync ${item.key || item.dataType}:`, error.message);
+        
+        // Track retry attempts
+        const retries = (item.retryCount || 0) + 1;
+        
+        if (retries < this.maxRetries) {
+          // Add back to queue with incremented retry count
+          failed.push({
+            ...item,
+            retryCount: retries
+          });
+          console.log(`⏭️ SYNC: Will retry ${item.key || item.dataType} (attempt ${retries}/${this.maxRetries})`);
+        } else {
+          console.error(`💀 SYNC: Max retries reached for ${item.key || item.dataType}, giving up`);
+          // Log to console so user can manually recover if needed
+          console.error('CRITICAL: Failed to sync after max retries:', item.key || item.dataType, item.value || item.data);
+        }
       }
     }
 
     // Remove processed items from queue
     this.syncQueue = failed;
     
-    if(import.meta.env.DEV)console.log(`✅ Synced ${processed.length} items, ${failed.length} failed`);
+    console.log(`🎯 SYNC: Processed ${processed.length} items, ${failed.length} failed`);
     this.lastSyncTime = new Date().toISOString();
   }
 
-  // Sync all local data to Firebase
-  async syncAllData() {
+  // AGGRESSIVE sync all local data to Firebase (force sync everything)
+  async aggressiveSyncAllData() {
     if (this.isSyncing) {
       if(import.meta.env.DEV)console.log('⚠️ Sync already in progress...');
       return;
@@ -337,52 +572,112 @@ class SyncService {
 
     try {
       this.isSyncing = true;
-      if(import.meta.env.DEV)console.log('🔄 Starting full data sync...');
+      console.log('🔄 SYNC: Starting AGGRESSIVE full data sync...');
 
       const userId = firebaseService.getCurrentUserId();
       if (!userId) {
-        if(import.meta.env.DEV)console.log('⚠️ No user logged in, skipping sync');
+        console.log('⚠️ SYNC: No user logged in, will retry');
+        this.isSyncing = false;
+        this.startAggressiveRetry();
         return;
       }
 
-      // Process queued items
+      // Process queued items FIRST
       await this.processSyncQueue();
+      
+      console.log('✅ SYNC: Queue processed, now syncing all critical keys...');
 
-      // Sync common data keys
+      // Sync ALL critical data keys - EVERYTHING user has generated
       const keysToSync = [
-        'stepBaseline',
-        'stepBaselineDate',
-        'weeklySteps',
-        'waterLog',
-        'foodLog',
-        'workoutLog',
-        'sleepLog',
-        'journalEntries',
-        'onboardingCompleted',
-        'subscription_plan'
+        // Steps
+        'stepBaseline', 'stepBaselineDate', 'weeklySteps', 'todaySteps', 'stepHistory', 'step_counter_baseline', 'step_counter_date',
+        // Water
+        'waterLog', 'water_daily_goal', 'water_today_intake', 'water_intake_history', 'water_reminders',
+        // Meals
+        'foodLog', 'meal_plans', 'meal_preferences', 'saved_recipes',
+        // Workouts
+        'workoutLog', 'workoutHistory', 'activityLog', 'rep_history', 'exercise_preferences',
+        // Heart Rate
+        'heart_rate_history', 'hr_device_name', 'heartRateData',
+        // Sleep
+        'sleepLog', 'sleep_history', 'current_sleep_session',
+        // Mental Health
+        'meditationLog', 'meditation_history', 'gratitudeLog', 'journalEntries', 'gratitude_entries', 'stressLog', 'mood_history',
+        // Profile
+        'user_profile', 'profile_data', 'user_preferences', 'allergens', 'dietary_restrictions', 'health_goals',
+        // Health Avatar
+        'health_avatar_data', 'avatar_predictions', 'avatar_history',
+        // Emergency
+        'emergency_data', 'emergency_contacts', 'emergencyHistory', 'medical_info',
+        // DNA
+        'dnaAnalysis', 'dnaRawData', 'dna_last_tip', 'dna_last_tip_date', 'genetic_predictions',
+        // Battles
+        'battles_data', 'battle_history', 'battle_stats',
+        // Meal Automation
+        'meal_automation_settings', 'automated_meals', 'meal_schedule',
+        // Auth
+        'loginHistory', 'social_login_provider', 'social_login_data',
+        // Gamification
+        'gamification_data', 'achievements', 'level_data', 'xp_history', 'streaks',
+        // Health
+        'healthMetrics', 'health_data', 'health_history', 'ml_user_patterns',
+        // Settings
+        'notificationSettings', 'themeSettings', 'dark_mode', 'dark_mode_auto', 'onboardingCompleted', 'subscription_plan', 'paywall_interactions'
       ];
 
       let syncedCount = 0;
+      let failedCount = 0;
+      
       for (const key of keysToSync) {
-        const value = localStorage.getItem(key);
-        if (value) {
-          try {
-            await firebaseService.updateUserProfile(userId, { [key]: JSON.parse(value) });
+        try {
+          // Get from Preferences first (most reliable), then localStorage
+          let value = null;
+          
+          if (this.criticalKeys.includes(key)) {
+            const { value: prefsData } = await Preferences.get({ key: `wellnessai_${key}` });
+            if (prefsData) {
+              value = JSON.parse(prefsData);
+            }
+          }
+          
+          if (value === null) {
+            const localData = localStorage.getItem(key);
+            if (localData) {
+              value = JSON.parse(localData);
+            }
+          }
+          
+          if (value !== null && value !== undefined) {
+            await firebaseService.updateUserProfile(userId, { [key]: value });
             syncedCount++;
-          } catch (error) {
-            if(import.meta.env.DEV)console.error(`Failed to sync ${key}:`, error);
+            console.log(`☁️ ✅ SYNC: Synced ${key} to Firebase`);
+          }
+        } catch (error) {
+          failedCount++;
+          console.error(`☁️ ❌ SYNC: Failed to sync ${key}:`, error.message);
+          // Queue failed items for retry
+          if (this.criticalKeys.includes(key)) {
+            this.addToSyncQueue({ key, value: null, action: 'save' });
           }
         }
       }
-
-      if(import.meta.env.DEV)console.log(`✅ Full sync complete: ${syncedCount} items synced`);
-      this.lastSyncTime = new Date().toISOString();
       
+      console.log(`🎯 SYNC: Aggressive sync complete - ${syncedCount} synced, ${failedCount} failed`);
+
+      console.log('✅ SYNC: Aggressive full sync complete');
+      this.lastSyncTime = new Date().toISOString();
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Full sync failed:', error);
+      if(import.meta.env.DEV)console.error('❌ Aggressive sync failed:', error);
+      // Retry on failure
+      this.startAggressiveRetry();
     } finally {
       this.isSyncing = false;
     }
+  }
+  
+  // Original sync method (calls aggressive sync now)
+  async syncAllData() {
+    return this.aggressiveSyncAllData();
   }
 
   // Pull data from Firebase to localStorage

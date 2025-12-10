@@ -1,5 +1,6 @@
 // Health Avatar Service - 3D Avatar that shows future health state
 import authService from './authService';
+import firestoreService from './firestoreService';
 
 class HealthAvatarService {
   constructor() {
@@ -44,17 +45,25 @@ class HealthAvatarService {
       const { default: nativeStepService } = await import('./nativeStepService.js');
       const rawSteps = await nativeStepService.getSteps();
       const todayDate = new Date().toISOString().split('T')[0];
-      const stepBaseline = parseInt(await syncService.getData('stepBaseline') || '0');
-      const baselineDate = await syncService.getData('stepBaselineDate');
+      let stepBaseline = parseInt(await firestoreService.get('stepBaseline', authService.getCurrentUser()?.uid) || '0');
+      const baselineDate = await firestoreService.get('stepBaselineDate', authService.getCurrentUser()?.uid);
+      
+      // 🔥 FIX: Detect sensor reset (same as dashboard)
+      if (rawSteps < stepBaseline && baselineDate === todayDate) {
+        console.log('🧬 Health Avatar: Sensor RESET detected! Raw:', rawSteps, '< Baseline:', stepBaseline);
+        stepBaseline = rawSteps;
+        await firestoreService.save('stepBaseline', rawSteps.toString(), authService.getCurrentUser()?.uid);
+      }
       
       if (baselineDate === todayDate) {
         todaySteps = Math.max(0, rawSteps - stepBaseline);
       }
+      console.log('🧬 Health Avatar: Native service steps today:', todaySteps);
     } catch (e) {
       console.warn('⚠️ Could not read from native service for score:', e);
     }
     
-    const stepHistoryRaw = await syncService.getData('stepHistory') || JSON.parse(localStorage.getItem('stepHistory') || '[]');
+    const stepHistoryRaw = await firestoreService.get('stepHistory', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('stepHistory') || '[]');
     const stepHistory = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : Object.values(stepHistoryRaw);
     
     // Add today's live steps to history for averaging
@@ -406,8 +415,8 @@ class HealthAvatarService {
       const { default: nativeStepService } = await import('./nativeStepService.js');
       const rawSteps = await nativeStepService.getSteps();
       const todayDate = new Date().toISOString().split('T')[0];
-      const stepBaseline = parseInt(await syncService.getData('stepBaseline') || '0');
-      const baselineDate = await syncService.getData('stepBaselineDate');
+      const stepBaseline = parseInt(await firestoreService.get('stepBaseline', authService.getCurrentUser()?.uid) || '0');
+      const baselineDate = await firestoreService.get('stepBaselineDate', authService.getCurrentUser()?.uid);
       
       if (baselineDate === todayDate) {
         todaySteps = Math.max(0, rawSteps - stepBaseline);
@@ -417,7 +426,7 @@ class HealthAvatarService {
       console.warn('⚠️ Could not read from native service:', e);
     }
     
-    const stepHistoryRaw = await syncService.getData('stepHistory') || JSON.parse(localStorage.getItem('stepHistory') || '[]');
+    const stepHistoryRaw = await firestoreService.get('stepHistory', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('stepHistory') || '[]');
     console.log('🧬 Health Avatar loading stepHistory:', stepHistoryRaw);
     const stepHistoryArray = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : Object.values(stepHistoryRaw);
     
@@ -432,9 +441,9 @@ class HealthAvatarService {
       }
     }
     const foodLog = user.profile?.foodLog || JSON.parse(localStorage.getItem('foodLog') || '[]');
-    const workoutHistory = await syncService.getData('workoutHistory') || JSON.parse(localStorage.getItem('workoutHistory') || '[]');
-    const dnaAnalysis = await syncService.getData('dnaAnalysis') || JSON.parse(localStorage.getItem('dnaAnalysis') || 'null');
-    const sleepLog = await syncService.getData('sleepLog') || JSON.parse(localStorage.getItem('sleepLog') || '[]');
+    const workoutHistory = await firestoreService.get('workoutHistory', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+    const dnaAnalysis = await firestoreService.get('dnaAnalysis', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('dnaAnalysis') || 'null');
+    const sleepLog = await firestoreService.get('sleepLog', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('sleepLog') || '[]');
     
     const last30DaysSteps = stepHistoryArray.slice(-30);
     console.log('🧬 Last 30 days steps:', last30DaysSteps);

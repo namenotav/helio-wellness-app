@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Camera } from '@capacitor/camera';
 import authService from '../services/authService';
 import syncService from '../services/syncService';
+import firestoreService from '../services/firestoreService';
 import healthAvatarService from '../services/healthAvatarService';
 import './ProfileSetup.css';
 
@@ -196,23 +197,24 @@ export default function ProfileSetup({ onComplete }) {
       
       // Initialize tracking data in cloud + localStorage if empty
       try {
-        if (!(await syncService.getData('stepHistory'))) {
-      await syncService.saveData('stepHistory', {});
+        const userId = authService.getCurrentUser()?.uid;
+        if (!(await firestoreService.get('stepHistory', userId))) {
+      await firestoreService.save('stepHistory', {}, userId);
     }
-    if (!(await syncService.getData('foodLog'))) {
-      await syncService.saveData('foodLog', []);
+    if (!(await firestoreService.get('foodLog', userId))) {
+      await firestoreService.save('foodLog', [], userId);
     }
-    if (!(await syncService.getData('workoutHistory'))) {
-      await syncService.saveData('workoutHistory', []);
+    if (!(await firestoreService.get('workoutHistory', userId))) {
+      await firestoreService.save('workoutHistory', [], userId);
     }
-    if (!(await syncService.getData('sleepLog'))) {
-      await syncService.saveData('sleepLog', []);
+    if (!(await firestoreService.get('sleepLog', userId))) {
+      await firestoreService.save('sleepLog', [], userId);
     }
-    if (!(await syncService.getData('waterLog'))) {
-      await syncService.saveData('waterLog', []);
+    if (!(await firestoreService.get('waterLog', userId))) {
+      await firestoreService.save('waterLog', [], userId);
     }
-        if (!(await syncService.getData('weeklySteps'))) {
-          await syncService.saveData('weeklySteps', []);
+        if (!(await firestoreService.get('weeklySteps', userId))) {
+          await firestoreService.save('weeklySteps', [], userId);
         }
       } catch (syncError) {
         if(import.meta.env.DEV)console.warn('⚠️ Warning initializing data stores (non-critical):', syncError);

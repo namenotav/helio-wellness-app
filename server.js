@@ -5,9 +5,35 @@ import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import { MongoClient } from 'mongodb';
+import Stripe from 'stripe';
+import admin from 'firebase-admin';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2023-10-16',
+});
+
+// Initialize Firebase Admin (for Firestore access)
+let firebaseInitialized = false;
+try {
+  // Firebase Admin will use default credentials from environment
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      projectId: 'wellnessai-app-e01be'
+    });
+  }
+  firebaseInitialized = true;
+  if(process.env.NODE_ENV!=="production")console.log('✅ Firebase Admin initialized');
+} catch (error) {
+  if(process.env.NODE_ENV!=="production")console.warn('⚠️ Firebase Admin initialization failed:', error.message);
+  if(process.env.NODE_ENV!=="production")console.warn('Subscription features will use MongoDB fallback');
+}
+
+const db_firebase = firebaseInitialized ? admin.firestore() : null;
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/wellnessai';
@@ -85,6 +111,251 @@ setInterval(() => {
 
 // Enable CORS for all origins (allows your phone to connect)
 app.use(cors());
+
+// Stripe webhook needs raw body
+app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    console.error('⚠️ Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  try {
+    switch (event.type) {
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdate(event.data.object);
+        break;
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event.data.object);
+        break;
+      case 'invoice.paid':
+        await handleInvoicePaid(event.data.object);
+        break;
+      case 'invoice.payment_failed':
+        await handlePaymentFailed(event.data.object);
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+    res.json({received: true});
+  } catch (error) {
+    console.error('Error handling webhook:', error);
+    res.status(500).send('Webhook handler failed');
+  }
+});
+
+// Helper function - Map Stripe price ID to plan name
+function mapStripePriceToPlan(priceId) {
+  const priceMap = {
+    'prod_TZhdMJIuUuIxOP': 'essential',  // £4.99
+    'prod_TZhulmjk69SvVX': 'premium',    // £14.99
+    'prod_TZhmpYUG5KqUaK': 'vip'         // £29.99
+  };
+  return priceMap[priceId] || 'free';
+}
+
+// Webhook handler - Subscription updated or created
+async function handleSubscriptionUpdate(subscription) {
+  try {
+    const userId = subscription.metadata?.firebaseUserId;
+    if (!userId) {
+      console.error('No firebaseUserId in subscription metadata');
+      return;
+    }
+
+    const priceId = subscription.items.data[0]?.price?.product;
+    const plan = mapStripePriceToPlan(priceId);
+    
+    await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').set({
+      plan: plan,
+      status: subscription.status,
+      stripeCustomerId: subscription.customer,
+      stripeSubscriptionId: subscription.id,
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      updatedAt: new Date()
+    }, { merge: true });
+
+    console.log(`Subscription updated for user ${userId}: ${plan} (${subscription.status})`);
+  } catch (error) {
+    console.error('Error updating subscription:', error);
+  }
+}
+
+// Webhook handler - Subscription deleted/canceled
+async function handleSubscriptionDeleted(subscription) {
+  try {
+    const userId = subscription.metadata?.firebaseUserId;
+    if (!userId) return;
+
+    await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').set({
+      plan: 'free',
+      status: 'canceled',
+      canceledAt: new Date(),
+      updatedAt: new Date()
+    }, { merge: true });
+
+    console.log(`Subscription canceled for user ${userId}`);
+  } catch (error) {
+    console.error('Error deleting subscription:', error);
+  }
+}
+
+// Webhook handler - Invoice paid successfully
+async function handleInvoicePaid(invoice) {
+  try {
+    const subscription = invoice.subscription;
+    if (!subscription) return;
+
+    const subscriptionObj = await stripe.subscriptions.retrieve(subscription);
+    await handleSubscriptionUpdate(subscriptionObj);
+    
+    console.log(`Invoice paid for subscription ${subscription}`);
+  } catch (error) {
+    console.error('Error handling paid invoice:', error);
+  }
+}
+
+// Webhook handler - Payment failed
+async function handlePaymentFailed(invoice) {
+  try {
+    const subscription = invoice.subscription;
+    if (!subscription) return;
+
+    const subscriptionObj = await stripe.subscriptions.retrieve(subscription);
+    const userId = subscriptionObj.metadata?.firebaseUserId;
+    if (!userId) return;
+
+    await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').set({
+      status: 'past_due',
+      paymentFailed: true,
+      lastPaymentAttempt: new Date(),
+      updatedAt: new Date()
+    }, { merge: true });
+
+    console.log(`Payment failed for user ${userId}`);
+  } catch (error) {
+    console.error('Error handling payment failure:', error);
+  }
+}
+
+// API Endpoint - Create Stripe checkout session
+app.post('/api/stripe/create-checkout', async (req, res) => {
+  try {
+    const { userId, priceId, plan } = req.body;
+    
+    if (!userId || !priceId) {
+      return res.status(400).json({ error: 'Missing userId or priceId' });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{
+        price: priceId,
+        quantity: 1,
+      }],
+      success_url: `${req.headers.origin || 'https://helio-wellness-app-production.up.railway.app'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin || 'https://helio-wellness-app-production.up.railway.app'}/payment-canceled`,
+      metadata: {
+        firebaseUserId: userId,
+        plan: plan
+      },
+      subscription_data: {
+        metadata: {
+          firebaseUserId: userId,
+          plan: plan
+        }
+      }
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+// API Endpoint - Get subscription status
+app.get('/api/subscription/status/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const subDoc = await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').get();
+    
+    if (!subDoc.exists) {
+      return res.json({ plan: 'free', status: 'none', isActive: false });
+    }
+
+    const data = subDoc.data();
+    const now = new Date();
+    const periodEnd = data.currentPeriodEnd?.toDate() || new Date(0);
+    const isActive = data.status === 'active' && periodEnd > now;
+
+    res.json({
+      plan: isActive ? data.plan : 'free',
+      status: data.status,
+      isActive: isActive,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: data.cancelAtPeriodEnd || false
+    });
+  } catch (error) {
+    console.error('Error fetching subscription status:', error);
+    res.status(500).json({ error: 'Failed to fetch subscription status' });
+  }
+});
+
+// API Endpoint - Cancel subscription
+app.post('/api/subscription/cancel', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    const subDoc = await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').get();
+    
+    if (!subDoc.exists) {
+      return res.status(404).json({ error: 'No active subscription found' });
+    }
+
+    const data = subDoc.data();
+    const subscriptionId = data.stripeSubscriptionId;
+
+    if (!subscriptionId) {
+      return res.status(400).json({ error: 'No Stripe subscription ID found' });
+    }
+
+    // Cancel at period end (user keeps access until renewal date)
+    const subscription = await stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: true
+    });
+
+    await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').set({
+      cancelAtPeriodEnd: true,
+      updatedAt: new Date()
+    }, { merge: true });
+
+    res.json({ 
+      success: true, 
+      message: 'Subscription will be canceled at period end',
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+    });
+  } catch (error) {
+    console.error('Error canceling subscription:', error);
+    res.status(500).json({ error: 'Failed to cancel subscription' });
+  }
+});
+
 app.use(express.json({ limit: '10mb' }));  // Increase limit for image data
 app.use(rateLimit); // Apply rate limiting to all routes
 

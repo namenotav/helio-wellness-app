@@ -3,6 +3,8 @@
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import ambientSoundService from './ambientSoundService';
 import directAudioService from './directAudioService';
+import firestoreService from './firestoreService';
+import authService from './authService';
 
 class BreathingService {
   constructor() {
@@ -282,8 +284,7 @@ class BreathingService {
     // Also log to meditation log for activity feed
     let meditationLog = [];
     try {
-      const syncService = (await import('./syncService.js')).default;
-      meditationLog = await syncService.getData('meditationLog') || [];
+      meditationLog = await firestoreService.get('meditationLog', authService.getCurrentUser()?.uid) || [];
     } catch (err) {
       // Fallback to localStorage
       meditationLog = JSON.parse(localStorage.getItem('meditationLog') || '[]');
@@ -299,8 +300,7 @@ class BreathingService {
     // Save to triple storage (localStorage + Preferences + Firebase)
     localStorage.setItem('meditationLog', JSON.stringify(meditationLog));
     try {
-      const syncService = (await import('./syncService.js')).default;
-      await syncService.saveData('meditationLog', meditationLog);
+      await firestoreService.save('meditationLog', meditationLog, authService.getCurrentUser()?.uid);
     } catch (syncError) {
       if(import.meta.env.DEV)console.warn('Meditation log Firebase sync failed (offline?):', syncError);
     }

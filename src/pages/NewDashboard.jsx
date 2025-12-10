@@ -4,6 +4,7 @@ import { BarcodeScanner as BarcodeScannerPlugin } from '@capacitor-community/bar
 import { Preferences } from '@capacitor/preferences'
 import authService from '../services/authService'
 import syncService from '../services/syncService'
+import firestoreService from '../services/firestoreService'
 import nativeHealthService from '../services/nativeHealthService'
 import heartRateService from '../services/heartRateService'
 import sleepTrackingService from '../services/sleepTrackingService'
@@ -23,6 +24,7 @@ import aiMemoryService from '../services/aiMemoryService'
 import dnaService from '../services/dnaService'
 import ErrorBoundary from '../components/ErrorBoundary'
 import '../styles/NewDashboard.css'
+import '../styles/GridDashboard.css'
 
 // Wire up gamificationService with syncService for Preferences persistence
 gamificationService.setSyncService(syncService);
@@ -270,6 +272,34 @@ export default function NewDashboard() {
     }
   }, [])
 
+  // 🔧 EMERGENCY: Clear cache and reload (call from console: window.clearCache())
+  const clearCacheAndReload = async () => {
+    console.log('🗑️ CLEARING ALL CACHES...');
+    
+    // Clear service worker caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      console.log('✅ Service worker caches cleared');
+    }
+    
+    // Unregister service workers
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
+      console.log('✅ Service workers unregistered');
+    }
+    
+    console.log('🔄 RELOADING APP...');
+    window.location.reload(true);
+  };
+
+  // Expose globally for emergency use
+  useEffect(() => {
+    window.clearCache = clearCacheAndReload;
+    console.log('💡 Emergency function available: window.clearCache()');
+  }, []);
+
   // Initialize developer mode
   useEffect(() => {
     if(import.meta.env.DEV)console.log('⚡ useEffect RAN!')
@@ -381,20 +411,21 @@ export default function NewDashboard() {
     try {
       const currentSteps = nativeHealthService.getStepCount()
       const todayDate = new Date().toISOString().split('T')[0]
+      const userId = authService.getCurrentUser()?.uid
       
       // Save to cloud + localStorage
-      await syncService.saveData('stepBaseline', currentSteps.toString())
-      await syncService.saveData('stepBaselineDate', todayDate)
+      await firestoreService.save('stepBaseline', currentSteps.toString(), userId)
+      await firestoreService.save('stepBaselineDate', todayDate, userId)
       
       // Reset weekly steps for today
       const currentDay = new Date().getDay()
       const todayIndex = currentDay === 0 ? 6 : currentDay - 1
-      const weeklyStepsData = await syncService.getData('weeklySteps') || []
+      const weeklyStepsData = await firestoreService.get('weeklySteps', userId) || []
       while (weeklyStepsData.length < 7) {
         weeklyStepsData.push({ steps: 0, date: null })
       }
       weeklyStepsData[todayIndex] = { steps: 0, date: todayDate }
-      await syncService.saveData('weeklySteps', weeklyStepsData)
+      await firestoreService.save('weeklySteps', weeklyStepsData, userId)
       
       // Force reload stats
       setStats(prev => ({ ...prev, todaySteps: 0, weeklySteps: weeklyStepsData }))
@@ -463,8 +494,16 @@ export default function NewDashboard() {
             
             // Calculate today's steps from baseline (same logic as loadRealData)
             const todayDate = new Date().toISOString().split('T')[0]
-            const stepBaseline = parseInt(await syncService.getData('stepBaseline') || '0')
-            const baselineDate = await syncService.getData('stepBaselineDate')
+            const userId = authService.getCurrentUser()?.uid
+            let stepBaseline = parseInt(await firestoreService.get('stepBaseline', userId) || '0')
+            const baselineDate = await firestoreService.get('stepBaselineDate', userId)
+            
+            // 🔥 FIX: Detect sensor reset in polling too
+            if (rawStepCount < stepBaseline && baselineDate === todayDate) {
+              console.log('🔄 Polling: Sensor RESET detected! Raw:', rawStepCount, '< Baseline:', stepBaseline)
+              stepBaseline = rawStepCount
+              await firestoreService.save('stepBaseline', rawStepCount.toString(), userId)
+            }
             
             let todaySteps = 0
             if (baselineDate === todayDate) {
@@ -480,7 +519,7 @@ export default function NewDashboard() {
                 const yesterdayIndex = yesterdayDay === 0 ? 6 : yesterdayDay - 1
                 
                 // Load current weekly data
-                const weeklyStepsData = await syncService.getData('weeklySteps') || []
+                const weeklyStepsData = await firestoreService.get('weeklySteps', userId) || []
                 while (weeklyStepsData.length < 7) {
                   weeklyStepsData.push({ steps: 0, date: null })
                 }
@@ -491,13 +530,13 @@ export default function NewDashboard() {
                   date: baselineDate
                 }
                 
-                await syncService.saveData('weeklySteps', weeklyStepsData)
+                await firestoreService.save('weeklySteps', weeklyStepsData, userId)
                 console.log('💾 BACKGROUND: Saved yesterday\'s final steps:', yesterdayFinalSteps, 'on', baselineDate)
               }
               
               // NOW set new baseline for today
-              await syncService.saveData('stepBaseline', rawStepCount.toString())
-              await syncService.saveData('stepBaselineDate', todayDate)
+              await firestoreService.save('stepBaseline', rawStepCount.toString(), userId)
+              await firestoreService.save('stepBaselineDate', todayDate, userId)
               todaySteps = 0
             }
             
@@ -506,7 +545,7 @@ export default function NewDashboard() {
             // Update weekly steps in Firebase + localStorage
             const currentDay = new Date().getDay()
             const todayIndex = currentDay === 0 ? 6 : currentDay - 1
-            const weeklyStepsData = await syncService.getData('weeklySteps') || []
+            const weeklyStepsData = await firestoreService.get('weeklySteps', userId) || []
             while (weeklyStepsData.length < 7) {
               weeklyStepsData.push({ steps: 0, date: null })
             }
@@ -514,10 +553,10 @@ export default function NewDashboard() {
               steps: todaySteps,
               date: todayDate
             }
-            await syncService.saveData('weeklySteps', weeklyStepsData)
+            await firestoreService.save('weeklySteps', weeklyStepsData, userId)
             
             // Save to encrypted storage for persistence
-            await syncService.saveData('todaySteps', todaySteps.toString())
+            await firestoreService.save('todaySteps', todaySteps.toString(), userId)
             
             // Update localStorage stepHistory for Activity Pulse synchronization
             const stepHistoryRaw = JSON.parse(localStorage.getItem('stepHistory') || '[]')
@@ -565,8 +604,7 @@ export default function NewDashboard() {
         // Give it a moment to initialize
         setTimeout(() => {
           alert('✅ 24/7 Step Tracking Enabled!\n\n✓ Persistent notification showing\n✓ Steps count even when app is closed\n✓ Dashboard syncs every 5 minutes\n\nWalk around and watch both notification and dashboard update!')
-          // Immediately update dashboard
-          loadRealData()
+          // Dashboard will update automatically from polling - no need to call loadRealData here
         }, 500)
       } else {
         alert('❌ Failed to Start Service\n\nPossible reasons:\n• No step counter sensor on device\n• Permission denied\n• Service already running\n\nCheck notification area for "🏃 Helio Active"')
@@ -580,27 +618,53 @@ export default function NewDashboard() {
     }
   }
 
-  // Load real data from localStorage + Firebase cloud
-  useEffect(() => {
-    const loadRealData = async () => {
-      const today = new Date().toISOString().split('T')[0]
-      
-      try {
-        // ALWAYS try to get steps from native foreground service FIRST (same source as notification)
+  // Load real data from localStorage + Firebase cloud (moved outside useEffect so it can be called from anywhere)
+  const loadRealData = async () => {
+    const today = new Date().toISOString().split('T')[0]
+    
+    try {
+      // 🔥 CRITICAL: Read DIRECTLY from SharedPreferences (same source as notification!)
         let liveStepCount = 0
+        let todaySteps = 0
         try {
           const { default: nativeStepService } = await import('../services/nativeStepService')
+          
+          // Get raw count from SharedPreferences (same as notification)
           liveStepCount = await nativeStepService.getSteps()
-          if(import.meta.env.DEV)console.log('📊 Native service step count (SharedPreferences):', liveStepCount)
+          console.log('📊 [DASHBOARD] Raw steps from SharedPreferences:', liveStepCount)
+          
+          // Calculate today's steps using baseline (same logic as notification)
+          const todayDate = new Date().toISOString().split('T')[0]
+          const userId = authService.getCurrentUser()?.uid
+          let stepBaseline = parseInt(await firestoreService.get('stepBaseline', userId) || '0')
+          const baselineDate = await firestoreService.get('stepBaselineDate', userId)
+          
+          // 🔥 FIX: Detect sensor reset (raw steps < baseline = phone reboot/sensor reset)
+          if (liveStepCount < stepBaseline && baselineDate === todayDate) {
+            console.log('🔄 [DASHBOARD] Sensor RESET detected! Raw:', liveStepCount, '< Baseline:', stepBaseline)
+            console.log('💾 [DASHBOARD] Resetting baseline to:', liveStepCount)
+            stepBaseline = liveStepCount
+            await firestoreService.save('stepBaseline', liveStepCount.toString(), userId)
+          }
+          
+          if (baselineDate === todayDate) {
+            todaySteps = Math.max(0, liveStepCount - stepBaseline)
+            console.log('📊 [DASHBOARD] Using baseline:', stepBaseline, '| Raw:', liveStepCount, '| Today steps:', todaySteps)
+          } else {
+            // New day - set baseline
+            console.log('🌅 [DASHBOARD] New day detected, setting baseline:', liveStepCount)
+            await firestoreService.save('stepBaseline', liveStepCount.toString(), userId)
+            await firestoreService.save('stepBaselineDate', todayDate, userId)
+            todaySteps = 0
+          }
         } catch (err) {
-          console.error('Error getting native steps:', err)
-          // Only fall back to old health service if native service failed completely
-          liveStepCount = nativeHealthService.getStepCount()
-          if(import.meta.env.DEV)console.log('📊 Fallback to health service step count:', liveStepCount)
+          console.error('❌ Error getting native steps:', err)
+          todaySteps = 0
         }
 
         // Count water cups today (load from cloud)
-        const waterLog = await syncService.getData('waterLog') || []
+        const userId = authService.getCurrentUser()?.uid
+        const waterLog = await firestoreService.get('waterLog', userId) || []
         const waterToday = waterLog.filter(w => w.date === today)
         const waterCups = waterToday.reduce((sum, w) => sum + (w.cups || 1), 0)
 
@@ -614,7 +678,7 @@ export default function NewDashboard() {
         if(import.meta.env.DEV)console.log('🍽️ Meals loaded on init:', mealsLogged, 'meals today')
 
         // ✅ Sync workoutHistory from Firebase (cross-device + persistent)
-        const firebaseWorkouts = await syncService.getData('workoutHistory') || []
+        const firebaseWorkouts = await firestoreService.get('workoutHistory', userId) || []
         const localWorkouts = JSON.parse(localStorage.getItem('workoutHistory') || '[]')
         
         // Merge Firebase + localStorage (dedupe by timestamp)
@@ -625,11 +689,11 @@ export default function NewDashboard() {
         
         // Save merged back to both storages
         localStorage.setItem('workoutHistory', JSON.stringify(mergedWorkouts))
-        await syncService.saveData('workoutHistory', mergedWorkouts)
+        await firestoreService.save('workoutHistory', mergedWorkouts, userId)
         if(import.meta.env.DEV)console.log('💪 Workouts synced:', mergedWorkouts.length, 'total workouts')
         
         // ✅ Sync sleepLog from Firebase (cross-device + persistent)
-        const firebaseSleep = await syncService.getData('sleepLog') || []
+        const firebaseSleep = await firestoreService.get('sleepLog', userId) || []
         const localSleep = JSON.parse(localStorage.getItem('sleepLog') || '[]')
         
         // Merge Firebase + localStorage (dedupe by timestamp)
@@ -640,7 +704,7 @@ export default function NewDashboard() {
         
         // Save merged back to both storages
         localStorage.setItem('sleepLog', JSON.stringify(mergedSleep))
-        await syncService.saveData('sleepLog', mergedSleep)
+        await firestoreService.save('sleepLog', mergedSleep, userId)
         if(import.meta.env.DEV)console.log('😴 Sleep synced:', mergedSleep.length, 'total sleep sessions')
         
         // ⚔️ Sync Battle Data (Firebase + localStorage)
@@ -649,7 +713,7 @@ export default function NewDashboard() {
         if(import.meta.env.DEV)console.log('⚔️ Battles synced from Firebase')
         
         // Calculate streak (load from cloud)
-        const loginHistory = await syncService.getData('loginHistory') || []
+        const loginHistory = await firestoreService.get('loginHistory', userId) || []
         let streak = 0
         if (loginHistory.length > 0) {
           const sortedLogins = loginHistory.sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -670,7 +734,7 @@ export default function NewDashboard() {
         }
 
         // Load weekly steps history (from cloud)
-        const weeklyStepsData = await syncService.getData('weeklySteps') || []
+        const weeklyStepsData = await firestoreService.get('weeklySteps', userId) || []
         const currentDay = new Date().getDay() // 0=Sun, 1=Mon, etc
         const todayIndex = currentDay === 0 ? 6 : currentDay - 1 // Convert to Mon=0, Sun=6
         const todayDate = new Date().toISOString().split('T')[0]
@@ -691,46 +755,7 @@ export default function NewDashboard() {
           }
         }
         
-        // ✅ FIXED: Handle daily step reset properly
-        // Hardware step counter counts continuously, so we need to store baseline
-        let todaySteps = 0
-        const existingDayData = weeklyStepsData[todayIndex]
-        
-        // First check if we already have a baseline for today
-        const storedBaseline = parseInt(await syncService.getData('stepBaseline') || '0')
-        const storedBaselineDate = await syncService.getData('stepBaselineDate')
-        
-        // Check if baseline exists for today - if so, ALWAYS use it
-        if (storedBaselineDate === todayDate) {
-          // Baseline already exists for today - calculate from it
-          todaySteps = Math.max(0, liveStepCount - storedBaseline)
-          if(import.meta.env.DEV)console.log('📊 Using existing baseline:', storedBaseline, '| Current:', liveStepCount, '| Steps today:', todaySteps)
-        } else if (existingDayData?.date !== todayDate) {
-          // NEW DAY DETECTED!
-          if(import.meta.env.DEV)console.log('🌅 NEW DAY! Current:', todayDate, 'Previous:', existingDayData?.date)
-          
-          // 🔥 CRITICAL FIX: Save yesterday's final count BEFORE resetting
-          if (storedBaselineDate && storedBaselineDate !== todayDate) {
-            // Calculate yesterday's final step count
-            const yesterdayFinalSteps = Math.max(0, liveStepCount - storedBaseline)
-            const yesterdayDay = new Date(storedBaselineDate).getDay()
-            const yesterdayIndex = yesterdayDay === 0 ? 6 : yesterdayDay - 1
-            
-            // Save yesterday's final count to its slot
-            weeklyStepsData[yesterdayIndex] = {
-              steps: yesterdayFinalSteps,
-              date: storedBaselineDate
-            }
-            
-            if(import.meta.env.DEV)console.log('💾 SAVED yesterday\'s final steps:', yesterdayFinalSteps, 'on', storedBaselineDate, 'at index', yesterdayIndex)
-          }
-          
-          // NOW set new baseline for today
-          if(import.meta.env.DEV)console.log('🌅 Setting NEW baseline:', liveStepCount)
-          await syncService.saveData('stepBaseline', liveStepCount.toString())
-          await syncService.saveData('stepBaselineDate', todayDate)
-          todaySteps = 0
-        }
+        // 🔥 todaySteps is now calculated above using same logic as notification
         
         // Update weekly array - ALWAYS update it with current steps
         weeklyStepsData[todayIndex] = {
@@ -739,7 +764,7 @@ export default function NewDashboard() {
         }
         if(import.meta.env.DEV)console.log('✅ Weekly array updated: index', todayIndex, 'steps', todaySteps)
         
-        await syncService.saveData('weeklySteps', weeklyStepsData)
+        await firestoreService.save('weeklySteps', weeklyStepsData, userId)
         
         // Update localStorage stepHistory for Activity Pulse synchronization
         const stepHistoryRaw = JSON.parse(localStorage.getItem('stepHistory') || '[]')
@@ -764,6 +789,7 @@ export default function NewDashboard() {
         localStorage.setItem('stepHistory', JSON.stringify(stepHistory))
         if(import.meta.env.DEV)console.log('💾 Updated stepHistory in localStorage for Activity Pulse')
 
+        console.log('📊 [DASHBOARD] Setting stats.todaySteps to:', todaySteps);
         setStats(prev => ({
           ...prev,
           todaySteps: todaySteps,
@@ -772,12 +798,14 @@ export default function NewDashboard() {
           streak: streak || prev.streak,
           weeklySteps: weeklyStepsData
         }))
+        console.log('📊 [DASHBOARD] Stats updated! Should now show:', todaySteps, 'steps');
       } catch (error) {
         if(import.meta.env.DEV)console.error('Error loading real stats:', error)
       }
-    }
+  }
 
-    // Make loadRealData async-compatible
+  // Load real data on mount
+  useEffect(() => {
     const initData = async () => {
       await loadRealData()
       // CRITICAL: Refresh Activity Pulse after updating step data
@@ -1463,12 +1491,7 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
 
   return (
     <div className="home-tab">
-      <div className="greeting-card">
-        <h1 className="greeting">{greeting}</h1>
-        <p className="motivation">{motivation}</p>
-      </div>
-
-      {/* 🔥 NEW: DNA Daily Tip Banner */}
+      {/* DNA Daily Tip Banner */}
       {window.dnaDailyTip && (
         <div className="dna-tip-banner" style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -1522,7 +1545,7 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
         <div className="step-display">
           <span className="step-icon">👟</span>
           <div className="step-info">
-            <div className="step-count">{(Math.floor(stats.todaySteps / 50) * 50).toLocaleString()}</div>
+            <div className="step-count">{stats.todaySteps.toLocaleString()}</div>
             <div className="step-label">steps today</div>
           </div>
         </div>
@@ -1726,7 +1749,7 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
           <div className="goal-header">
             <span className="goal-icon">👟</span>
             <span className="goal-name">Steps</span>
-            <span className="goal-count">{(Math.floor(stats.todaySteps / 50) * 50).toLocaleString()} / {stats.goalSteps.toLocaleString()}</span>
+            <span className="goal-count">{stats.todaySteps.toLocaleString()} / {stats.goalSteps.toLocaleString()}</span>
           </div>
           <div className="goal-bar">
             <div className="goal-fill steps" style={{ width: `${Math.min(stepsProgress, 100)}%` }}></div>
@@ -1874,6 +1897,21 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
           </div>
         )}
       </div>
+
+      {/* FOMO Upgrade Banner */}
+      <div className="fomo-banner" onClick={() => window.dispatchEvent(new CustomEvent('openPaywallModal'))}>
+        <div className="fomo-content">
+          <span className="fomo-icon">🔥</span>
+          <div className="fomo-text">
+            <strong>50,000+ users upgraded!</strong>
+            <p>Unlock DNA Analysis, Social Battles & more</p>
+          </div>
+          <button className="fomo-btn">Upgrade 💎</button>
+        </div>
+      </div>
+
+      {/* Spacer to ensure bottom buttons are visible */}
+      <div style={{height: '120px', flexShrink: 0}}></div>
     </div>
   )
 }
@@ -2116,7 +2154,7 @@ function VoiceTab({ userName }) {
           { type: 'user', text: userText },
           { 
             type: 'ai', 
-            text: `🔒 You've reached your daily limit of ${limit.limit} AI messages.\n\nUpgrade to Premium for unlimited AI coaching!\n\n✨ Premium: £9.99/month or £99/year` 
+            text: `🔒 You've reached your daily limit of ${limit.limit} AI messages.\n\nUpgrade for more:\n💪 Essential £4.99/mo - 30 messages/day\n⭐ Premium £14.99/mo - 50 messages/day\n👑 Ultimate £29.99/mo - UNLIMITED messages` 
           }
         ])
         setPaywallData(subscriptionService.showPaywall('aiVoiceCoach', () => setShowStripePayment(true)))
@@ -2457,229 +2495,196 @@ function MeTab({ user, stats, onOpenHealthAvatar, onOpenARScanner, onOpenEmergen
     : user?.profile?.bmi || null;
 
   return (
-    <div className="me-tab">
-      <div className="profile-header">
-        <div className="profile-avatar">
+    <div className="me-tab-grid">
+      {/* Compact Profile Header */}
+      <div className="profile-compact">
+        <div className="profile-compact-avatar">
           {user?.profile?.photo ? (
-            <img src={user.profile.photo} alt="Profile" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} />
+            <img src={user.profile.photo} alt="Profile" />
           ) : (
-            <span style={{fontSize: '60px'}}>{user?.profile?.avatar || '👤'}</span>
+            <span>{user?.profile?.avatar || '👤'}</span>
           )}
         </div>
-        <h2>{user?.profile?.fullName || user?.profile?.name || 'Wellness Warrior'}</h2>
-        <p className="profile-level">⭐ Level {stats.level} • 🔥 {stats.streak} Day Streak</p>
-        
-        {/* Real Profile Data Display */}
-        {user?.profile?.age && (
-          <div className="profile-stats">
-            <div className="profile-stat">
-              <span className="stat-label">Age</span>
-              <span className="stat-value">{user.profile.age}</span>
-            </div>
-            {user.profile.height && (
-              <div className="profile-stat">
-                <span className="stat-label">Height</span>
-                <span className="stat-value">{user.profile.height}cm</span>
-              </div>
-            )}
-            {user.profile.weight && (
-              <div className="profile-stat">
-                <span className="stat-label">Weight</span>
-                <span className="stat-value">{user.profile.weight}kg</span>
-              </div>
-            )}
+        <div className="profile-compact-info">
+          <h2 className="profile-compact-name">{user?.profile?.fullName || user?.profile?.name || 'Wellness Warrior'}</h2>
+          <p className="profile-compact-level">⭐ Level {stats.level} • 🔥 {stats.streak} Day Streak</p>
+          <div className="profile-compact-stats">
+            {user?.profile?.age && <span className="profile-stat-mini">🎂 {user.profile.age}y</span>}
+            {user?.profile?.height && <span className="profile-stat-mini">📏 {user.profile.height}cm</span>}
+            {user?.profile?.weight && <span className="profile-stat-mini">⚖️ {user.profile.weight}kg</span>}
             {bmi && (
-              <div className="profile-stat">
-                <span className="stat-label">BMI</span>
-                <span className="stat-value" style={{
-                  color: bmi < 18.5 ? '#FFA500' : bmi < 25 ? '#44FF44' : bmi < 30 ? '#FFA500' : '#FF4444'
-                }}>{bmi}</span>
-              </div>
+              <span className="profile-stat-mini" style={{
+                color: bmi < 18.5 ? '#FFA500' : bmi < 25 ? '#44FF44' : bmi < 30 ? '#FFA500' : '#FF4444'
+              }}>BMI {bmi}</span>
             )}
           </div>
-        )}
-        
-        <button className="edit-profile-btn" onClick={onEditProfile}>
-          ✏️ Edit My Profile
+        </div>
+        <button className="edit-profile-mini-btn" onClick={onEditProfile}>
+          ✏️ Edit
         </button>
       </div>
 
-      <div className="killer-features-section">
-        <h3>Killer Features ⚡</h3>
-        <div className="features-grid">
-          <button className="feature-card" onClick={onOpenHealthAvatar}>
-            <span className="feature-icon">🧬</span>
-            <span className="feature-name">Health Avatar</span>
-            <span className="feature-tag">✨ Active</span>
+      {/* Developer Mode Card */}
+      {isDevMode && (
+        <div className="dev-mode-card">
+          <div className="dev-mode-title">✅ DEVELOPER MODE ACTIVE</div>
+          <div className="dev-mode-subtitle">All Premium Features Unlocked 🚀</div>
+          <button onClick={onResetStepCounter} className="dev-mode-btn reset">
+            🔄 Reset Step Counter
           </button>
-          
-          <button className="feature-card" onClick={onOpenARScanner}>
-            <span className="feature-icon">📸</span>
-            <span className="feature-name">AR Scanner</span>
-            <span className="feature-tag">✨ Active</span>
-          </button>
-          
-          <button className="feature-card" onClick={onOpenEmergency}>
-            <span className="feature-icon">🚨</span>
-            <span className="feature-name">Emergency</span>
-            <span className="feature-tag">✨ Active</span>
-          </button>
-          
-          <button className="feature-card" onClick={() => alert('🚧 Coming Soon! Insurance rewards feature is under development.')}>
-            <span className="feature-icon">💰</span>
-            <span className="feature-name">Insurance</span>
-            <span className="feature-tag">Coming Soon</span>
-          </button>
-          
-          <button className="feature-card" onClick={() => checkFeatureAccess('dnaAnalysis', onOpenDNA)}>
-            <span className="feature-icon">🧬</span>
-            <span className="feature-name">DNA Analysis</span>
-            <span className="feature-tag">{subscriptionService.hasAccess('dnaAnalysis') ? 'Personalized' : '🔒 Pro'}</span>
-          </button>
-          
-          <button className="feature-card" onClick={() => checkFeatureAccess('socialBattles', onOpenBattles)}>
-            <span className="feature-icon">⚔️</span>
-            <span className="feature-name">Battles</span>
-            <span className="feature-tag">{subscriptionService.hasAccess('socialBattles') ? 'Compete' : '🔒 Pro'}</span>
-          </button>
-          
-          <button className="feature-card" onClick={() => checkFeatureAccess('mealAutomation', onOpenMeals)}>
-            <span className="feature-icon">🍽️</span>
-            <span className="feature-name">Meal Auto</span>
-            <span className="feature-tag">{subscriptionService.hasAccess('mealAutomation') ? 'AI Chef' : '🔒 Pro'}</span>
+          <button onClick={onDisableDevMode} className="dev-mode-btn disable">
+            🔒 Disable Developer Mode
           </button>
         </div>
-      </div>
+      )}
 
-      <div className="settings-section">
-        <h3>Settings ⚙️</h3>
-        
-        {/* DEVELOPER MODE BUTTON - ONLY SHOWS FOR AUTHORIZED DEVICES */}
-        
-        {/* Show unlock button only if authorized device and not already in dev mode */}
+      {/* Me Tab Icon Grid - 4x4 */}
+      <div className="me-icon-grid">
+        <button className="me-icon-btn" onClick={onOpenHealthAvatar}>
+          <div className="icon-circle">
+            <span>🧬</span>
+          </div>
+          <span className="icon-label">Health Avatar</span>
+        </button>
+
+        <button className="me-icon-btn premium-feature" onClick={onOpenARScanner}>
+          <div className="icon-circle">
+            <span>📸</span>
+          </div>
+          <span className="icon-label">AR Scanner</span>
+          <span className="premium-tag">✨</span>
+        </button>
+
+        <button className="me-icon-btn" onClick={onOpenEmergency}>
+          <div className="icon-circle">
+            <span>🚨</span>
+          </div>
+          <span className="icon-label">Emergency</span>
+        </button>
+
+        <button className="me-icon-btn premium-feature" onClick={() => checkFeatureAccess('dnaAnalysis', onOpenDNA)}>
+          <div className="icon-circle">
+            <span>🧬</span>
+          </div>
+          <span className="icon-label">DNA Analysis</span>
+          {!subscriptionService.hasAccess('dnaAnalysis') && <span className="premium-tag">🔒</span>}
+        </button>
+
+        <button className="me-icon-btn premium-feature" onClick={() => checkFeatureAccess('socialBattles', onOpenBattles)}>
+          <div className="icon-circle">
+            <span>⚔️</span>
+          </div>
+          <span className="icon-label">Battles</span>
+          {!subscriptionService.hasAccess('socialBattles') && <span className="premium-tag">🔒</span>}
+        </button>
+
+        <button className="me-icon-btn premium-feature" onClick={() => checkFeatureAccess('mealAutomation', onOpenMeals)}>
+          <div className="icon-circle">
+            <span>🍽️</span>
+          </div>
+          <span className="icon-label">Meal Auto</span>
+          {!subscriptionService.hasAccess('mealAutomation') && <span className="premium-tag">🔒</span>}
+        </button>
+
+        <button className="me-icon-btn" onClick={onEditProfile}>
+          <div className="icon-circle">
+            <span>👤</span>
+          </div>
+          <span className="icon-label">Profile</span>
+        </button>
+
+        <button className="me-icon-btn" onClick={onOpenFullStats}>
+          <div className="icon-circle">
+            <span>📊</span>
+          </div>
+          <span className="icon-label">Full Stats</span>
+        </button>
+
+        <button className="me-icon-btn" onClick={onOpenNotifications}>
+          <div className="icon-circle">
+            <span>🔔</span>
+          </div>
+          <span className="icon-label">Notifications</span>
+        </button>
+
+        <button className="me-icon-btn" onClick={onOpenTheme}>
+          <div className="icon-circle">
+            <span>🎨</span>
+          </div>
+          <span className="icon-label">Theme</span>
+        </button>
+
+        <button className="me-icon-btn" onClick={onExportDailyStats}>
+          <div className="icon-circle">
+            <span>📋</span>
+          </div>
+          <span className="icon-label">Daily PDF</span>
+        </button>
+
+        <button className="me-icon-btn" onClick={onExportWorkoutHistory}>
+          <div className="icon-circle">
+            <span>🏋️</span>
+          </div>
+          <span className="icon-label">Workouts PDF</span>
+        </button>
+
+        <button className="me-icon-btn" onClick={onExportFoodLog}>
+          <div className="icon-circle">
+            <span>🍽️</span>
+          </div>
+          <span className="icon-label">Food PDF</span>
+        </button>
+
+        <button className="me-icon-btn" onClick={onExportFullReport}>
+          <div className="icon-circle">
+            <span>📊</span>
+          </div>
+          <span className="icon-label">Full Report</span>
+        </button>
+
+        <button className="me-icon-btn premium-feature" onClick={() => checkFeatureAccess('appleHealthSync', user.onOpenAppleHealth)}>
+          <div className="icon-circle">
+            <span>❤️</span>
+          </div>
+          <span className="icon-label">Apple Health</span>
+          {!subscriptionService.hasAccess('appleHealthSync') && <span className="premium-tag">🔒</span>}
+        </button>
+
+        <button className="me-icon-btn premium-feature" onClick={() => checkFeatureAccess('wearableSync', user.onOpenWearables)}>
+          <div className="icon-circle">
+            <span>⌚</span>
+          </div>
+          <span className="icon-label">Wearables</span>
+          {!subscriptionService.hasAccess('wearableSync') && <span className="premium-tag">🔒</span>}
+        </button>
+
         {showDevButton && !isDevMode && (
-          <button className="settings-item" onClick={onOpenDevUnlock} style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: 'bold'}}>
-            <span>🔒 Developer Mode</span>
-            <span>→</span>
+          <button className="me-icon-btn premium-feature" onClick={onOpenDevUnlock}>
+            <div className="icon-circle">
+              <span>🔒</span>
+            </div>
+            <span className="icon-label">Dev Mode</span>
           </button>
         )}
-        
-        {/* Show dev mode active if enabled */}
-        {isDevMode && (
-          <div style={{
-            background: 'linear-gradient(135deg, #00ff87 0%, #60efff 100%)',
-            padding: '15px',
-            borderRadius: '15px',
-            marginBottom: '10px',
-            color: '#000',
-            fontWeight: 'bold',
-            fontSize: '14px'
-          }}>
-            <div style={{marginBottom: '10px'}}>
-              ✅ DEVELOPER MODE ACTIVE
-            </div>
-            <div style={{fontSize: '12px', opacity: '0.8', marginBottom: '10px'}}>
-              All Premium Features Unlocked 🚀
-            </div>
-            <button 
-              onClick={onResetStepCounter} 
-              style={{
-                padding: '10px 15px',
-                background: '#FF4444',
-                border: 'none',
-                borderRadius: '8px',
-                color: 'white',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                width: '100%',
-                marginBottom: '8px'
-              }}>
-              🔄 Reset Step Counter
-            </button>
-            <button 
-              onClick={onDisableDevMode} 
-              style={{
-                padding: '10px 15px',
-                background: '#666',
-                border: 'none',
-                borderRadius: '8px',
-                color: 'white',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                width: '100%'
-              }}>
-              🔒 Disable Developer Mode
-            </button>
+
+        <button className="me-icon-btn" onClick={onLogout}>
+          <div className="icon-circle">
+            <span>🚪</span>
           </div>
-        )}
-        
-        <button className="settings-item" onClick={onEditProfile}>
-          <span>👤 My Profile Details</span>
-          <span>→</span>
-        </button>
-        <button 
-          className="settings-item" 
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            if(import.meta.env.DEV)console.log('CALLING onOpenFullStats')
-            onOpenFullStats()
-            return false
-          }}>
-          <span>📊 View Full Stats</span>
-          <span>→</span>
-        </button>
-        <button className="settings-item" onClick={onOpenNotifications}>
-          <span>🔔 Notifications</span>
-          <span>→</span>
-        </button>
-        <button className="settings-item" onClick={onOpenTheme}>
-          <span>🎨 Customize Theme</span>
-          <span>→</span>
-        </button>
-        <button className="settings-item" onClick={onLogout}>
-          <span>🚪 Sign Out</span>
-          <span>→</span>
+          <span className="icon-label">Sign Out</span>
         </button>
       </div>
 
-      <div className="export-section">
-        <h3>Export Reports 📄</h3>
-        <button className="settings-item" onClick={onExportDailyStats}>
-          <span>📋 Daily Report PDF</span>
-          <span>→</span>
-        </button>
-        <button className="settings-item" onClick={onExportWorkoutHistory}>
-          <span>🏋️ Workout History PDF</span>
-          <span>→</span>
-        </button>
-        <button className="settings-item" onClick={onExportFoodLog}>
-          <span>🍽️ Nutrition Log PDF</span>
-          <span>→</span>
-        </button>
-        <button className="settings-item" onClick={onExportFullReport}>
-          <span>📊 Full Health Report PDF</span>
-          <span>→</span>
-        </button>
+      {/* Upgrade CTA Card */}
+      <div className="upgrade-cta-card" onClick={() => user.onOpenStripePayment()}>
+        <div className="upgrade-cta-icon">💎</div>
+        <h3 className="upgrade-cta-title">Upgrade to {subscriptionService.getPlanBadge() === '🆓 FREE' ? 'Premium' : 'VIP'}</h3>
+        <p className="upgrade-cta-text">Join 50,000+ users unlocking DNA, Battles & AI!</p>
+        <button className="upgrade-cta-btn">See Plans 🚀</button>
       </div>
 
-      <div className="premium-section">
-        <h3>Premium Features 💎</h3>
-        <button className="settings-item" onClick={() => user.onOpenStripePayment()}>
-          <span>💳 Upgrade Plan - {subscriptionService.getPlanBadge()}</span>
-          <span>→</span>
-        </button>
-        <button className="settings-item" onClick={() => checkFeatureAccess('appleHealthSync', user.onOpenAppleHealth)}>
-          <span>❤️ Apple Health Sync {!subscriptionService.hasAccess('appleHealthSync') && '🔒'}</span>
-          <span>→</span>
-        </button>
-        <button className="settings-item" onClick={() => checkFeatureAccess('wearableSync', user.onOpenWearables)}>
-          <span>⌚ Connect Wearables {!subscriptionService.hasAccess('wearableSync') && '🔒'}</span>
-          <span>→</span>
-        </button>
-      </div>
+      {/* Spacer to ensure bottom buttons are visible */}
+      <div style={{height: '120px', flexShrink: 0}}></div>
     </div>
   )
 }
@@ -4026,8 +4031,8 @@ function WorkoutsModal({ onClose }) {
     
     // ✅ FIX: Save to Firebase for cross-device sync and persistence
     try {
-      const { default: syncService } = await import('../services/syncService');
-      await syncService.saveData('workoutHistory', workoutHistory);
+      const userId = authService.getCurrentUser()?.uid;
+      await firestoreService.save('workoutHistory', workoutHistory, userId);
       if(import.meta.env.DEV)console.log('💾 Workout saved to Firebase + localStorage:', newWorkout);
     } catch (e) {
       console.warn('⚠️ Could not sync workout to Firebase:', e);

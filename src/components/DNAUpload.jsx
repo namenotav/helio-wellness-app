@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import './DNAUpload.css';
 import dnaService from '../services/dnaService';
+import subscriptionService from '../services/subscriptionService';
+import PaywallModal from './PaywallModal';
 
 export default function DNAUpload({ onClose }) {
   const [uploading, setUploading] = useState(false);
@@ -9,9 +11,17 @@ export default function DNAUpload({ onClose }) {
   const [analysis, setAnalysis] = useState(null);
   const [activeTab, setActiveTab] = useState('traits'); // traits, meals, exercise, risks
   const [loading, setLoading] = useState(true);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // 🔥 Load saved DNA data when component opens
   useEffect(() => {
+    // Check access on mount
+    if (!subscriptionService.hasAccess('dnaAnalysis')) {
+      setShowPaywall(true);
+      setLoading(false);
+      return;
+    }
+
     const loadSavedData = async () => {
       const hasSavedData = await dnaService.loadSavedData();
       if (hasSavedData) {
@@ -490,6 +500,17 @@ export default function DNAUpload({ onClose }) {
           </div>
         )}
       </div>
+
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <PaywallModal
+          isOpen={showPaywall}
+          onClose={onClose}
+          featureName="DNA Analysis"
+          message={subscriptionService.getUpgradeMessage('dnaAnalysis')}
+          currentPlan={subscriptionService.getCurrentPlan()}
+        />
+      )}
     </div>
   );
 }

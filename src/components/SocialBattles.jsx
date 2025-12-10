@@ -89,23 +89,25 @@ export default function SocialBattles({ onClose }) {
       // Get real completed battles from service
       const completed = await socialBattlesService.getBattleHistory();
       
-      // Transform to display format
-      const history = completed.map(battle => {
-        const user = { id: 'current-user' }; // Would get from auth
-        const isWinner = battle.results?.winner?.userId === user.id;
-        const opponent = isWinner 
-          ? battle.results?.loser?.userName || 'Opponent'
-          : battle.results?.winner?.userName || 'Opponent';
-        
-        return {
-          id: battle.id,
-          type: `${battle.config.goal.replace(/-/g, ' ')} Challenge`,
-          opponent: opponent,
-          result: isWinner ? 'won' : 'lost',
-          date: new Date(battle.results.completedAt).toLocaleDateString(),
-          xpEarned: isWinner ? 75 : 25 // Base XP, could be from gamification service
-        };
-      }).reverse(); // Most recent first
+      // Transform to display format - filter out invalid battles
+      const history = (completed || [])
+        .filter(battle => battle && battle.config) // Skip null/undefined battles
+        .map(battle => {
+          const user = { id: 'current-user' }; // Would get from auth
+          const isWinner = battle.results?.winner?.userId === user.id;
+          const opponent = isWinner 
+            ? battle.results?.loser?.userName || 'Opponent'
+            : battle.results?.winner?.userName || 'Opponent';
+          
+          return {
+            id: battle.id || 'unknown',
+            type: `${(battle.config?.goal || 'Unknown').replace(/-/g, ' ')} Challenge`,
+            opponent: opponent,
+            result: isWinner ? 'won' : 'lost',
+            date: battle.results?.completedAt ? new Date(battle.results.completedAt).toLocaleDateString() : 'Unknown',
+            xpEarned: isWinner ? 75 : 25 // Base XP, could be from gamification service
+          };
+        }).reverse(); // Most recent first
       
       setBattleHistory(history);
     } catch (error) {
@@ -288,7 +290,7 @@ export default function SocialBattles({ onClose }) {
       const result = await socialBattlesService.syncBattleProgress(battleId);
       
       if (result.success) {
-        alert(`📊 Progress Updated!\n\nCurrent Steps: ${result.currentSteps.toLocaleString()}\nProgress: +${result.progress.toLocaleString()}\nRank: #${result.rank}\n\nKeep moving! 💪`);
+        alert(`📊 Progress Updated!\n\nCurrent Steps: ${(result.currentSteps || 0).toLocaleString()}\nProgress: +${(result.progress || 0).toLocaleString()}\nRank: #${result.rank || '-'}\n\nKeep moving! 💪`);
         loadBattles();
       }
     } catch (error) {
@@ -482,17 +484,17 @@ export default function SocialBattles({ onClose }) {
               </div>
             ) : (
               battles.map(battle => (
-                <div key={battle.id} className="battle-card">
+                <div key={battle.id || Math.random()} className="battle-card">
                   <div className="battle-header">
-                    <span className="battle-goal">{battle.goal}</span>
-                    <span className={`battle-status ${battle.status}`}>{battle.status}</span>
+                    <span className="battle-goal">{battle.goal || 'Unknown'}</span>
+                    <span className={`battle-status ${battle.status || 'unknown'}`}>{battle.status || 'unknown'}</span>
                   </div>
                   <div className="battle-target">
-                    Target: {battle.target.toLocaleString()}
+                    Target: {(battle.target || 0).toLocaleString()}
                   </div>
                   <div className="battle-stakes">
-                    💰 Stakes: {battle.stakes.replace(/-/g, ' ')}
-                    {battle.stakeAmount > 0 && ` ($${battle.stakeAmount})`}
+                    💰 Stakes: {(battle.stakes || 'none').replace(/-/g, ' ')}
+                    {(battle.stakeAmount || 0) > 0 && ` ($${battle.stakeAmount})`}
                   </div>
                   <div className="battle-participants">
                     👥 {battle.participants?.length || 0} participants
@@ -598,7 +600,7 @@ export default function SocialBattles({ onClose }) {
           <div className="leaderboard-view">
             <button className="back-btn" onClick={() => setView('list')}>← Back</button>
             
-            <h3>{selectedBattle.goal.replace(/-/g, ' ').toUpperCase()} Challenge</h3>
+            <h3>{(selectedBattle.goal || 'Unknown').replace(/-/g, ' ').toUpperCase()} Challenge</h3>
             <div className="days-remaining">
               ⏱️ {leaderboard.daysRemaining} days remaining
             </div>
@@ -619,7 +621,7 @@ export default function SocialBattles({ onClose }) {
                     </div>
                   </div>
                   <div className="participant-score">
-                    {participant.currentScore.toLocaleString()}
+                    {(participant.currentScore || 0).toLocaleString()}
                   </div>
                 </div>
               ))}
@@ -675,10 +677,10 @@ export default function SocialBattles({ onClose }) {
                     <div className="user-level">Level {user.level}</div>
                   </div>
                   <div className="user-stat">
-                    {leaderboardMetric === 'totalXP' && `${user.totalXP.toLocaleString()} XP`}
-                    {leaderboardMetric === 'level' && `Level ${user.level}`}
-                    {leaderboardMetric === 'streak' && `${user.streak} days 🔥`}
-                    {leaderboardMetric === 'totalSteps' && `${user.totalSteps.toLocaleString()} steps`}
+                    {leaderboardMetric === 'totalXP' && `${(user.totalXP || 0).toLocaleString()} XP`}
+                    {leaderboardMetric === 'level' && `Level ${user.level || 1}`}
+                    {leaderboardMetric === 'streak' && `${user.streak || 0} days 🔥`}
+                    {leaderboardMetric === 'totalSteps' && `${(user.totalSteps || 0).toLocaleString()} steps`}
                   </div>
                 </div>
               ))}

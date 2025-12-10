@@ -3,6 +3,8 @@
 
 import { Motion } from '@capacitor/motion';
 import { Capacitor } from '@capacitor/core';
+import firestoreService from './firestoreService';
+import authService from './authService';
 
 class SleepTrackingService {
   constructor() {
@@ -318,8 +320,7 @@ class SleepTrackingService {
       
       // ✅ FIX: Save to Firebase for cross-device sync and persistence
       try {
-        const { default: syncService } = await import('./syncService.js');
-        await syncService.saveData('sleepLog', sleepLog);
+        await firestoreService.save('sleepLog', sleepLog, authService.getCurrentUser()?.uid);
         if(import.meta.env.DEV)console.log('☁️ Sleep synced to Firebase');
       } catch (e) {
         console.warn('⚠️ Could not sync sleep to Firebase:', e);

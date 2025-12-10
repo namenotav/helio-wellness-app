@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import './FoodScanner.css';
 import aiVisionService from '../services/aiVisionService';
 import authService from '../services/authService';
+import subscriptionService from '../services/subscriptionService';
+import PaywallModal from './PaywallModal';
 
 export default function FoodScanner({ onClose }) {
   const [scanMode, setScanMode] = useState('food'); // 'food' or 'label'
@@ -10,6 +12,7 @@ export default function FoodScanner({ onClose }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [allergenProfile, setAllergenProfile] = useState(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     const profile = authService.getUserAllergenProfile();
@@ -19,16 +22,12 @@ export default function FoodScanner({ onClose }) {
   }, []);
 
   const handleScanFood = async () => {
-    // CHECK FOOD SCAN LIMIT FOR FREE USERS (BYPASSED - DEVELOPER MODE)
-    // Uncomment below to re-enable limits for production:
-    /*
-    const subscriptionService = (await import('../services/subscriptionService')).default;
+    // Check food scan limit
     const limit = subscriptionService.checkLimit('foodScans');
     if (!limit.allowed) {
-      setError(`🔒 You've used all ${limit.limit} daily scans.\n\nUpgrade to Premium for unlimited food scanning!\n\n✨ Premium: £9.99/month or £99/year`);
+      setShowPaywall(true);
       return;
     }
-    */
 
     setError('');
     setResult(null);
@@ -712,6 +711,17 @@ function SearchFoods({ onClose }) {
           </div>
         ) : null}
       </div>
+
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <PaywallModal
+          isOpen={showPaywall}
+          onClose={() => setShowPaywall(false)}
+          featureName="Food Scanning"
+          message="You've reached your daily food scan limit. Upgrade for unlimited scans!"
+          currentPlan={subscriptionService.getCurrentPlan()}
+        />
+      )}
     </div>
   );
 }

@@ -9,15 +9,15 @@ class SubscriptionService {
         name: 'Free',
         price: 0,
         features: {
-          basicTracking: 'very_basic', // Only steps and water
+          basicTracking: true,
           stepCounter: true,
           foodScanner: 'limited',
           meditation: false,
-          aiVoiceCoach: 'limited', // 5 messages per day
+          aiVoiceCoach: 'limited',
           waterTracking: true,
           // LOCKED
           dnaAnalysis: false,
-          socialBattles: 'basic', // FREE: Friend connections, basic challenges | PREMIUM: Battles with stakes
+          socialBattles: 'basic',
           insuranceRewards: false,
           mealAutomation: false,
           healthAvatar: false,
@@ -33,34 +33,34 @@ class SubscriptionService {
           pdfExport: false
         },
         limits: {
-          aiMessages: 5,
+          aiMessages: 10,
           foodScans: 3,
+          arScans: 0,
           workouts: 0
         }
       },
-      premium_monthly: {
-        id: 'premium_monthly',
-        name: 'Premium',
-        price: 9.99,
+      essential: {
+        id: 'essential',
+        name: 'Essential',
+        price: 4.99,
         billing: 'monthly',
         features: {
-          // EVERYTHING UNLOCKED
           basicTracking: true,
           stepCounter: true,
           foodScanner: true,
           meditation: true,
           waterTracking: true,
-          aiVoiceCoach: 'unlimited',
-          dnaAnalysis: true,
+          aiVoiceCoach: true,
+          dnaAnalysis: 'basic',
           socialBattles: true,
-          insuranceRewards: false, // Coming soon
-          mealAutomation: true,
-          healthAvatar: true,
-          arScanner: true,
+          insuranceRewards: false,
+          mealAutomation: false,
+          healthAvatar: 'weekly',
+          arScanner: 'limited',
           emergencyPanel: true,
-          appleHealthSync: false, // Coming soon
-          wearableSync: false, // Coming soon
-          exportReports: false, // Coming soon
+          appleHealthSync: false,
+          wearableSync: false,
+          exportReports: false,
           heartRate: true,
           sleepTracking: true,
           workouts: true,
@@ -68,18 +68,53 @@ class SubscriptionService {
           pdfExport: false
         },
         limits: {
-          aiMessages: 999999,
+          aiMessages: 30,
           foodScans: 999999,
+          arScans: 1,
           workouts: 999999
         }
       },
-      premium_yearly: {
-        id: 'premium_yearly',
+      premium: {
+        id: 'premium',
         name: 'Premium',
-        price: 99.00,
-        billing: 'yearly',
+        price: 14.99,
+        billing: 'monthly',
         features: {
-          // EVERYTHING UNLOCKED (Same as monthly, better price)
+          basicTracking: true,
+          stepCounter: true,
+          foodScanner: true,
+          meditation: true,
+          waterTracking: true,
+          aiVoiceCoach: true,
+          dnaAnalysis: true,
+          socialBattles: true,
+          insuranceRewards: false,
+          mealAutomation: true,
+          healthAvatar: 'daily',
+          arScanner: true,
+          emergencyPanel: true,
+          appleHealthSync: false,
+          wearableSync: false,
+          exportReports: true,
+          heartRate: true,
+          sleepTracking: true,
+          workouts: true,
+          breathing: true,
+          pdfExport: true
+        },
+        limits: {
+          aiMessages: 50,
+          foodScans: 999999,
+          arScans: 100,
+          workouts: 999999
+        }
+      },
+      vip: {
+        id: 'vip',
+        name: 'VIP',
+        price: 29.99,
+        billing: 'monthly',
+        features: {
           basicTracking: true,
           stepCounter: true,
           foodScanner: true,
@@ -88,23 +123,24 @@ class SubscriptionService {
           aiVoiceCoach: 'unlimited',
           dnaAnalysis: true,
           socialBattles: true,
-          insuranceRewards: false, // Coming soon
+          insuranceRewards: false,
           mealAutomation: true,
-          healthAvatar: true,
-          arScanner: true,
+          healthAvatar: 'realtime',
+          arScanner: 'unlimited',
           emergencyPanel: true,
-          appleHealthSync: false, // Coming soon
-          wearableSync: false, // Coming soon
-          exportReports: false, // Coming soon
+          appleHealthSync: false,
+          wearableSync: false,
+          exportReports: true,
           heartRate: true,
           sleepTracking: true,
           workouts: true,
           breathing: true,
-          pdfExport: false
+          pdfExport: true
         },
         limits: {
           aiMessages: 999999,
           foodScans: 999999,
+          arScans: 999999,
           workouts: 999999
         }
       }
@@ -115,6 +151,51 @@ class SubscriptionService {
   getCurrentPlan() {
     const planId = localStorage.getItem('subscription_plan') || 'free';
     return this.plans[planId] || this.plans.free;
+  }
+
+  // Verify subscription with server (call on app launch)
+  async verifySubscriptionWithServer(userId) {
+    try {
+      // Check if we verified recently (cache for 6 hours)
+      const lastVerified = localStorage.getItem('subscription_last_verified');
+      const cacheTime = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+      
+      if (lastVerified && Date.now() - parseInt(lastVerified) < cacheTime) {
+        if(import.meta.env.DEV) console.log('✅ Using cached subscription status');
+        return;
+      }
+
+      // Verify with server
+      const API_URL = import.meta.env.VITE_API_URL || 'https://helio-wellness-app-production.up.railway.app';
+      const response = await fetch(`${API_URL}/api/subscription/status/${userId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to verify subscription');
+      }
+
+      const data = await response.json();
+      
+      // Update localStorage with server response
+      if (data.isActive && data.plan !== 'free') {
+        localStorage.setItem('subscription_plan', data.plan);
+        localStorage.setItem('subscription_status', data.status);
+        localStorage.setItem('subscription_period_end', data.currentPeriodEnd);
+        if(import.meta.env.DEV) console.log(`✅ Subscription verified: ${data.plan} (${data.status})`);
+      } else {
+        // Subscription expired or inactive - downgrade to free
+        localStorage.setItem('subscription_plan', 'free');
+        localStorage.setItem('subscription_status', 'none');
+        if(import.meta.env.DEV) console.log('⚠️ Subscription expired or inactive, downgraded to free');
+      }
+
+      // Update cache timestamp
+      localStorage.setItem('subscription_last_verified', Date.now().toString());
+
+    } catch (error) {
+      console.error('Error verifying subscription:', error);
+      // On error, keep existing localStorage plan (graceful fallback)
+      // Don't downgrade user if server is temporarily unavailable
+    }
   }
 
   // Check if user has access to a feature
@@ -175,24 +256,24 @@ class SubscriptionService {
   // Get upgrade message for locked features
   getUpgradeMessage(featureName) {
     const messages = {
-      dnaAnalysis: '🧬 DNA Analysis requires Premium (£9.99/mo or £99/year)',
-      socialBattles: '⚔️ Social Battles requires Premium (£9.99/mo or £99/year)',
+      dnaAnalysis: '🧬 DNA Analysis requires Essential plan or higher',
+      socialBattles: '⚔️ Social Battles requires Essential plan or higher',
       insuranceRewards: '💰 Insurance Rewards - Coming Soon',
-      mealAutomation: '🍽️ Meal Automation requires Premium (£9.99/mo or £99/year)',
-      healthAvatar: '🧬 Health Avatar requires Premium (£9.99/mo or £99/year)',
-      arScanner: '📸 AR Scanner requires Premium (£9.99/mo or £99/year)',
-      emergencyPanel: '🚨 Emergency Panel requires Premium (£9.99/mo or £99/year)',
+      mealAutomation: '🍽️ Meal Automation requires Premium plan (£14.99/mo)',
+      healthAvatar: '🧬 Health Avatar requires Essential plan or higher',
+      arScanner: '📸 AR Scanner requires Essential plan or higher',
+      emergencyPanel: '🚨 Emergency Panel requires Essential plan (£4.99/mo)',
       appleHealthSync: '❤️ Apple Health Sync - Coming Soon',
       wearableSync: '⌚ Wearable Integration - Coming Soon',
-      exportReports: '📄 Export Reports - Coming Soon',
-      meditation: '🧘 Meditation Library requires Premium (£9.99/mo or £99/year)',
-      heartRate: '❤️ Heart Rate Tracking requires Premium (£9.99/mo or £99/year)',
-      sleepTracking: '😴 Sleep Tracking requires Premium (£9.99/mo or £99/year)',
-      workouts: '💪 Workout Library requires Premium (£9.99/mo or £99/year)',
-      breathing: '🌬️ Breathing Exercises requires Premium (£9.99/mo or £99/year)',
-      pdfExport: '📄 PDF Export - Coming Soon'
+      exportReports: '📄 Export Reports requires Premium plan (£14.99/mo)',
+      meditation: '🧘 Meditation Library requires Essential plan (£4.99/mo)',
+      heartRate: '❤️ Heart Rate Tracking requires Essential plan (£4.99/mo)',
+      sleepTracking: '😴 Sleep Tracking requires Essential plan (£4.99/mo)',
+      workouts: '💪 Workout Library requires Essential plan (£4.99/mo)',
+      breathing: '🌬️ Breathing Exercises requires Essential plan (£4.99/mo)',
+      pdfExport: '📄 PDF Export requires Premium plan (£14.99/mo)'
     };
-    return messages[featureName] || 'This feature requires Premium (£9.99/mo or £99/year)';
+    return messages[featureName] || 'This feature requires a paid plan';
   }
 
   // Get user's plan badge
@@ -200,8 +281,9 @@ class SubscriptionService {
     const plan = this.getCurrentPlan();
     const badges = {
       free: '🆓 Free',
-      premium_monthly: '⭐ Premium (Monthly)',
-      premium_yearly: '💎 Premium (Yearly)'
+      essential: '💪 Essential',
+      premium: '⭐ Premium',
+      vip: '👑 VIP'
     };
     return badges[plan.id] || badges.free;
   }
@@ -209,7 +291,7 @@ class SubscriptionService {
   // Check if user can upgrade
   canUpgradeTo(targetPlan) {
     const currentPlan = this.getCurrentPlan();
-    const planHierarchy = { free: 0, premium_monthly: 1, premium_yearly: 1 };
+    const planHierarchy = { free: 0, essential: 1, premium: 2, vip: 3 };
     return planHierarchy[targetPlan] > planHierarchy[currentPlan.id];
   }
 

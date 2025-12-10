@@ -1,6 +1,7 @@
 // Smart Meal Automation Service - Auto meal prep and grocery ordering
 import authService from './authService';
 import syncService from './syncService';
+import firestoreService from './firestoreService';
 
 class MealAutomationService {
   constructor() {
@@ -12,7 +13,7 @@ class MealAutomationService {
   // Load saved meal plan from persistent storage
   async loadSavedMealPlan() {
     try {
-      const saved = await syncService.getData('mealPlan');
+      const saved = await firestoreService.get('mealPlan', authService.getCurrentUser()?.uid);
       if (saved && saved.plan) {
         this.activeMealPlan = saved.plan;
         this.shoppingList = saved.plan.weeklyShoppingList || [];
@@ -33,7 +34,7 @@ class MealAutomationService {
         generatedDate: new Date().toISOString(),
         plan: mealPlan
       };
-      await syncService.saveData('mealPlan', dataToSave);
+      await firestoreService.save('mealPlan', dataToSave, authService.getCurrentUser()?.uid);
       console.log('✅ Meal plan saved to persistent storage');
       return { success: true };
     } catch (error) {
@@ -45,7 +46,7 @@ class MealAutomationService {
   // Clear meal plan
   async clearMealPlan() {
     try {
-      await syncService.saveData('mealPlan', null);
+      await firestoreService.save('mealPlan', null, authService.getCurrentUser()?.uid);
       this.activeMealPlan = null;
       this.shoppingList = [];
       console.log('✅ Meal plan cleared');

@@ -14,68 +14,75 @@ const StripePayment = ({ isOpen, onClose }) => {
       price: 0,
       billing: '',
       features: [
-        '✅ Very basic tracking',
-        '✅ Steps & water only',
-        '✅ 5 AI messages/day',
+        '✅ All basic tracking',
+        '✅ 10 AI messages/day',
         '✅ 3 food scans/day',
-        '❌ All premium features locked'
+        '✅ 1 AR scan/week',
+        '✅ Community access',
+        '✅ 1 social battle',
+        '❌ No ads removal',
+        '❌ Limited features'
       ]
     },
     {
-      id: 'premium_monthly',
-      name: 'Premium',
-      price: 9.99,
+      id: 'essential',
+      name: 'Essential',
+      price: 4.99,
       billing: 'per month',
-      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_MONTHLY || 
-                  `https://buy.stripe.com/payment?priceId=${import.meta.env.VITE_STRIPE_MONTHLY_PRICE_ID}`,
-      stripePriceId: import.meta.env.VITE_STRIPE_MONTHLY_PRICE_ID,
+      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_ESSENTIAL || 'https://buy.stripe.com/fZu14m12T9sycf67Yk6kg09',
       features: [
-        '✅ Unlimited AI coaching',
-        '✅ Unlimited food scanning',
-        '✅ DNA analysis & insights',
+        '✅ NO ADS',
+        '✅ 30 AI messages/day',
+        '✅ 1 AR scan/day',
+        '✅ Weekly avatar update',
+        '✅ Basic DNA insights',
         '✅ Social battles',
-        '✅ Health avatar predictions',
-        '✅ AR body scanner',
-        '✅ Meal automation',
-        '✅ Emergency monitoring',
+        '✅ Emergency contact',
+        '✅ Offline tracking',
+        '✅ Email support (24hr)',
         '✅ Heart rate tracking',
         '✅ Sleep analysis',
         '✅ Workout library',
         '✅ Meditation & breathing',
-        '⏳ Insurance rewards (Soon)',
-        '⏳ Apple Health sync (Soon)',
-        '⏳ Wearable integration (Soon)'
+        '❌ No meal automation'
       ],
       popular: true
     },
     {
-      id: 'premium_yearly',
+      id: 'premium',
       name: 'Premium',
-      price: 99.00,
-      billing: 'per year',
-      savings: '17% OFF',
-      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_YEARLY || 
-                  import.meta.env.VITE_STRIPE_PAYMENT_LINK ||
-                  `https://buy.stripe.com/payment?priceId=${import.meta.env.VITE_STRIPE_YEARLY_PRICE_ID}`,
-      stripePriceId: import.meta.env.VITE_STRIPE_YEARLY_PRICE_ID,
+      price: 14.99,
+      billing: 'per month',
+      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_PREMIUM || 'https://buy.stripe.com/7sY8wOcLBfQW3IA92o6kg07',
       features: [
-        '✅ Everything in Monthly',
-        '💰 Save £20/year',
-        '✅ Unlimited AI coaching',
-        '✅ Unlimited food scanning',
-        '✅ DNA analysis & insights',
-        '✅ Social battles',
-        '✅ Health avatar predictions',
-        '✅ AR body scanner',
+        '✅ Everything in Essential',
+        '✅ 50 AI messages/day',
+        '✅ 100 AR credits/month',
+        '✅ Full DNA analysis',
+        '✅ Unlimited avatar',
         '✅ Meal automation',
-        '✅ Emergency monitoring',
-        '✅ Heart rate tracking',
-        '✅ Sleep analysis',
-        '✅ Workout library',
-        '✅ Meditation & breathing',
-        '⏳ Insurance rewards (Soon)',
-        '⏳ Apple Health sync (Soon)',
-        '⏳ Wearable integration (Soon)'
+        '✅ Family 3 members',
+        '✅ Priority chat (2hr response)',
+        '✅ Health data export (PDF)',
+        '❌ No API access'
+      ]
+    },
+    {
+      id: 'ultimate',
+      name: 'Ultimate',
+      price: 29.99,
+      billing: 'per month',
+      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_VIP || 'https://buy.stripe.com/5kQ9ASeTJfQW7YQ6Ug6kg08',
+      features: [
+        '✅ UNLIMITED AI messages',
+        '✅ UNLIMITED AR scans',
+        '✅ Everything in Premium',
+        '✅ 1-on-1 coaching (30 min/mo)',
+        '✅ White-label reports (PDF)',
+        '✅ API access (1K calls/mo)',
+        '✅ Phone support (9am-6pm)',
+        '✅ Family 5 members',
+        '✅ Priority onboarding'
       ]
     }
   ];
@@ -92,6 +99,13 @@ const StripePayment = ({ isOpen, onClose }) => {
       }, 1500);
       return;
     }
+    
+    // Map plan IDs to subscription tier names for storage
+    const planMapping = {
+      'essential': 'essential',
+      'premium': 'premium',
+      'ultimate': 'vip'
+    };
 
     // Get the plan
     const plan = plans.find(p => p.id === planId);
@@ -111,8 +125,9 @@ const StripePayment = ({ isOpen, onClose }) => {
       return;
     }
 
-    // Save pending subscription info
-    localStorage.setItem('pending_subscription_plan', planId);
+    // Save pending subscription info (use mapped tier name)
+    const tierName = planMapping[planId] || planId;
+    localStorage.setItem('pending_subscription_plan', tierName);
     localStorage.setItem('pending_subscription_time', new Date().toISOString());
     
     if(import.meta.env.DEV)console.log('💳 Opening Stripe payment link:', plan.stripeLink);

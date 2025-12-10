@@ -1,4 +1,6 @@
 // Gamification Service - Streaks, XP, Levels, Achievements
+import firestoreService from './firestoreService';
+import authService from './authService';
 
 const GAMIFICATION_STORAGE_KEY = 'wellnessai_gamification'
 
@@ -114,7 +116,7 @@ class GamificationService {
   // Load gamification data from syncService (Preferences + Firebase)
   async loadData() {
     if (this.syncService) {
-      const stored = await this.syncService.getData('gamification_data');
+      const stored = await firestoreService.get('gamification_data', authService.getCurrentUser()?.uid);
       if (stored) {
         this.data = stored;
         return;
@@ -127,7 +129,7 @@ class GamificationService {
       this.data = JSON.parse(localStored);
       // Migrate to new system
       if (this.syncService) {
-        await this.syncService.saveData('gamification_data', this.data);
+        await firestoreService.save('gamification_data', this.data, authService.getCurrentUser()?.uid);
         if(import.meta.env.DEV)console.log('⬆️ Migrated gamification data to Preferences');
       }
       return;
@@ -157,7 +159,7 @@ class GamificationService {
   // Save gamification data via syncService (Preferences + Firebase + localStorage)
   async saveData() {
     if (this.syncService) {
-      await this.syncService.saveData('gamification_data', this.data);
+      await firestoreService.save('gamification_data', this.data, authService.getCurrentUser()?.uid);
     } else {
       // Fallback to localStorage
       localStorage.setItem(GAMIFICATION_STORAGE_KEY, JSON.stringify(this.data));

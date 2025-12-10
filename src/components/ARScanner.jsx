@@ -2,13 +2,30 @@
 import { useState } from 'react';
 import './ARScanner.css';
 import arScannerService from '../services/arScannerService';
+import subscriptionService from '../services/subscriptionService';
+import PaywallModal from './PaywallModal';
 
 export default function ARScanner({ onClose }) {
   const [scanning, setScanning] = useState(false);
   const [arOverlay, setArOverlay] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleStartScan = async () => {
+    // Check access before scanning
+    if (!subscriptionService.hasAccess('arScanner')) {
+      setShowPaywall(true);
+      return;
+    }
+
+    // Check usage limit
+    const limitCheck = subscriptionService.checkLimit('arScans');
+    if (!limitCheck.allowed) {
+      alert(limitCheck.message);
+      setShowPaywall(true);
+      return;
+    }
+
     setScanning(true);
     try {
       if(import.meta.env.DEV)console.log('🚀 Starting AR scan...');
@@ -172,6 +189,17 @@ export default function ARScanner({ onClose }) {
           </div>
         </div>
       </div>
+
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <PaywallModal
+          isOpen={showPaywall}
+          onClose={() => setShowPaywall(false)}
+          featureName="AR Scanner"
+          message={subscriptionService.getUpgradeMessage('arScanner')}
+          currentPlan={subscriptionService.getCurrentPlan()}
+        />
+      )}
     </div>
   );
 }

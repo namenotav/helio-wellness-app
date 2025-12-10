@@ -1,5 +1,7 @@
 // Workout Tracking Service - Triple Storage (localStorage + Preferences + Firebase)
 import syncService from './syncService.js';
+import firestoreService from './firestoreService';
+import authService from './authService';
 
 class WorkoutService {
   constructor() {
@@ -90,7 +92,7 @@ class WorkoutService {
       localStorage.setItem('workoutHistory', JSON.stringify(recentWorkouts));
 
       // Save to syncService (Preferences + Firebase)
-      await syncService.saveData('workoutHistory', recentWorkouts);
+      await firestoreService.save('workoutHistory', recentWorkouts, authService.getCurrentUser()?.uid);
 
       if(import.meta.env.DEV)console.log('💾 Workout history saved (localStorage + Preferences + Firebase)');
     } catch (error) {
@@ -104,7 +106,7 @@ class WorkoutService {
   async loadWorkoutHistory() {
     try {
       // Try syncService first (Preferences + Firebase)
-      const history = await syncService.getData('workoutHistory');
+      const history = await firestoreService.get('workoutHistory', authService.getCurrentUser()?.uid);
       if (history && Array.isArray(history)) {
         this.workoutHistory = history;
         if(import.meta.env.DEV)console.log('✅ Loaded workout history from syncService:', history.length, 'workouts');

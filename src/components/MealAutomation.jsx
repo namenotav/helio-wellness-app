@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import './MealAutomation.css';
 import mealAutomationService from '../services/mealAutomationService';
+import subscriptionService from '../services/subscriptionService';
+import PaywallModal from './PaywallModal';
 
 export default function MealAutomation({ onClose }) {
   const [view, setView] = useState('today'); // today, plan, appliances, recipes, grocery, mealprep
@@ -18,8 +20,15 @@ export default function MealAutomation({ onClose }) {
   const [mealPrepGuide, setMealPrepGuide] = useState(null);
   const [macroTargets, setMacroTargets] = useState({ protein: 150, carbs: 200, fat: 60 });
   const [macroMeals, setMacroMeals] = useState(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
+    // Check Premium+ access before loading
+    if (!subscriptionService.hasAccess('mealAutomation')) {
+      setShowPaywall(true);
+      return;
+    }
+
     loadSavedMealPlan();
     loadTodaysMeals();
     loadAppliances();
@@ -566,6 +575,17 @@ Setup process:
           </div>
         </div>
       </div>
+
+      {/* Paywall Modal */}
+      {showPaywall && (
+        <PaywallModal
+          isOpen={showPaywall}
+          onClose={onClose}
+          featureName="Meal Automation"
+          message={subscriptionService.getUpgradeMessage('mealAutomation')}
+          currentPlan={subscriptionService.getCurrentPlan()}
+        />
+      )}
     </div>
   );
 }

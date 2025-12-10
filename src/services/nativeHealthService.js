@@ -6,6 +6,8 @@ import { Motion } from '@capacitor/motion';
 import { Capacitor } from '@capacitor/core';
 import multiSensorService from './multiSensorService.js';
 import motionListenerService from './motionListenerService.js';
+import firestoreService from './firestoreService';
+import authService from './authService';
 
 class NativeHealthService {
   constructor() {
@@ -469,7 +471,7 @@ class NativeHealthService {
         const todayIndex = currentDay === 0 ? 6 : currentDay - 1;
         
         // Load current weekly steps
-        let weeklyStepsData = await syncService.getData('weeklySteps') || [];
+        let weeklyStepsData = await firestoreService.get('weeklySteps', authService.getCurrentUser()?.uid) || [];
         while (weeklyStepsData.length < 7) {
           weeklyStepsData.push({ steps: 0, date: null });
         }
@@ -481,7 +483,7 @@ class NativeHealthService {
         };
         
         // Save to Firebase
-        await syncService.saveData('weeklySteps', weeklyStepsData);
+        await firestoreService.save('weeklySteps', weeklyStepsData, authService.getCurrentUser()?.uid);
       } catch (error) {
         // Silent fail - don't spam console
       }
@@ -862,7 +864,7 @@ class NativeHealthService {
       const syncService = (await import('./syncService.js')).default;
       
       // Load current weekly steps
-      let weeklyStepsData = await syncService.getData('weeklySteps') || [];
+      let weeklyStepsData = await firestoreService.get('weeklySteps', authService.getCurrentUser()?.uid) || [];
       
       // Ensure array has 7 days
       while (weeklyStepsData.length < 7) {
@@ -880,7 +882,7 @@ class NativeHealthService {
       };
       
       // Save to Firebase
-      await syncService.saveData('weeklySteps', weeklyStepsData);
+      await firestoreService.save('weeklySteps', weeklyStepsData, authService.getCurrentUser()?.uid);
       if(import.meta.env.DEV)console.log('✅ Firebase updated: weeklySteps[' + yesterdayIndex + '] = ' + yesterdaySteps + ' steps');
       
     } catch (error) {
@@ -938,14 +940,41 @@ class NativeHealthService {
 
   async saveHealthData() {
     try {
+      // 🔥 FIX: Get REAL steps from native service (same source as dashboard!)
+      const syncService = (await import('./syncService.js')).default;
+      let realStepCount = 0;
+      
+      try {
+        const { default: nativeStepService } = await import('./nativeStepService.js');
+        const rawSteps = await nativeStepService.getSteps();
+        const todayDate = new Date().toISOString().split('T')[0];
+        let stepBaseline = parseInt(await firestoreService.get('stepBaseline', authService.getCurrentUser()?.uid) || '0');
+        const baselineDate = await firestoreService.get('stepBaselineDate', authService.getCurrentUser()?.uid);
+        
+        // Detect sensor reset
+        if (rawSteps < stepBaseline && baselineDate === todayDate) {
+          console.log('💾 SAVE: Sensor reset detected, resetting baseline');
+          stepBaseline = rawSteps;
+          await firestoreService.save('stepBaseline', rawSteps.toString(), authService.getCurrentUser()?.uid);
+        }
+        
+        if (baselineDate === todayDate) {
+          realStepCount = Math.max(0, rawSteps - stepBaseline);
+        }
+        console.log('💾 SAVE: Using REAL steps from native service:', realStepCount);
+      } catch (e) {
+        console.warn('⚠️ Could not get native steps, using fallback:', this.stepCount);
+        realStepCount = this.stepCount;
+      }
+      
       const healthData = {
-        stepCount: this.stepCount,
+        stepCount: realStepCount,
         stepGoal: this.stepGoal,
-        healthData: this.healthData,
+        healthData: { ...this.healthData, steps: realStepCount },
         lastUpdate: Date.now()
       };
       
-      console.log('💾 SAVING health data - stepCount:', this.stepCount);
+      console.log('💾 SAVING health data - stepCount:', realStepCount);
       
       // Save to localStorage (backward compatibility)
       localStorage.setItem('health_data', JSON.stringify(healthData));
@@ -978,11 +1007,11 @@ class NativeHealthService {
       // Update or add today's steps
       const todayIndex = stepHistory.findIndex(entry => entry.date === today);
       if (todayIndex >= 0) {
-        stepHistory[todayIndex].steps = this.stepCount;
-        console.log(`💾 Updated stepHistory for ${today}:`, this.stepCount);
+        stepHistory[todayIndex].steps = realStepCount;
+        console.log(`💾 Updated stepHistory for ${today}:`, realStepCount);
       } else {
-        stepHistory.push({ date: today, steps: this.stepCount });
-        console.log(`💾 Added new stepHistory entry for ${today}:`, this.stepCount);
+        stepHistory.push({ date: today, steps: realStepCount });
+        console.log(`💾 Added new stepHistory entry for ${today}:`, realStepCount);
       }
       
       // Keep last 30 days
@@ -994,10 +1023,9 @@ class NativeHealthService {
       
       localStorage.setItem('stepHistory', JSON.stringify(stepHistory));
       
-      // Save to syncService (Preferences + Firebase)
-      const syncService = (await import('./syncService.js')).default;
-      await syncService.saveData('health_data', healthData);
-      await syncService.saveData('stepHistory', stepHistory);
+      // Save to syncService (Preferences + Firebase) - already imported above
+      await firestoreService.save('health_data', healthData, authService.getCurrentUser()?.uid);
+      await firestoreService.save('stepHistory', stepHistory, authService.getCurrentUser()?.uid);
       
       console.log('💾 Saved to syncService (Preferences + Firebase)');
       
@@ -1030,7 +1058,7 @@ class NativeHealthService {
     try {
       // Try syncService first (Preferences + Firebase)
       const syncService = (await import('./syncService.js')).default;
-      const savedData = await syncService.getData('health_data');
+      const savedData = await firestoreService.get('health_data', authService.getCurrentUser()?.uid);
       
       if(import.meta.env.DEV)console.log('📥 Loading saved data from syncService');
       

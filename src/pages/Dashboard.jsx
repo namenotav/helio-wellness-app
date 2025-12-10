@@ -6,6 +6,7 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech'
 import { Capacitor } from '@capacitor/core'
 import devAuthService from '../services/devAuthService'
 import authService from '../services/authService'
+import subscriptionService from '../services/subscriptionService'
 import DevUnlock from '../components/DevUnlock'
 import StepCounter from '../components/StepCounter'
 import FoodScanner from '../components/FoodScanner'
@@ -17,6 +18,7 @@ import InsuranceRewards from '../components/InsuranceRewards'
 import DNAUpload from '../components/DNAUpload'
 import SocialBattles from '../components/SocialBattles'
 import MealAutomation from '../components/MealAutomation'
+import PaywallModal from '../components/PaywallModal'
 import '../styles/Dashboard.css'
 import '../styles/AdventureMap.css'
 
@@ -54,6 +56,8 @@ export default function Dashboard() {
   const [showDNAUpload, setShowDNAUpload] = useState(false)
   const [showSocialBattles, setShowSocialBattles] = useState(false)
   const [showMealAutomation, setShowMealAutomation] = useState(false)
+  const [showPaywall, setShowPaywall] = useState(false)
+  const [paywallFeature, setPaywallFeature] = useState('')
   
   // Check if user needs to complete profile
   useEffect(() => {
@@ -233,6 +237,9 @@ export default function Dashboard() {
       {showMealAutomation && (
         <MealAutomation onClose={() => setShowMealAutomation(false)} />
       )}
+
+      {/* Paywall Modal */}
+      {showPaywall && renderPaywall()}
     </div>
   )
 }
@@ -794,6 +801,14 @@ function AICoachTab() {
 
   const handleSend = async () => {
     if (!userInput.trim() || isLoading) return
+
+    // Check AI message limit
+    const limit = subscriptionService.checkLimit('aiMessages');
+    if (!limit.allowed) {
+      setPaywallFeature('AI Chat');
+      setShowPaywall(true);
+      return;
+    }
     
     const userMessage = userInput
     setUserInput('')
@@ -1409,6 +1424,17 @@ function RemindersTab() {
       
       <button className="btn-add-reminder">+ Add New Reminder</button>
     </div>
+  )
+
+  // Paywall Modal
+  const renderPaywall = () => (
+    <PaywallModal
+      isOpen={showPaywall}
+      onClose={() => setShowPaywall(false)}
+      featureName={paywallFeature}
+      message={subscriptionService.getUpgradeMessage(paywallFeature === 'AI Chat' ? 'aiMessages' : paywallFeature)}
+      currentPlan={subscriptionService.getCurrentPlan()}
+    />
   )
 }
 

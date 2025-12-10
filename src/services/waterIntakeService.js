@@ -1,6 +1,8 @@
 // Water Intake Tracking Service
 // Track daily water consumption with reminders
 import syncService from './syncService.js';
+import firestoreService from './firestoreService';
+import authService from './authService';
 
 class WaterIntakeService {
   constructor() {
@@ -39,13 +41,13 @@ class WaterIntakeService {
     this.saveHistory();
 
     // ALSO save to waterLog for dashboard compatibility (save to cloud)
-    const waterLog = await syncService.getData('waterLog') || [];
+    const waterLog = await firestoreService.get('waterLog', authService.getCurrentUser()?.uid) || [];
     waterLog.push({
       cups: Math.round(amount / 250), // Convert ml to cups (250ml = 1 cup)
       timestamp: Date.now(),
       date: new Date().toISOString().split('T')[0]
     });
-    await syncService.saveData('waterLog', waterLog);
+    await firestoreService.save('waterLog', waterLog, authService.getCurrentUser()?.uid);
 
     if(import.meta.env.DEV)console.log(`💧 Added ${amount}ml water. Total today: ${this.todayIntake}ml`);
 
@@ -110,7 +112,7 @@ class WaterIntakeService {
     this.dailyGoal = amount;
     localStorage.setItem('water_daily_goal', amount.toString());
     // Save to syncService (Preferences + Firebase)
-    await syncService.saveData('water_daily_goal', amount);
+    await firestoreService.save('water_daily_goal', amount, authService.getCurrentUser()?.uid);
     if(import.meta.env.DEV)console.log(`💧 Daily goal set to ${amount}ml`);
   }
 
@@ -264,7 +266,7 @@ class WaterIntakeService {
   async loadTodayIntake() {
     try {
       // Try syncService first (Preferences + Firebase)
-      const data = await syncService.getData('water_today_intake');
+      const data = await firestoreService.get('water_today_intake', authService.getCurrentUser()?.uid);
       const today = new Date().toISOString().split('T')[0];
       
       if (data && data.date === today) {
@@ -299,7 +301,7 @@ class WaterIntakeService {
       
       localStorage.setItem('water_intake_history', JSON.stringify(recentHistory));
       // Save to syncService (Preferences + Firebase)
-      await syncService.saveData('water_intake_history', recentHistory);
+      await firestoreService.save('water_intake_history', recentHistory, authService.getCurrentUser()?.uid);
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to save history:', error);
     }
@@ -311,7 +313,7 @@ class WaterIntakeService {
   async loadHistory() {
     try {
       // Try syncService first (Preferences + Firebase)
-      const history = await syncService.getData('water_intake_history');
+      const history = await firestoreService.get('water_intake_history', authService.getCurrentUser()?.uid);
       if (history) {
         this.intakeHistory = history;
       } else {
@@ -333,7 +335,7 @@ class WaterIntakeService {
     try {
       localStorage.setItem('water_reminders', JSON.stringify(this.reminders));
       // Save to syncService (Preferences + Firebase)
-      await syncService.saveData('water_reminders', this.reminders);
+      await firestoreService.save('water_reminders', this.reminders, authService.getCurrentUser()?.uid);
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to save reminders:', error);
     }
@@ -345,7 +347,7 @@ class WaterIntakeService {
   async loadReminders() {
     try {
       // Try syncService first (Preferences + Firebase)
-      const reminders = await syncService.getData('water_reminders');
+      const reminders = await firestoreService.get('water_reminders', authService.getCurrentUser()?.uid);
       if (reminders) {
         this.reminders = reminders;
       } else {
@@ -366,7 +368,7 @@ class WaterIntakeService {
   async loadSettings() {
     try {
       // Try syncService first (Preferences + Firebase)
-      const goal = await syncService.getData('water_daily_goal');
+      const goal = await firestoreService.get('water_daily_goal', authService.getCurrentUser()?.uid);
       if (goal) {
         this.dailyGoal = typeof goal === 'number' ? goal : parseInt(goal);
       } else {
