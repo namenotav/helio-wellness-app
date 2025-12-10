@@ -1,15 +1,18 @@
 // Quick script to check Firebase data for user
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, get } from 'firebase/database';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAUv69QXH4MNNR2wkr_wcVH_cbsYrc3wjo",
-  authDomain: "wellnessai-app-e01be.firebaseapp.com",
-  databaseURL: "https://wellnessai-app-e01be-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "wellnessai-app-e01be",
-  storageBucket: "wellnessai-app-e01be.firebasestorage.app",
-  messagingSenderId: "863551474584",
-  appId: "1:863551474584:web:a34f3f77742b7be4e7f9ed"
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);

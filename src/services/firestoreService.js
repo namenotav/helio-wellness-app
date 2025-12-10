@@ -20,15 +20,15 @@ import {
 } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
-// Firebase config (same as your existing setup)
+// Firebase config (loaded from environment variables)
 const firebaseConfig = {
-  apiKey: "AIzaSyAUv69QXH4MNNR2wkr_wcVH_cbsYrc3wjo",
-  authDomain: "wellnessai-app-e01be.firebaseapp.com",
-  databaseURL: "https://wellnessai-app-e01be-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "wellnessai-app-e01be",
-  storageBucket: "wellnessai-app-e01be.firebasestorage.app",
-  messagingSenderId: "863551474584",
-  appId: "1:863551474584:web:a34f3f77742b7be4e7f9ed"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
