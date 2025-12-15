@@ -12,6 +12,9 @@ export default function HealthAvatar({ onClose }) {
 
   useEffect(() => {
     loadAvatarData();
+    // 🔥 REAL-TIME UPDATES: Refresh every 10 seconds to show latest food/workout/sleep/step data
+    const interval = setInterval(loadAvatarData, 10000); // Refresh every 10 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const loadAvatarData = async () => {
@@ -133,21 +136,21 @@ export default function HealthAvatar({ onClose }) {
                 <div className="data-grid">
                   <div className="data-source">
                     <span className="data-icon">👟</span>
-                    <span className="data-label">Daily Steps</span>
-                    <span className="data-value">{(activeData.dataBreakdown.todaySteps || activeData.dataBreakdown.avgDailySteps).toLocaleString()}</span>
-                    <span className="data-subtext">{activeData.dataBreakdown.stepsDays} days tracked</span>
+                    <span className="data-label">Monthly Steps ({activeData.dataBreakdown.monthName})</span>
+                    <span className="data-value">{(activeData.dataBreakdown.totalMonthlySteps || 0).toLocaleString()}</span>
+                    <span className="data-subtext">{activeData.dataBreakdown.stepsDays} days this month</span>
                   </div>
                   <div className="data-source">
                     <span className="data-icon">🍽️</span>
-                    <span className="data-label">Food Scans</span>
+                    <span className="data-label">Food Scans ({activeData.dataBreakdown.monthName})</span>
                     <span className="data-value">{activeData.dataBreakdown.foodLogsCount}</span>
-                    <span className="data-subtext">Last 30 days</span>
+                    <span className="data-subtext">This month</span>
                   </div>
                   <div className="data-source">
                     <span className="data-icon">💪</span>
-                    <span className="data-label">Workouts</span>
+                    <span className="data-label">Workouts ({activeData.dataBreakdown.monthName})</span>
                     <span className="data-value">{activeData.dataBreakdown.workoutsCount}</span>
-                    <span className="data-subtext">Last 30 days</span>
+                    <span className="data-subtext">This month</span>
                   </div>
                   <div className="data-source">
                     <span className="data-icon">🧬</span>
@@ -157,14 +160,40 @@ export default function HealthAvatar({ onClose }) {
                   </div>
                   <div className="data-source">
                     <span className="data-icon">😴</span>
-                    <span className="data-label">Sleep Logs</span>
+                    <span className="data-label">Sleep Logs ({activeData.dataBreakdown.monthName})</span>
                     <span className="data-value">{activeData.dataBreakdown.sleepLogsCount}</span>
-                    <span className="data-subtext">Total tracked</span>
+                    <span className="data-subtext">This month</span>
                   </div>
                 </div>
                 <p className="data-note">
                   💡 Your health score is calculated from <strong>real activity data</strong> - not estimates!
                 </p>
+              </div>
+            )}
+
+            {/* Step History Breakdown */}
+            {activeView === 'current' && activeData.dataBreakdown.stepHistory && activeData.dataBreakdown.stepHistory.length > 0 && (
+              <div className="step-history-section">
+                <h3>📅 {activeData.dataBreakdown.monthName} {activeData.dataBreakdown.currentYear} Step History</h3>
+                <div className="step-history-list">
+                  {activeData.dataBreakdown.stepHistory
+                    .slice()
+                    .sort((a, b) => (b.date || '').localeCompare(a.date || '')) // Newest first
+                    .map((entry, idx) => {
+                      const steps = entry?.steps || 0;
+                      const date = entry?.date || 'Unknown';
+                      return (
+                        <div key={date + idx} className="step-history-item">
+                          <span className="history-date">{date}</span>
+                          <span className="history-steps">{steps.toLocaleString()} steps</span>
+                        </div>
+                      );
+                    })}
+                </div>
+                <div className="history-summary">
+                  <span>📊 Total: {activeData.dataBreakdown.totalMonthlySteps.toLocaleString()} steps</span>
+                  <span>📈 Average: {activeData.dataBreakdown.avgDailySteps.toLocaleString()} steps/day</span>
+                </div>
               </div>
             )}
 

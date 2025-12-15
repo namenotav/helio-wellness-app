@@ -51,7 +51,7 @@
   text-align: center;
   font-size: 24px;
   margin-bottom: 25px;
-  background: linear-gradient(90deg, #8A2BE2, #FF00FF);
+  background: linear-gradient(90deg, var(--theme-accent-color, #8A2BE2), var(--theme-accent-color, #FF00FF));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -83,7 +83,7 @@
 
 .upload-button {
   display: inline-block;
-  background: linear-gradient(135deg, #8A2BE2, #FF00FF);
+  background: linear-gradient(135deg, var(--theme-accent-color, #8A2BE2), var(--theme-accent-color, #FF00FF));
   border: none;
   border-radius: 25px;
   padding: 15px 40px;
@@ -186,8 +186,8 @@
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #8A2BE2, #FF00FF);
-  border-color: #8A2BE2;
+  background: linear-gradient(135deg, var(--theme-accent-color, #8A2BE2), var(--theme-accent-color, #FF00FF));
+  border-color: var(--theme-accent-color, #8A2BE2);
   box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
 }
 
@@ -212,7 +212,7 @@
 }
 
 .dna-summary h3 {
-  color: #8A2BE2;
+  color: var(--theme-accent-color, #8A2BE2);
   font-size: 20px;
   margin: 0 0 15px 0;
 }
@@ -224,7 +224,7 @@
 }
 
 .snp-count strong {
-  color: #FF00FF;
+  color: var(--theme-accent-color, #FF00FF);
   font-size: 24px;
 }
 
@@ -290,7 +290,7 @@
 }
 
 .trait-gene {
-  background: linear-gradient(135deg, #8A2BE2, #FF00FF);
+  background: linear-gradient(135deg, var(--theme-accent-color, #8A2BE2), var(--theme-accent-color, #FF00FF));
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 12px;

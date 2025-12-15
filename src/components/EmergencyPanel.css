@@ -705,6 +705,103 @@
   box-shadow: 0 6px 12px rgba(255, 255, 255, 0.6);
 }
 
+/* Permission Dialog for Android 14+ */
+.permission-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100001;
+  animation: fadeIn 0.3s ease;
+}
+
+.permission-dialog {
+  background: linear-gradient(145deg, #2a2a5e, #1a1a3e);
+  border: 2px solid rgba(100, 200, 255, 0.4);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(100, 200, 255, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+.permission-dialog h3 {
+  color: white;
+  font-size: 24px;
+  margin: 0 0 15px 0;
+}
+
+.permission-message {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.permission-steps {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.permission-steps .step {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.permission-steps .step:last-child {
+  border-bottom: none;
+}
+
+.permission-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.permission-btn {
+  padding: 15px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.permission-btn.open-settings {
+  background: linear-gradient(145deg, #4CAF50, #45a049);
+  color: white;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.permission-btn.open-settings:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.6);
+}
+
+.permission-btn.skip {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.permission-btn.skip:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.02);
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(50px);

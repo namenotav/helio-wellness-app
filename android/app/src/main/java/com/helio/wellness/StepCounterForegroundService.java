@@ -15,6 +15,11 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.IBinder;
 import androidx.core.app.NotificationCompat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class StepCounterForegroundService extends Service implements SensorEventListener {
 
@@ -27,6 +32,7 @@ public class StepCounterForegroundService extends Service implements SensorEvent
     private int initialStepCount = -1;
     private int currentStepCount = 0;
     private SharedPreferences prefs;
+    private String currentDate = "";
 
     @Override
     public void onCreate() {
@@ -37,11 +43,36 @@ public class StepCounterForegroundService extends Service implements SensorEvent
         stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         
-        // Load saved step count
+        // Load saved step count and date
         currentStepCount = prefs.getInt("currentStepCount", 0);
         initialStepCount = prefs.getInt("initialStepCount", -1);
+        currentDate = prefs.getString("currentDate", "");
         
-        android.util.Log.d("StepService", "Service created. Current steps: " + currentStepCount);
+        // 🔥 CHECK IF SERVICE RESTARTED ON A NEW DAY
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        if (!currentDate.isEmpty() && !today.equals(currentDate)) {
+            android.util.Log.d("StepService", "🌅 Service started on NEW DAY: " + currentDate + " → " + today);
+            
+            // Archive yesterday's steps if we have data
+            if (initialStepCount != -1 && currentStepCount > 0) {
+                int yesterdaySteps = Math.abs(currentStepCount - initialStepCount);
+                saveStepHistory(currentDate, yesterdaySteps);
+                android.util.Log.d("StepService", "📝 Archived " + currentDate + ": " + yesterdaySteps + " steps");
+            }
+            
+            // RESET for new day (will set proper baseline on first sensor reading)
+            initialStepCount = -1;  // Force re-initialization
+            currentDate = today;
+            
+            prefs.edit()
+                .putString("currentDate", currentDate)
+                .putInt("initialStepCount", -1)
+                .apply();
+                
+            android.util.Log.d("StepService", "✅ Reset for new day: " + today);
+        }
+        
+        android.util.Log.d("StepService", "Service created. Current steps: " + currentStepCount + " | Baseline: " + initialStepCount + " | Date: " + currentDate);
     }
 
     @Override
@@ -63,9 +94,12 @@ public class StepCounterForegroundService extends Service implements SensorEvent
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
             );
 
+            // Calculate daily steps for initial notification
+            int dailySteps = (initialStepCount != -1) ? Math.abs(currentStepCount - initialStepCount) : 0;
+            
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("🏃 Helio Step Tracker")
-                .setContentText("Tracking " + currentStepCount + " steps - Tap to open")
+                .setContentTitle("🏃 " + dailySteps + " steps today")
+                .setContentText("24/7 tracking active - Tap to open")
                 .setSmallIcon(android.R.drawable.ic_menu_compass)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)  // Cannot be dismissed by user
@@ -112,24 +146,84 @@ public class StepCounterForegroundService extends Service implements SensorEvent
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             int totalSteps = (int) event.values[0];
             
-            // Initialize baseline on first reading
+            // Store RAW sensor value
+            currentStepCount = totalSteps;
+            
+            // 🔥 CHECK FOR MIDNIGHT RESET (date change)
+            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+            
+            if (!today.equals(currentDate)) {
+                // NEW DAY DETECTED!
+                android.util.Log.d("StepService", "🌅 MIDNIGHT RESET: " + currentDate + " → " + today);
+                
+                // Save yesterday's final step count to history (if we have data)
+                if (!currentDate.isEmpty() && initialStepCount != -1) {
+                    int yesterdaySteps = Math.abs(currentStepCount - initialStepCount);
+                    saveStepHistory(currentDate, yesterdaySteps);
+                    android.util.Log.d("StepService", "📝 Archived " + currentDate + ": " + yesterdaySteps + " steps");
+                }
+                
+                // Reset baseline for new day
+                initialStepCount = totalSteps;
+                currentDate = today;
+                
+                // Persist to storage
+                prefs.edit()
+                    .putInt("initialStepCount", initialStepCount)
+                    .putString("currentDate", currentDate)
+                    .apply();
+                
+                // Sync to CapacitorStorage
+                SharedPreferences capacitorPrefs = getSharedPreferences("CapacitorStorage", MODE_PRIVATE);
+                capacitorPrefs.edit()
+                    .putString("wellnessai_stepBaseline", String.valueOf(totalSteps))
+                    .putString("wellnessai_stepBaselineDate", today)
+                    .apply();
+                    
+                android.util.Log.d("StepService", "✅ New baseline: " + totalSteps + " for " + today);
+            }
+            
+            // Initialize baseline on FIRST READING EVER (service first install)
             if (initialStepCount == -1) {
                 initialStepCount = totalSteps;
-                currentStepCount = 0;
-                prefs.edit().putInt("initialStepCount", initialStepCount).apply();
-                android.util.Log.d("StepService", "📍 Baseline set: " + totalSteps);
-                updateNotification(); // Update notification immediately with 0 steps
-            } else {
-                currentStepCount = totalSteps - initialStepCount;
+                currentDate = today;
                 
-                // Save and update notification every step (for real-time updates)
-                prefs.edit().putInt("currentStepCount", currentStepCount).apply();
-                updateNotification();
+                prefs.edit()
+                    .putInt("initialStepCount", initialStepCount)
+                    .putString("currentDate", currentDate)
+                    .apply();
                 
-                // Log every 10 steps to reduce log spam
-                if (currentStepCount % 10 == 0) {
-                    android.util.Log.d("StepService", "📊 Steps: " + currentStepCount);
-                }
+                // Sync to CapacitorStorage
+                SharedPreferences capacitorPrefs = getSharedPreferences("CapacitorStorage", MODE_PRIVATE);
+                capacitorPrefs.edit()
+                    .putString("wellnessai_stepBaseline", String.valueOf(totalSteps))
+                    .putString("wellnessai_stepBaselineDate", today)
+                    .apply();
+                
+                android.util.Log.d("StepService", "📍 FIRST BASELINE: " + totalSteps + " on " + today);
+            }
+            
+            // Calculate today's steps (always from baseline set at midnight or service start)
+            int todaySteps = Math.abs(currentStepCount - initialStepCount);
+            
+            // 🔥 SAVE calculated steps to CapacitorStorage for JS Dashboard
+            SharedPreferences capacitorPrefs = getSharedPreferences("CapacitorStorage", MODE_PRIVATE);
+            capacitorPrefs.edit()
+                .putString("wellnessai_todaySteps", "\"" + todaySteps + "\"")  // JSON-encoded string
+                .apply();
+            
+            // 🔥 REAL-TIME SYNC: Update step history with current day's steps
+            saveStepHistory(currentDate, todaySteps);
+            
+            // Save RAW value to internal storage
+            prefs.edit().putInt("currentStepCount", currentStepCount).apply();
+            
+            // Update notification
+            updateNotification();
+            
+            // Log every 10 steps to reduce log spam
+            if (todaySteps % 10 == 0) {
+                android.util.Log.d("StepService", "📊 Steps: " + todaySteps + " (raw: " + totalSteps + " - baseline: " + initialStepCount + " - date: " + currentDate + ")");
             }
         }
     }
@@ -149,6 +243,11 @@ public class StepCounterForegroundService extends Service implements SensorEvent
                 return;
             }
             
+            // 🔥 Use internal baseline for accurate calculation
+            int displaySteps = Math.abs(currentStepCount - initialStepCount);
+            
+            android.util.Log.d("StepService", "📊 Notification update - Raw: " + currentStepCount + " | Baseline: " + initialStepCount + " | Display: " + displaySteps);
+            
             Intent notificationIntent = new Intent(this, MainActivity.class);
             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -159,7 +258,7 @@ public class StepCounterForegroundService extends Service implements SensorEvent
             );
 
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("🏃 " + currentStepCount + " steps today")
+                .setContentTitle("🏃 " + displaySteps + " steps today")
                 .setContentText("24/7 tracking active - Tap to open")
                 .setSmallIcon(android.R.drawable.ic_menu_compass)
                 .setContentIntent(pendingIntent)
@@ -202,6 +301,50 @@ public class StepCounterForegroundService extends Service implements SensorEvent
         }
     }
 
+    /**
+     * Save step count to daily history
+     * Appends to wellnessai_stepHistory array in CapacitorStorage
+     */
+    private void saveStepHistory(String date, int steps) {
+        try {
+            SharedPreferences capacitorPrefs = getSharedPreferences("CapacitorStorage", MODE_PRIVATE);
+            String existingHistory = capacitorPrefs.getString("wellnessai_stepHistory", "[]");
+            
+            // Parse existing history
+            JSONArray history = new JSONArray(existingHistory);
+            
+            // Check if today already exists (update if so)
+            boolean found = false;
+            for (int i = 0; i < history.length(); i++) {
+                JSONObject entry = history.getJSONObject(i);
+                if (entry.getString("date").equals(date)) {
+                    entry.put("steps", steps);
+                    entry.put("timestamp", System.currentTimeMillis());
+                    found = true;
+                    break;
+                }
+            }
+            
+            // Add new entry if not found
+            if (!found) {
+                JSONObject newEntry = new JSONObject();
+                newEntry.put("date", date);
+                newEntry.put("steps", steps);
+                newEntry.put("timestamp", System.currentTimeMillis());
+                history.put(newEntry);
+            }
+            
+            // Save back to storage
+            capacitorPrefs.edit()
+                .putString("wellnessai_stepHistory", history.toString())
+                .apply();
+                
+            android.util.Log.d("StepService", "💾 Step history saved: " + date + " = " + steps + " steps");
+        } catch (Exception e) {
+            android.util.Log.e("StepService", "❌ Failed to save step history", e);
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -209,8 +352,11 @@ public class StepCounterForegroundService extends Service implements SensorEvent
             sensorManager.unregisterListener(this);
         }
         // Save final count
-        prefs.edit().putInt("currentStepCount", currentStepCount).apply();
-        android.util.Log.d("StepService", "Service destroyed. Steps saved: " + currentStepCount);
+        prefs.edit()
+            .putInt("currentStepCount", currentStepCount)
+            .putString("currentDate", currentDate)
+            .apply();
+        android.util.Log.d("StepService", "Service destroyed. Steps saved: " + currentStepCount + " (Date: " + currentDate + ")");
     }
 
     @Override

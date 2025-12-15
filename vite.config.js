@@ -4,16 +4,16 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    // Replace __BUILD_TIMESTAMP__ at compile time - FORCE RELOAD v1.0.21
+    '__BUILD_TIMESTAMP__': JSON.stringify(Date.now()),
+  },
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      workbox: {
-        cleanupOutdatedCaches: true,
-        skipWaiting: true,
-        clientsClaim: true
-      },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      // 🔥 SERVICE WORKER DISABLED: Prevents cache blocking updates
+      disable: true,
+      injectRegister: null,
       manifest: {
         name: 'Helio - Your AI Wellness Companion',
         short_name: 'Helio',
@@ -36,4 +36,18 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    // 🔥 AGGRESSIVE CACHE BUSTING: Remove hashes entirely, use timestamp-only naming
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      output: {
+        // Generate unique filename using timestamp + counter
+        entryFileNames: () => `assets/entry-${Date.now()}-[name].js`,
+        chunkFileNames: () => `assets/chunk-${Date.now()}-[name].js`,
+        assetFileNames: () => `assets/asset-${Date.now()}-[name].[ext]`
+      }
+    },
+    // Clear output directory before build
+    emptyOutDir: true
+  }
 })

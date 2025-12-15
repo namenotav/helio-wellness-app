@@ -59,7 +59,7 @@ export default function ARScanner({ onClose }) {
       <div className="ar-modal">
         <button className="ar-close" onClick={onClose}>✕</button>
 
-        <h2 className="ar-title">📸 AR Food Scanner</h2>
+        <h2 className="ar-title">📸 Body Scanner</h2>
 
         {!capturedImage ? (
           <div className="ar-start">

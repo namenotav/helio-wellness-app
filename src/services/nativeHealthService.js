@@ -8,6 +8,7 @@ import multiSensorService from './multiSensorService.js';
 import motionListenerService from './motionListenerService.js';
 import firestoreService from './firestoreService';
 import authService from './authService';
+import brainLearningService from './brainLearningService.js';
 
 class NativeHealthService {
   constructor() {
@@ -1113,6 +1114,17 @@ class NativeHealthService {
     }
     
     this.stepListeners.forEach(callback => callback(this.getHealthData()));
+    
+    // 🧠 BRAIN.JS LEARNING - Track steps for AI movement pattern analysis
+    // Only track if steps > 0 to avoid spam
+    if (this.stepCount > 0) {
+      brainLearningService.trackSteps(this.stepCount, {
+        activeMinutes: this.healthData.activeMinutes || 0,
+        energyLevel: 5
+      }).catch(err => {
+        if(import.meta.env.DEV)console.warn('Brain.js step tracking failed:', err);
+      });
+    }
   }
 
   watchStepCount(callback) {

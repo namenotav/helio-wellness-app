@@ -1,8 +1,9 @@
-// Exercise Library - 500+ exercises with detailed instructions
-// Expanded from 100 to 500+ exercises covering all muscle groups and fitness levels
+// Exercise Library - 200 exercises with detailed instructions and animations
+// All animations are CSS-based (no copyright issues)
+// Media: CSS stick figures + static emoji icons + GIF placeholders
 
 export const exerciseLibrary = [
-  // CHEST EXERCISES
+  // ========== CHEST EXERCISES (15) ==========
   {
     id: 'chest-1',
     name: 'Push-Ups',
@@ -20,7 +21,9 @@ export const exerciseLibrary = [
     tips: 'Keep elbows at 45-degree angle, not flared out. Maintain straight line from head to heels.',
     reps: '3 sets of 10-15 reps',
     calories: 7,
-    videoUrl: 'https://www.youtube.com/embed/IODxDxX7oi4'
+    animationClass: 'anim-pushup',
+    icon: '💪',
+    gifPlaceholder: '/assets/gifs/pushup.gif'
   },
   {
     id: 'chest-2',

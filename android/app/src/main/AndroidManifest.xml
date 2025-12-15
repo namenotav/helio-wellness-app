@@ -23,6 +23,16 @@
             </intent-filter>
 
         </activity>
+        
+        <!-- Fall Alert Activity - Appears over lock screen -->
+        <activity
+            android:name=".FallAlertActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -48,6 +58,20 @@
             android:exported="false"
             android:foregroundServiceType="health" />
         
+        <!-- Fall Detection Foreground Service - Monitors for falls 24/7 -->
+        <service
+            android:name=".FallDetectionService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+        
+        <!-- Health Monitoring Foreground Service - Monitors heart rate, movement, location 24/7 -->
+        <service
+            android:name=".HealthMonitoringService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="health|location" />
+        
         <!-- Google Fit API - OAuth Client ID -->
         <meta-data
             android:name="com.google.android.gms.fitness.API_KEY"
@@ -70,6 +94,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Full-Screen Alert Permissions -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />

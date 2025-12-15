@@ -4,6 +4,7 @@ import './MealAutomation.css';
 import mealAutomationService from '../services/mealAutomationService';
 import subscriptionService from '../services/subscriptionService';
 import PaywallModal from './PaywallModal';
+import { showToast } from './Toast';
 
 export default function MealAutomation({ onClose }) {
   const [view, setView] = useState('today'); // today, plan, appliances, recipes, grocery, mealprep
@@ -96,7 +97,7 @@ export default function MealAutomation({ onClose }) {
       setShowIngredientsInput(false);
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Generate error:', error);
-      alert('Failed to generate meal plan: ' + error.message);
+      showToast('Failed to generate meal plan: ' + error.message, 'error');
     } finally {
       setGenerating(false);
     }
@@ -114,7 +115,7 @@ export default function MealAutomation({ onClose }) {
 
   const handleSubmitIngredients = () => {
     if (!userIngredients.trim()) {
-      alert('Please enter the ingredients you have available!');
+      showToast('Please enter the ingredients you have available!', 'warning');
       return;
     }
     handleGeneratePlan(true);
@@ -122,7 +123,7 @@ export default function MealAutomation({ onClose }) {
 
   const handleOrderGroceries = async () => {
     if (!mealPlan) {
-      alert('Please generate a meal plan first!');
+      showToast('Please generate a meal plan first!', 'warning');
       return;
     }
 

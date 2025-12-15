@@ -4,6 +4,8 @@ import LandingPage from './pages/LandingPage'
 import NewDashboard from './pages/NewDashboard'
 import PaymentSuccess from './pages/PaymentSuccess'
 import PaymentCanceled from './pages/PaymentCanceled'
+import Toast from './components/Toast'
+import ErrorBoundary from './components/ErrorBoundary'
 import { analytics } from './services/analyticsService'
 import { auth } from './config/firebase'
 import subscriptionService from './services/subscriptionService'
@@ -27,14 +29,17 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<NewDashboard />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-canceled" element={<PaymentCanceled />} />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={<NewDashboard />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-canceled" element={<PaymentCanceled />} />
+        </Routes>
+        <Toast />
+      </Router>
+    </ErrorBoundary>
   )
 }
 

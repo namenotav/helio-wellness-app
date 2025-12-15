@@ -256,24 +256,7 @@ class DNAService {
         this.geneticData = parsed.data;
         await this.analyzeGenetics();
         
-        // 💾 SAVE TO PERSISTENT STORAGE (Preferences + localStorage + Firebase)
-        await Preferences.set({ 
-          key: 'dna_genetic_data', 
-          value: JSON.stringify(this.geneticData) 
-        });
-        
-        // Also save to localStorage for Health Avatar compatibility
-        localStorage.setItem('dnaAnalysis', JSON.stringify(this.geneticData));
-        
-        // Sync to Firestore via firestoreService
-        try {
-          const userId = authService.getCurrentUser()?.uid;
-          await firestoreService.save('dnaAnalysis', this.geneticData, userId);
-          if(import.meta.env.DEV)console.log('✅ DNA data saved to storage (Preferences + localStorage + Firestore)');
-        } catch (syncError) {
-          if(import.meta.env.DEV)console.warn('DNA Firestore sync failed (offline?):', syncError);
-          if(import.meta.env.DEV)console.log('✅ DNA data saved to storage (Preferences + localStorage)');
-        }
+        // 💾 SAVE happens in analyzeGenetics() after merging with analysis
         
         return {
           success: true,
@@ -589,7 +572,17 @@ Generate personalized health recommendations in JSON format:
       this.analysisComplete = true;
     }
     
-    // 💾 SAVE ANALYSIS TO PERSISTENT STORAGE (Preferences + localStorage + Firebase)
+    // 💾 SAVE MERGED DNA DATA (geneticData + analysis) TO PERSISTENT STORAGE
+    const completeDNAData = {
+      ...this.geneticData,           // traits, source, uploadDate, etc.
+      analysis: this.analysis,        // recommendations and risks
+      analysisComplete: true
+    };
+    
+    await Preferences.set({ 
+      key: 'dna_genetic_data', 
+      value: JSON.stringify(completeDNAData) 
+    });
     await Preferences.set({ 
       key: 'dna_analysis', 
       value: JSON.stringify(this.analysis) 
@@ -599,17 +592,17 @@ Generate personalized health recommendations in JSON format:
       value: 'true' 
     });
     
-    // Also save to localStorage for Health Avatar compatibility
-    localStorage.setItem('dnaAnalysis', JSON.stringify(this.analysis));
+    // Save merged object to localStorage for Health Avatar compatibility
+    localStorage.setItem('dnaAnalysis', JSON.stringify(completeDNAData));
     
-    // Sync to Firestore via firestoreService
+    // Sync merged object to Firestore via firestoreService
     try {
       const userId = authService.getCurrentUser()?.uid;
-      await firestoreService.save('dnaAnalysis', this.analysis, userId);
-      if(import.meta.env.DEV)console.log('✅ DNA analysis saved to storage (Preferences + localStorage + Firestore)');
+      await firestoreService.save('dnaAnalysis', completeDNAData, userId);
+      if(import.meta.env.DEV)console.log('✅ Complete DNA data saved to storage (Preferences + localStorage + Firestore)');
     } catch (syncError) {
-      if(import.meta.env.DEV)console.warn('DNA analysis Firestore sync failed (offline?):', syncError);
-      if(import.meta.env.DEV)console.log('✅ DNA analysis saved to storage (Preferences + localStorage)');
+      if(import.meta.env.DEV)console.warn('DNA Firestore sync failed (offline?):', syncError);
+      if(import.meta.env.DEV)console.log('✅ Complete DNA data saved to storage (Preferences + localStorage)');
     }
   }
 

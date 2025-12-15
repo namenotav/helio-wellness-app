@@ -4,6 +4,7 @@ import tensorflowService from '../services/tensorflowService';
 import { Motion } from '@capacitor/motion';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
+import syncService from '../services/syncService';
 import './RepCounter.css';
 
 const RepCounter = ({ onClose, onWorkoutComplete }) => {
@@ -139,13 +140,10 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
       // Add new workout
       workoutHistory.push(workoutEntry);
       
-      // Save back to Preferences
-      await Preferences.set({ key: 'workoutHistory', value: JSON.stringify(workoutHistory) });
+      // Save using syncService (Preferences + Firebase + localStorage)
+      await syncService.saveData('workoutHistory', workoutHistory);
       
-      // Also keep localStorage for backwards compatibility
-      localStorage.setItem('workoutHistory', JSON.stringify(workoutHistory));
-      
-      if(import.meta.env.DEV)console.log('✅ Workout saved to persistent storage:', workoutEntry);
+      if(import.meta.env.DEV)console.log('✅ Workout saved to cloud:', workoutEntry);
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to save workout:', error);
     }

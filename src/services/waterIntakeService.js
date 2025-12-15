@@ -3,6 +3,7 @@
 import syncService from './syncService.js';
 import firestoreService from './firestoreService';
 import authService from './authService';
+import brainLearningService from './brainLearningService.js';
 
 class WaterIntakeService {
   constructor() {
@@ -50,6 +51,18 @@ class WaterIntakeService {
     await firestoreService.save('waterLog', waterLog, authService.getCurrentUser()?.uid);
 
     if(import.meta.env.DEV)console.log(`💧 Added ${amount}ml water. Total today: ${this.todayIntake}ml`);
+
+    // 🧠 BRAIN.JS LEARNING - Track hydration for AI reminders
+    try {
+      await brainLearningService.trackHydration(amount, {
+        exercised: false,
+        temperature: 20,
+        thirstLevel: 3
+      });
+      if(import.meta.env.DEV)console.log('🧠 Hydration tracked for AI learning');
+    } catch (err) {
+      if(import.meta.env.DEV)console.warn('Brain.js hydration tracking failed:', err);
+    }
 
     // Check if goal reached
     if (this.todayIntake >= this.dailyGoal) {

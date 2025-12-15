@@ -5,6 +5,7 @@ import { Preferences } from '@capacitor/preferences';
 import firebaseService from './firebaseService.js';
 import syncService from './syncService.js';
 import firestoreService from './firestoreService.js';
+import brainLearningService from './brainLearningService.js';
 
 class AuthService {
   constructor() {
@@ -598,6 +599,26 @@ class AuthService {
     // Also keep localStorage for backwards compatibility
     localStorage.setItem('foodLog', JSON.stringify(dashboardFoodLog));
     if(import.meta.env.DEV)console.log('✅ Meal saved to persistent storage');
+    
+    // 🧠 BRAIN.JS LEARNING - Track meal for AI nutrition optimization
+    try {
+      await brainLearningService.trackMeal({
+        hour: new Date().getHours(),
+        dayOfWeek: new Date().getDay(),
+        mealType: 'meal',
+        calories: foodItem.calories || 0,
+        protein: foodItem.protein || 0,
+        carbs: foodItem.carbs || 0,
+        fats: foodItem.fats || 0,
+        healthy: foodItem.safety !== 'danger' && foodItem.safetyLevel !== 'danger',
+        energyAfter: 5,
+        satisfaction: foodItem.healthy ? 7 : 5,
+        digestiveComfort: foodItem.safety === 'safe' || foodItem.safetyLevel === 'safe' ? 8 : 5
+      });
+      if(import.meta.env.DEV)console.log('🧠 Meal tracked for AI learning');
+    } catch (err) {
+      if(import.meta.env.DEV)console.warn('Brain.js meal tracking failed:', err);
+    }
     
     return this.updateProfile({ foodLog });
   }

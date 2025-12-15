@@ -32,5 +32,17 @@ public class MainActivity extends BridgeActivity {
         StepCounterBridge stepBridge = new StepCounterBridge(this);
         getBridge().getWebView().addJavascriptInterface(stepBridge, "AndroidStepCounter");
         android.util.Log.d("MainActivity", "✅ StepCounter WebView bridge registered");
+        
+        // WORKAROUND: Add Fall Detection as direct JavaScript interface
+        // Bypasses Capacitor plugin system entirely
+        FallDetectionBridge fallBridge = new FallDetectionBridge(this);
+        getBridge().getWebView().addJavascriptInterface(fallBridge, "AndroidFallDetection");
+        android.util.Log.d("MainActivity", "✅ FallDetection WebView bridge registered");
+        
+        // WORKAROUND: Add Health Monitoring as direct JavaScript interface
+        // Bypasses Capacitor plugin system entirely
+        HealthMonitoringBridge healthBridge = new HealthMonitoringBridge(this);
+        getBridge().getWebView().addJavascriptInterface(healthBridge, "AndroidHealthMonitoring");
+        android.util.Log.d("MainActivity", "✅ HealthMonitoring WebView bridge registered");
     }
 }

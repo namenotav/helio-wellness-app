@@ -541,6 +541,39 @@ class EmergencyService {
   // Fall Detection using device accelerometer
   async startFallDetection(onFallDetected) {
     try {
+      // TRY NATIVE FALL DETECTION SERVICE FIRST (24/7 background)
+      if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+        try {
+          const nativeFallService = (await import('./nativeFallDetectionService.js')).default;
+          
+          // Check if native bridge is available
+          if (window.AndroidFallDetection) {
+            if(import.meta.env.DEV)console.log('🚀 Starting NATIVE fall detection service (24/7)...');
+            
+            // Start native foreground service
+            await nativeFallService.start();
+            
+            // Listen for fall events from native service
+            nativeFallService.addListener((fallData) => {
+              if(import.meta.env.DEV)console.log('⚠️ Native fall detected:', fallData);
+              this.handleFallDetected(onFallDetected);
+            });
+            
+            this.fallDetectionActive = true;
+            this.fallDetectionCallback = onFallDetected;
+            await this.saveEmergencyData();
+            
+            if(import.meta.env.DEV)console.log('✅ NATIVE fall detection active - works 24/7 even when app closed!');
+            return { success: true, native: true };
+          }
+        } catch (nativeError) {
+          if(import.meta.env.DEV)console.warn('⚠️ Native fall detection unavailable, using JS fallback:', nativeError);
+        }
+      }
+      
+      // FALLBACK: JavaScript-based fall detection (only when app is open)
+      if(import.meta.env.DEV)console.log('⚠️ Using JavaScript fall detection (only works when app open)');
+      
       // Start background runner for continuous fall detection
       const backgroundRunnerService = (await import('./backgroundRunnerService.js')).default;
       await backgroundRunnerService.start();
@@ -550,7 +583,7 @@ class EmergencyService {
       this.fallDetectionCallback = onFallDetected; // Store callback
       // Save state to storage
       await this.saveEmergencyData();
-      if(import.meta.env.DEV)console.log('🤕 Fall detection started');
+      if(import.meta.env.DEV)console.log('🤕 Fall detection started (JS mode)');
       
       // Subscribe to centralized motion listener
       this.fallMotionSubscription = await motionListenerService.subscribe((event) => {
@@ -591,10 +624,23 @@ class EmergencyService {
   // Stop fall detection
   async stopFallDetection() {
     try {
+      // Stop native service if running
+      if (Capacitor.isNativePlatform() && window.AndroidFallDetection) {
+        try {
+          const nativeFallService = (await import('./nativeFallDetectionService.js')).default;
+          await nativeFallService.stop();
+          if(import.meta.env.DEV)console.log('✅ Native fall detection service stopped');
+        } catch (error) {
+          if(import.meta.env.DEV)console.warn('Could not stop native service:', error);
+        }
+      }
+      
+      // Stop JS fallback if running
       if (this.fallMotionSubscription) {
         this.fallMotionSubscription.unsubscribe();
         this.fallMotionSubscription = null;
       }
+      
       this.fallDetectionActive = false;
       // Save state to storage
       await this.saveEmergencyData();

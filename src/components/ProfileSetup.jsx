@@ -5,6 +5,7 @@ import authService from '../services/authService';
 import syncService from '../services/syncService';
 import firestoreService from '../services/firestoreService';
 import healthAvatarService from '../services/healthAvatarService';
+import { showToast } from './Toast';
 import './ProfileSetup.css';
 
 export default function ProfileSetup({ onComplete }) {

@@ -2,6 +2,7 @@
 // Supports Bluetooth heart rate monitors (Polar, Garmin, Apple Watch, etc.)
 
 import { Capacitor } from '@capacitor/core';
+import syncService from './syncService.js';
 
 class HeartRateService {
   constructor() {
@@ -52,8 +53,8 @@ class HeartRateService {
 
       this.isMonitoring = true;
       
-      // Save device info
-      localStorage.setItem('hr_device_name', this.device.name || 'Unknown Device');
+      // Save device info using syncService
+      await syncService.saveData('hr_device_name', this.device.name || 'Unknown Device');
       
       return {
         success: true,
@@ -224,11 +225,11 @@ class HeartRateService {
   }
 
   /**
-   * Save history to localStorage
+   * Save history to cloud (Preferences + Firebase)
    */
-  saveHistory() {
+  async saveHistory() {
     try {
-      localStorage.setItem('heart_rate_history', JSON.stringify(this.heartRateHistory));
+      await syncService.saveData('heart_rate_history', this.heartRateHistory);
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to save heart rate history:', error);
     }

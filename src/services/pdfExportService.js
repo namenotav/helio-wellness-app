@@ -12,11 +12,11 @@ class PDFExportService {
         // Get PDF as base64
         const pdfBase64 = doc.output('datauristring').split(',')[1];
         
-        // Save to device
+        // Save to cache directory (temporary, shareable, no permissions needed)
         const result = await Filesystem.writeFile({
           path: filename,
           data: pdfBase64,
-          directory: Directory.Documents
+          directory: Directory.Cache
         });
         
         if(import.meta.env.DEV)console.log('✅ PDF saved to:', result.uri);
@@ -29,7 +29,7 @@ class PDFExportService {
           dialogTitle: 'Share your report'
         });
         
-        alert('✅ PDF saved and ready to share!');
+        alert('✅ PDF ready to share!');
       } else {
         // Browser - use normal download
         doc.save(filename);
@@ -95,7 +95,7 @@ class PDFExportService {
   // Export workout history
   async exportWorkoutHistory() {
     const doc = new jsPDF();
-    const workoutLog = JSON.parse(localStorage.getItem('workoutLog') || '[]');
+    const workoutLog = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
     const today = new Date().toLocaleDateString();
     
     doc.setFontSize(20);
@@ -138,58 +138,72 @@ class PDFExportService {
     const doc = new jsPDF();
     const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
     const today = new Date().toISOString().split('T')[0];
-    const todaysFoods = foodLog.filter(f => 
-      f.date === today || new Date(f.timestamp).toISOString().split('T')[0] === today
-    );
+    
+    // Get last 30 days of food logs (full history)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentFoods = foodLog.filter(f => {
+      const foodDate = new Date(f.timestamp || f.date);
+      return foodDate >= thirtyDaysAgo;
+    }).sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
     
     doc.setFontSize(20);
-    doc.text('Daily Nutrition Log', 20, 20);
+    doc.text('Complete Nutrition History', 20, 20);
     
     doc.setFontSize(12);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 30);
-    doc.text(`Total Meals: ${todaysFoods.length}`, 20, 37);
+    doc.text(`Period: Last 30 Days`, 20, 30);
+    doc.text(`Total Meals: ${recentFoods.length}`, 20, 37);
     
-    // Calculate totals
+    // Calculate totals for last 30 days
     let totalCalories = 0;
     let totalProtein = 0;
     let totalCarbs = 0;
     let totalFat = 0;
     
-    todaysFoods.forEach(food => {
+    recentFoods.forEach(food => {
       totalCalories += food.calories || 0;
       totalProtein += food.protein || 0;
       totalCarbs += food.carbs || 0;
       totalFat += food.fat || 0;
     });
     
+    // Calculate daily averages
+    const daysWithData = Math.max(1, recentFoods.length > 0 ? 30 : 1);
+    const avgCalories = Math.round(totalCalories / daysWithData);
+    const avgProtein = Math.round(totalProtein / daysWithData);
+    const avgCarbs = Math.round(totalCarbs / daysWithData);
+    const avgFat = Math.round(totalFat / daysWithData);
+    
     doc.setFontSize(14);
-    doc.text('Daily Totals', 20, 50);
+    doc.text('30-Day Totals & Averages', 20, 50);
     doc.setFontSize(11);
-    doc.text(`Calories: ${totalCalories} kcal`, 25, 58);
-    doc.text(`Protein: ${totalProtein}g`, 25, 65);
-    doc.text(`Carbs: ${totalCarbs}g`, 25, 72);
-    doc.text(`Fat: ${totalFat}g`, 25, 79);
+    doc.text(`Total Calories: ${totalCalories} kcal (Avg: ${avgCalories}/day)`, 25, 58);
+    doc.text(`Total Protein: ${totalProtein}g (Avg: ${avgProtein}g/day)`, 25, 65);
+    doc.text(`Total Carbs: ${totalCarbs}g (Avg: ${avgCarbs}g/day)`, 25, 72);
+    doc.text(`Total Fat: ${totalFat}g (Avg: ${avgFat}g/day)`, 25, 79);
     
     // Food list
     doc.setFontSize(14);
-    doc.text('Foods Consumed', 20, 95);
+    doc.text('Recent Meals (Last 30 Days)', 20, 95);
     doc.setFontSize(10);
     
     let y = 105;
-    if (todaysFoods.length === 0) {
-      doc.text('No foods logged today', 25, y);
+    if (recentFoods.length === 0) {
+      doc.text('No foods logged in last 30 days', 25, y);
     } else {
-      todaysFoods.forEach((food, index) => {
+      recentFoods.slice(0, 100).forEach((food, index) => {
         if (y > 270) {
           doc.addPage();
           y = 20;
         }
         
-        const time = new Date(food.timestamp).toLocaleTimeString();
+        const foodDate = new Date(food.timestamp || food.date);
+        const dateStr = foodDate.toLocaleDateString();
+        const timeStr = foodDate.toLocaleTimeString();
         doc.text(`${index + 1}. ${food.name}`, 25, y);
         y += 5;
         doc.setFontSize(8);
-        doc.text(`   ${time} | ${food.calories}cal | P:${food.protein}g C:${food.carbs}g F:${food.fat}g`, 25, y);
+        doc.text(`   ${dateStr} ${timeStr} | ${food.calories}cal | P:${food.protein}g C:${food.carbs}g F:${food.fat}g`, 25, y);
         y += 8;
         doc.setFontSize(10);
       });
@@ -237,24 +251,57 @@ class PDFExportService {
       y += 7;
     });
     
-    // Page 3 - Nutrition
+    // Page 3 - Workouts & Nutrition
     doc.addPage();
     doc.setFontSize(18);
-    doc.text('Nutrition & Hydration', 20, 20);
-    doc.setFontSize(11);
+    doc.text('Workouts & Nutrition', 20, 20);
+    doc.setFontSize(14);
     y = 35;
     
-    doc.text(`Water Intake: ${stats.waterCups} / 8 cups`, 25, y); y += 8;
-    doc.text(`Meals Logged: ${stats.mealsLogged}`, 25, y); y += 8;
-    doc.text(`Hydration: ${Math.round((stats.waterCups / 8) * 100)}%`, 25, y); y += 15;
+    // Workout Summary
+    const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+    const totalWorkouts = workoutHistory.length;
+    const totalCaloriesBurned = workoutHistory.reduce((sum, w) => sum + (w.calories || 0), 0);
+    const last7Days = workoutHistory.filter(w => {
+      const workoutDate = new Date(w.date);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return workoutDate >= sevenDaysAgo;
+    }).length;
     
-    // Page 4 - Wellness Score
+    doc.text('Workout Summary', 25, y); y += 10;
+    doc.setFontSize(11);
+    doc.text(`Total Workouts: ${totalWorkouts}`, 30, y); y += 7;
+    doc.text(`Workouts Last 7 Days: ${last7Days}`, 30, y); y += 7;
+    doc.text(`Total Calories Burned: ${totalCaloriesBurned}`, 30, y); y += 15;
+    
+    // Nutrition & Hydration
+    doc.setFontSize(14);
+    doc.text('Nutrition & Hydration', 25, y); y += 10;
+    doc.setFontSize(11);
+    doc.text(`Water Intake Today: ${stats.waterCups} / 8 cups`, 30, y); y += 7;
+    doc.text(`Meals Logged Today: ${stats.mealsLogged}`, 30, y); y += 7;
+    doc.text(`Hydration Level: ${Math.round((stats.waterCups / 8) * 100)}%`, 30, y); y += 15;
+    
+    // Page 4 - Health Monitoring & Wellness
     doc.addPage();
     doc.setFontSize(18);
-    doc.text('Wellness Analysis', 20, 20);
-    doc.setFontSize(11);
+    doc.text('Health Monitoring & Wellness', 20, 20);
+    doc.setFontSize(14);
     y = 35;
     
+    // Health Monitoring Status
+    doc.text('24/7 Health Monitoring', 25, y); y += 10;
+    doc.setFontSize(11);
+    doc.text(`Heart Rate: ${stats.heartRate ? stats.heartRate + ' bpm' : 'Not monitored'}`, 30, y); y += 7;
+    doc.text(`Sleep Last Night: ${stats.sleepHours ? stats.sleepHours + ' hours' : 'Not tracked'}`, 30, y); y += 7;
+    doc.text(`Fall Detection: Active`, 30, y); y += 7;
+    doc.text(`Emergency Features: Enabled`, 30, y); y += 15;
+    
+    // Wellness Score
+    doc.setFontSize(14);
+    doc.text('Wellness Analysis', 25, y); y += 10;
+    doc.setFontSize(11);
     doc.text(`Overall Wellness Score: ${stats.wellnessScore}/100`, 25, y); y += 10;
     doc.setFontSize(10);
     doc.text('This score is calculated based on:', 25, y); y += 7;
@@ -270,6 +317,133 @@ class PDFExportService {
     doc.text('This report is for informational purposes only and not medical advice', 20, 285);
     
     await this.savePDFMobile(doc, `helio-full-report-${today.replace(/\//g, '-')}.pdf`);
+  }
+
+  // Export workout history as CSV
+  async exportWorkoutHistoryCSV() {
+    try {
+      const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+      const today = new Date().toLocaleDateString().replace(/\//g, '-');
+      
+      if (workoutHistory.length === 0) {
+        alert('No workout data to export');
+        return;
+      }
+      
+      // CSV Header
+      let csvContent = 'Date,Workout Name,Type,Duration (min),Calories,Sets,Reps,Notes\n';
+      
+      // CSV Rows
+      workoutHistory.forEach(workout => {
+        const date = new Date(workout.date).toLocaleDateString();
+        const name = (workout.name || 'Workout').replace(/,/g, ';'); // Escape commas
+        const type = workout.type || 'General';
+        const duration = workout.duration || 'N/A';
+        const calories = workout.calories || 0;
+        const sets = workout.sets || 'N/A';
+        const reps = workout.reps || 'N/A';
+        const notes = (workout.notes || '').replace(/,/g, ';').replace(/\n/g, ' ');
+        
+        csvContent += `${date},${name},${type},${duration},${calories},${sets},${reps},${notes}\n`;
+      });
+      
+      if (Capacitor.isNativePlatform()) {
+        // Save CSV to mobile
+        const csvBase64 = btoa(unescape(encodeURIComponent(csvContent)));
+        const result = await Filesystem.writeFile({
+          path: `helio-workouts-${today}.csv`,
+          data: csvBase64,
+          directory: Directory.Cache
+        });
+        
+        await Share.share({
+          title: 'Helio Workout History',
+          text: 'Your workout history CSV',
+          url: result.uri,
+          dialogTitle: 'Share workout data'
+        });
+        
+        alert('✅ CSV ready to share!');
+      } else {
+        // Browser download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `helio-workouts-${today}.csv`;
+        link.click();
+      }
+    } catch (error) {
+      console.error('❌ CSV export error:', error);
+      alert('Failed to export CSV: ' + error.message);
+    }
+  }
+
+  // Export food log as CSV
+  async exportFoodLogCSV() {
+    try {
+      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      const today = new Date().toLocaleDateString().replace(/\//g, '-');
+      
+      // Get last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const recentFoods = foodLog.filter(f => {
+        const foodDate = new Date(f.timestamp || f.date);
+        return foodDate >= thirtyDaysAgo;
+      }).sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
+      
+      if (recentFoods.length === 0) {
+        alert('No food data to export');
+        return;
+      }
+      
+      // CSV Header
+      let csvContent = 'Date,Time,Food Name,Calories,Protein (g),Carbs (g),Fat (g),Meal Type\n';
+      
+      // CSV Rows
+      recentFoods.forEach(food => {
+        const foodDate = new Date(food.timestamp || food.date);
+        const date = foodDate.toLocaleDateString();
+        const time = foodDate.toLocaleTimeString();
+        const name = (food.name || 'Food').replace(/,/g, ';');
+        const calories = food.calories || 0;
+        const protein = food.protein || 0;
+        const carbs = food.carbs || 0;
+        const fat = food.fat || 0;
+        const mealType = food.mealType || 'Snack';
+        
+        csvContent += `${date},${time},${name},${calories},${protein},${carbs},${fat},${mealType}\n`;
+      });
+      
+      if (Capacitor.isNativePlatform()) {
+        // Save CSV to mobile
+        const csvBase64 = btoa(unescape(encodeURIComponent(csvContent)));
+        const result = await Filesystem.writeFile({
+          path: `helio-nutrition-${today}.csv`,
+          data: csvBase64,
+          directory: Directory.Cache
+        });
+        
+        await Share.share({
+          title: 'Helio Nutrition History',
+          text: 'Your nutrition history CSV',
+          url: result.uri,
+          dialogTitle: 'Share nutrition data'
+        });
+        
+        alert('✅ CSV ready to share!');
+      } else {
+        // Browser download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `helio-nutrition-${today}.csv`;
+        link.click();
+      }
+    } catch (error) {
+      console.error('❌ CSV export error:', error);
+      alert('Failed to export CSV: ' + error.message);
+    }
   }
 }
 

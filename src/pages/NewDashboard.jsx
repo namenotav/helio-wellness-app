@@ -22,6 +22,7 @@ import { analytics } from '../services/analyticsService'
 // 🔥 NEW WEEK 1 SERVICES
 import aiMemoryService from '../services/aiMemoryService'
 import dnaService from '../services/dnaService'
+import notificationSchedulerService from '../services/notificationSchedulerService'
 import ErrorBoundary from '../components/ErrorBoundary'
 import '../styles/NewDashboard.css'
 import '../styles/GridDashboard.css'
@@ -29,8 +30,8 @@ import '../styles/GridDashboard.css'
 // Wire up gamificationService with syncService for Preferences persistence
 gamificationService.setSyncService(syncService);
 
-// Make subscriptionService globally accessible for paywall checks in components
-window.subscriptionService = subscriptionService;
+// Subscription service will be initialized in useEffect after auth is ready
+// (Moved from global scope to ensure user context is available)
 
 // ⚡ LAZY LOAD MODALS - Load only when opened (40% faster initial load)
 const FoodScanner = lazy(() => import('../components/FoodScanner'))
@@ -50,11 +51,48 @@ const WearableSync = lazy(() => import('../components/WearableSync'))
 const PaywallModal = lazy(() => import('../components/PaywallModal'))
 const Onboarding = lazy(() => import('../components/Onboarding'))
 const DevUnlock = lazy(() => import('../components/DevUnlock'))
+const DataRecovery = lazy(() => import('../components/DataRecovery'))
 
 // 🔥 NEW WEEK 1 FEATURES - Barcode Scanner & Rep Counter
 const BarcodeScanner = lazy(() => import('../components/BarcodeScanner'))
 const RepCounter = lazy(() => import('../components/RepCounter'))
 const GlobalFallAlert = lazy(() => import('../components/GlobalFallAlert'))
+
+// 🧠 AI LEARNING FEATURES - Brain.js Habit Learning System
+const BrainInsightsDashboard = lazy(() => import('../components/BrainInsightsDashboard'))
+
+// 🔥 HOME REDESIGN - Phase 2 Complete Components
+const TodayOverview = lazy(() => import('../components/TodayOverview'))
+const HomeActionButton = lazy(() => import('../components/HomeActionButton'))
+const StatsModal = lazy(() => import('../components/StatsModal'))
+const PremiumModal = lazy(() => import('../components/PremiumModal'))
+const BattlesModal = lazy(() => import('../components/BattlesModal'))
+const FoodModal = lazy(() => import('../components/FoodModal'))
+const DNAModal = lazy(() => import('../components/DNAModal'))
+const WorkoutsModal = lazy(() => import('../components/WorkoutsModalNew'))
+const HealthModal = lazy(() => import('../components/HealthModal'))
+const GoalsModal = lazy(() => import('../components/GoalsModal'))
+const ProgressModal = lazy(() => import('../components/ProgressModal'))
+
+// 🎮 GAMIFICATION COMPONENTS
+const StreakCounter = lazy(() => import('../components/StreakCounter'))
+const LevelProgressBar = lazy(() => import('../components/LevelProgressBar'))
+const DailyChallenges = lazy(() => import('../components/DailyChallenges'))
+const AchievementUnlock = lazy(() => import('../components/AchievementUnlock'))
+
+// 🎨 REDESIGNED TAB COMPONENTS
+const VoiceTabRedesign = lazy(() => import('../components/VoiceTabRedesign'))
+const ZenTabRedesign = lazy(() => import('../components/ZenTabRedesign'))
+const ScanTabRedesign = lazy(() => import('../components/ScanTabRedesign'))
+const ProfileTabRedesign = lazy(() => import('../components/ProfileTabRedesign'))
+
+// 🎯 MAIN MODAL HUBS - Hierarchical Modal System
+const AIAssistantModal = lazy(() => import('../components/AIAssistantModal'))
+const HealthToolsModal = lazy(() => import('../components/HealthToolsModal'))
+const DataManagementModal = lazy(() => import('../components/DataManagementModal'))
+const SocialFeaturesModal = lazy(() => import('../components/SocialFeaturesModal'))
+const SettingsHubModal = lazy(() => import('../components/SettingsHubModal'))
+const QuickLogModal = lazy(() => import('../components/QuickLogModal'))
 
 export default function NewDashboard() {
   const navigate = useNavigate()
@@ -62,6 +100,9 @@ export default function NewDashboard() {
   const [user, setUser] = useState(null)
   const [showProfileSetup, setShowProfileSetup] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+  
+  // 🔒 MUTEX: Prevent race conditions in loadRealData
+  const [loadDataLock, setLoadDataLock] = useState(false)
   
   // 🔥 NEW: Store activities in state for rendering
   const [recentActivities, setRecentActivities] = useState([])
@@ -102,6 +143,38 @@ export default function NewDashboard() {
   // Gratitude Journal Modal
   const [showGratitudeJournal, setShowGratitudeJournal] = useState(false)
   
+  // 🎮 GAMIFICATION STATE
+  const [achievementToShow, setAchievementToShow] = useState(null)
+  const [useRedesignedTabs, setUseRedesignedTabs] = useState(true)
+  
+  // 🎯 NEW HIERARCHICAL MODAL SYSTEM
+  const [showAIAssistantModal, setShowAIAssistantModal] = useState(false)
+  const [showHealthToolsModal, setShowHealthToolsModal] = useState(false)
+  const [showDataManagementModal, setShowDataManagementModal] = useState(false)
+  
+  // 🧠 AI LEARNING SYSTEM
+  const [showBrainInsights, setShowBrainInsights] = useState(false)
+  const [showSocialFeaturesModal, setShowSocialFeaturesModal] = useState(false)
+  const [showSettingsHubModal, setShowSettingsHubModal] = useState(false)
+  const [showQuickLogModal, setShowQuickLogModal] = useState(false)
+
+  // Listen for level up events
+  useEffect(() => {
+    const handleLevelUp = (event) => {
+      const { level } = event.detail
+      setAchievementToShow({
+        id: 'level_up',
+        icon: '⭐',
+        name: `Level ${level} Reached!`,
+        description: `You've reached level ${level}! Keep going!`,
+        xp: level * 100
+      })
+    }
+
+    window.addEventListener('levelUp', handleLevelUp)
+    return () => window.removeEventListener('levelUp', handleLevelUp)
+  }, [])
+  
   // Legal Information Modal
   const [showLegal, setShowLegal] = useState(false)
   
@@ -129,6 +202,9 @@ export default function NewDashboard() {
     return saved === 'true'
   })
   const [showDevButton, setShowDevButton] = useState(true) // ALWAYS TRUE - will check auth later
+  
+  // Data Recovery modal state
+  const [showDataRecovery, setShowDataRecovery] = useState(false)
   
   if(import.meta.env.DEV)console.log('🏗️ NewDashboard component loaded - Build timestamp:', new Date().toISOString())
   if(import.meta.env.DEV)console.log('🔵 Initial state:', { showDevButton: true, isDevMode })
@@ -238,19 +314,33 @@ export default function NewDashboard() {
   }
 
   // Pre-bound PDF export handlers for MeTab
-  const handleExportDailyStats = () => {
+  const handleExportDailyStats = async () => {
+    await refreshStats(); // ✅ Get latest real-time data
     handlePDFExport(pdfExportService.exportDailyStats.bind(pdfExportService), stats);
   };
 
-  const handleExportWorkoutHistory = () => {
+  const handleExportWorkoutHistory = async () => {
+    await refreshStats(); // ✅ Get latest real-time data
     handlePDFExport(pdfExportService.exportWorkoutHistory.bind(pdfExportService));
   };
 
-  const handleExportFoodLog = () => {
+  const handleExportWorkoutHistoryCSV = async () => {
+    await refreshStats(); // ✅ Get latest real-time data
+    handlePDFExport(pdfExportService.exportWorkoutHistoryCSV.bind(pdfExportService));
+  };
+
+  const handleExportFoodLog = async () => {
+    await refreshStats(); // ✅ Get latest real-time data
     handlePDFExport(pdfExportService.exportFoodLog.bind(pdfExportService));
   };
 
-  const handleExportFullReport = () => {
+  const handleExportFoodLogCSV = async () => {
+    await refreshStats(); // ✅ Get latest real-time data
+    handlePDFExport(pdfExportService.exportFoodLogCSV.bind(pdfExportService));
+  };
+
+  const handleExportFullReport = async () => {
+    await refreshStats(); // ✅ Get latest real-time data
     handlePDFExport(pdfExportService.exportFullReport.bind(pdfExportService), stats);
   };
 
@@ -261,8 +351,64 @@ export default function NewDashboard() {
         setFallData(data);
         setShowGlobalFallAlert(true);
       });
+      
+      // 🔄 AUTO-RESUME FALL DETECTION IF PREVIOUSLY ENABLED
+      setTimeout(async () => {
+        try {
+          const savedData = await emergencyService.loadEmergencyData();
+          
+          if (savedData?.fallDetection) {
+            console.log('🔄 [AUTO-START] Fall detection was enabled, resuming...');
+            
+            // Check if native service is available (24/7 background)
+            if (window.AndroidFallDetection) {
+              console.log('🚀 [AUTO-START] Starting native fall detection service (24/7)...');
+              const nativeFallModule = await import('../services/nativeFallDetectionService');
+              const { default: nativeFallDetectionService } = nativeFallModule;
+              await nativeFallDetectionService.start();
+              console.log('✅ [AUTO-START] Native fall detection resumed - works 24/7 even when app closed!');
+            } else {
+              console.log('🚀 [AUTO-START] Starting JS fall detection (only works when app open)...');
+              await emergencyService.startFallDetection(emergencyService.globalFallAlertCallback);
+              console.log('✅ [AUTO-START] JS fall detection resumed - only works while app is open');
+            }
+          } else {
+            console.log('ℹ️ [AUTO-START] Fall detection was not previously enabled, skipping auto-resume');
+          }
+        } catch (error) {
+          console.error('❌ [AUTO-START] Fall detection auto-resume failed:', error);
+        }
+      }, 2000); // Wait 2 seconds for everything to initialize
     });
   }, [])
+
+  // Initialize notification scheduler service
+  useEffect(() => {
+    const initNotifications = async () => {
+      await notificationSchedulerService.initialize();
+      if(import.meta.env.DEV)console.log('✅ Notification scheduler initialized');
+    };
+    initNotifications();
+  }, []);
+
+  // Load saved theme on app start
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('themeSettings');
+    if (savedTheme) {
+      try {
+        const { theme, accentColor } = JSON.parse(savedTheme);
+        document.documentElement.setAttribute('data-theme', theme || 'dark');
+        document.body.setAttribute('data-theme', theme || 'dark');
+        document.documentElement.style.setProperty('--theme-accent-color', accentColor || '#8B5FE8');
+        console.log('🎨 Theme loaded on startup:', theme, accentColor);
+        console.log('📋 HTML data-theme:', document.documentElement.getAttribute('data-theme'));
+      } catch (err) {
+        console.warn('Failed to load theme:', err);
+      }
+    } else {
+      console.log('⚠️ No saved theme found, using default dark theme');
+    }
+  }, []);
 
   // Check if first time user - show onboarding
   useEffect(() => {
@@ -413,7 +559,10 @@ export default function NewDashboard() {
       const todayDate = new Date().toISOString().split('T')[0]
       const userId = authService.getCurrentUser()?.uid
       
-      // Save to cloud + localStorage
+      // 🔥 FIX: Save to Capacitor Preferences (syncs with Java notification!)
+      await Preferences.set({ key: 'stepBaseline', value: currentSteps.toString() })
+      await Preferences.set({ key: 'stepBaselineDate', value: todayDate })
+      // Also save to cloud for backup
       await firestoreService.save('stepBaseline', currentSteps.toString(), userId)
       await firestoreService.save('stepBaselineDate', todayDate, userId)
       
@@ -465,8 +614,12 @@ export default function NewDashboard() {
       console.log('✅ Notification permission granted')
       console.log('📱 Step 2: Starting native step counter service...')
       
-      // Import and start native foreground service
-      const { default: nativeStepService } = await import('../services/nativeStepService')
+      // Import and start native foreground service with error handling
+      const nativeStepModule = await import('../services/nativeStepService').catch(err => {
+        console.error('❌ Failed to import nativeStepService:', err);
+        throw new Error('Service module not available');
+      });
+      const { default: nativeStepService } = nativeStepModule;
       const started = await nativeStepService.start()
       
       if (started) {
@@ -476,8 +629,7 @@ export default function NewDashboard() {
         // Mutex lock to prevent race conditions during Firebase saves
         let stepSaveLock = false;
         
-        // Start polling steps from service every 5 minutes to save to Firebase (reduces quota usage by 97%)
-        // UI updates happen via local state, Firebase gets batched updates
+        // 🔥 NEW FIX: Poll every 30 seconds and refresh ALL stats (not just steps)
         const pollInterval = setInterval(async () => {
           // Skip if previous save still in progress (prevent race conditions)
           if (stepSaveLock) {
@@ -487,124 +639,27 @@ export default function NewDashboard() {
           
           try {
             stepSaveLock = true; // Acquire lock
-            
-            const { default: nativeStepService } = await import('../services/nativeStepService')
-            const rawStepCount = await nativeStepService.getSteps()
-            console.log('🔄 Polling: Raw step count from service:', rawStepCount)
-            
-            // Calculate today's steps from baseline (same logic as loadRealData)
-            const todayDate = new Date().toISOString().split('T')[0]
-            const userId = authService.getCurrentUser()?.uid
-            let stepBaseline = parseInt(await firestoreService.get('stepBaseline', userId) || '0')
-            const baselineDate = await firestoreService.get('stepBaselineDate', userId)
-            
-            // 🔥 FIX: Detect sensor reset in polling too
-            if (rawStepCount < stepBaseline && baselineDate === todayDate) {
-              console.log('🔄 Polling: Sensor RESET detected! Raw:', rawStepCount, '< Baseline:', stepBaseline)
-              stepBaseline = rawStepCount
-              await firestoreService.save('stepBaseline', rawStepCount.toString(), userId)
-            }
-            
-            let todaySteps = 0
-            if (baselineDate === todayDate) {
-              todaySteps = Math.max(0, rawStepCount - stepBaseline)
-            } else {
-              // NEW DAY DETECTED in background!
-              console.log('🌅 BACKGROUND: New day detected!', baselineDate, '->', todayDate)
-              
-              // 🔥 CRITICAL FIX: Save yesterday's final count FIRST
-              if (baselineDate) {
-                const yesterdayFinalSteps = Math.max(0, rawStepCount - stepBaseline)
-                const yesterdayDay = new Date(baselineDate).getDay()
-                const yesterdayIndex = yesterdayDay === 0 ? 6 : yesterdayDay - 1
-                
-                // Load current weekly data
-                const weeklyStepsData = await firestoreService.get('weeklySteps', userId) || []
-                while (weeklyStepsData.length < 7) {
-                  weeklyStepsData.push({ steps: 0, date: null })
-                }
-                
-                // Save yesterday's final count
-                weeklyStepsData[yesterdayIndex] = {
-                  steps: yesterdayFinalSteps,
-                  date: baselineDate
-                }
-                
-                await firestoreService.save('weeklySteps', weeklyStepsData, userId)
-                console.log('💾 BACKGROUND: Saved yesterday\'s final steps:', yesterdayFinalSteps, 'on', baselineDate)
-              }
-              
-              // NOW set new baseline for today
-              await firestoreService.save('stepBaseline', rawStepCount.toString(), userId)
-              await firestoreService.save('stepBaselineDate', todayDate, userId)
-              todaySteps = 0
-            }
-            
-            console.log('🔄 Polling: Calculated steps today:', todaySteps)
-            
-            // Update weekly steps in Firebase + localStorage
-            const currentDay = new Date().getDay()
-            const todayIndex = currentDay === 0 ? 6 : currentDay - 1
-            const weeklyStepsData = await firestoreService.get('weeklySteps', userId) || []
-            while (weeklyStepsData.length < 7) {
-              weeklyStepsData.push({ steps: 0, date: null })
-            }
-            weeklyStepsData[todayIndex] = {
-              steps: todaySteps,
-              date: todayDate
-            }
-            await firestoreService.save('weeklySteps', weeklyStepsData, userId)
-            
-            // Save to encrypted storage for persistence
-            await firestoreService.save('todaySteps', todaySteps.toString(), userId)
-            
-            // Update localStorage stepHistory for Activity Pulse synchronization
-            const stepHistoryRaw = JSON.parse(localStorage.getItem('stepHistory') || '[]')
-            const stepHistory = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : []
-            const existingTodayIndex = stepHistory.findIndex(s => s.date === todayDate)
-            
-            if (existingTodayIndex >= 0) {
-              // Update existing entry
-              stepHistory[existingTodayIndex] = {
-                date: todayDate,
-                steps: todaySteps,
-                timestamp: Date.now()
-              }
-            } else {
-              // Add new entry
-              stepHistory.push({
-                date: todayDate,
-                steps: todaySteps,
-                timestamp: Date.now()
-              })
-            }
-            localStorage.setItem('stepHistory', JSON.stringify(stepHistory))
-            
-            // Update UI state
-            setStats(prev => ({
-              ...prev,
-              todaySteps: todaySteps,
-              weeklySteps: weeklyStepsData
-            }))
-            
-            // Reload activities to update Activity Pulse with correct step count
-            loadActivities()
-            
-            console.log('💾 Polling: Updated UI + saved to Firebase/localStorage/stepHistory')
+            console.log('🔄 [POLLING] Refreshing dashboard stats...')
+            await loadRealData() // Reload all stats including steps
+            loadActivities() // Refresh activity pulse
+            console.log('✅ [POLLING] Dashboard updated successfully')
           } catch (err) {
-            console.error('Polling error:', err)
+            console.error('❌ [POLLING] Error:', err)
           } finally {
             stepSaveLock = false; // Release lock
           }
-        }, 300000) // 5 minutes = 300,000ms (reduces Firebase writes from 17,280 to 288 per day)
+        }, 30000) // 🔥 FIX: 30 seconds for real-time feel (was 5 minutes)
         
         // Store interval ID so we can clear it later
         window.__stepPollingInterval = pollInterval
         
-        // Give it a moment to initialize
-        setTimeout(() => {
-          alert('✅ 24/7 Step Tracking Enabled!\n\n✓ Persistent notification showing\n✓ Steps count even when app is closed\n✓ Dashboard syncs every 5 minutes\n\nWalk around and watch both notification and dashboard update!')
-          // Dashboard will update automatically from polling - no need to call loadRealData here
+        // 🔥 NEW FIX: Load data IMMEDIATELY so dashboard shows steps right away (don't wait 30 seconds)
+        setTimeout(async () => {
+          console.log('🚀 [STARTUP] Loading initial data...')
+          await loadRealData()
+          loadActivities()
+          console.log('✅ [STARTUP] Initial data loaded')
+          alert('✅ 24/7 Step Tracking Enabled!\n\n✓ Persistent notification showing\n✓ Steps count even when app is closed\n✓ Dashboard syncs every 30 seconds\n\nWalk around and watch both notification and dashboard update!')
         }, 500)
       } else {
         alert('❌ Failed to Start Service\n\nPossible reasons:\n• No step counter sensor on device\n• Permission denied\n• Service already running\n\nCheck notification area for "🏃 Helio Active"')
@@ -620,45 +675,43 @@ export default function NewDashboard() {
 
   // Load real data from localStorage + Firebase cloud (moved outside useEffect so it can be called from anywhere)
   const loadRealData = async () => {
+    // 🔒 MUTEX: Skip if another loadRealData is in progress
+    if (loadDataLock) {
+      console.log('⏭️ loadRealData: Skipping - already in progress');
+      return;
+    }
+    
+    setLoadDataLock(true);
     const today = new Date().toISOString().split('T')[0]
     
     try {
-      // 🔥 CRITICAL: Read DIRECTLY from SharedPreferences (same source as notification!)
-        let liveStepCount = 0
+      // 🔥 CRITICAL: Use TODAY's steps calculated by notification service
         let todaySteps = 0
         try {
-          const { default: nativeStepService } = await import('../services/nativeStepService')
+          const { Preferences } = await import('@capacitor/preferences')
           
-          // Get raw count from SharedPreferences (same as notification)
-          liveStepCount = await nativeStepService.getSteps()
-          console.log('📊 [DASHBOARD] Raw steps from SharedPreferences:', liveStepCount)
-          
-          // Calculate today's steps using baseline (same logic as notification)
-          const todayDate = new Date().toISOString().split('T')[0]
-          const userId = authService.getCurrentUser()?.uid
-          let stepBaseline = parseInt(await firestoreService.get('stepBaseline', userId) || '0')
-          const baselineDate = await firestoreService.get('stepBaselineDate', userId)
-          
-          // 🔥 FIX: Detect sensor reset (raw steps < baseline = phone reboot/sensor reset)
-          if (liveStepCount < stepBaseline && baselineDate === todayDate) {
-            console.log('🔄 [DASHBOARD] Sensor RESET detected! Raw:', liveStepCount, '< Baseline:', stepBaseline)
-            console.log('💾 [DASHBOARD] Resetting baseline to:', liveStepCount)
-            stepBaseline = liveStepCount
-            await firestoreService.save('stepBaseline', liveStepCount.toString(), userId)
-          }
-          
-          if (baselineDate === todayDate) {
-            todaySteps = Math.max(0, liveStepCount - stepBaseline)
-            console.log('📊 [DASHBOARD] Using baseline:', stepBaseline, '| Raw:', liveStepCount, '| Today steps:', todaySteps)
-          } else {
-            // New day - set baseline
-            console.log('🌅 [DASHBOARD] New day detected, setting baseline:', liveStepCount)
-            await firestoreService.save('stepBaseline', liveStepCount.toString(), userId)
-            await firestoreService.save('stepBaselineDate', todayDate, userId)
+          // The notification service already calculates today's steps correctly
+          // Just read that value instead of recalculating
+          try {
+            const storedSteps = await Preferences.get({ key: 'wellnessai_todaySteps' })
+            // Value is JSON-encoded (e.g., "4196" with quotes), so parse twice
+            const rawValue = storedSteps.value || '0'
+            try {
+              todaySteps = parseInt(JSON.parse(rawValue))
+            } catch {
+              todaySteps = parseInt(rawValue)
+            }
+            console.log('📊 [DASHBOARD] Today steps from notification service:', todaySteps)
+          } catch (readErr) {
+            console.warn('⚠️ Could not read today steps:', readErr)
             todaySteps = 0
           }
+          
+          // No need to recalculate - notification service already does this correctly
+          // Just use the value we read above
+          console.log('✅ [DASHBOARD] Using today steps:', todaySteps)
         } catch (err) {
-          console.error('❌ Error getting native steps:', err)
+          console.error('❌ Error reading steps:', err)
           todaySteps = 0
         }
 
@@ -708,9 +761,13 @@ export default function NewDashboard() {
         if(import.meta.env.DEV)console.log('😴 Sleep synced:', mergedSleep.length, 'total sleep sessions')
         
         // ⚔️ Sync Battle Data (Firebase + localStorage)
-        const { default: socialBattlesService } = await import('../services/socialBattlesService.js')
-        await socialBattlesService.init() // This handles all merge/sync logic internally
-        if(import.meta.env.DEV)console.log('⚔️ Battles synced from Firebase')
+        try {
+          const { default: socialBattlesService } = await import('../services/socialBattlesService.js')
+          await socialBattlesService.init() // This handles all merge/sync logic internally
+          if(import.meta.env.DEV)console.log('⚔️ Battles synced from Firebase')
+        } catch (err) {
+          console.warn('Failed to sync battle data:', err);
+        }
         
         // Calculate streak (load from cloud)
         const loginHistory = await firestoreService.get('loginHistory', userId) || []
@@ -757,6 +814,19 @@ export default function NewDashboard() {
         
         // 🔥 todaySteps is now calculated above using same logic as notification
         
+        // 🛡️ DATE VALIDATION: Check if cloud data is from today
+        const cloudTodayData = weeklyStepsData[todayIndex]
+        if (cloudTodayData?.date === todayDate) {
+          // Cloud data is from today - use it if higher (multi-device sync)
+          if (cloudTodayData.steps > todaySteps) {
+            todaySteps = cloudTodayData.steps
+            if(import.meta.env.DEV)console.log('✅ Using cloud steps (higher than local):', todaySteps)
+          }
+        } else {
+          // Cloud data is old/stale or missing - ignore it
+          if(import.meta.env.DEV)console.log('⚠️ Cloud steps are from', cloudTodayData?.date, '- using fresh sensor value')
+        }
+        
         // Update weekly array - ALWAYS update it with current steps
         weeklyStepsData[todayIndex] = {
           steps: todaySteps,
@@ -801,24 +871,87 @@ export default function NewDashboard() {
         console.log('📊 [DASHBOARD] Stats updated! Should now show:', todaySteps, 'steps');
       } catch (error) {
         if(import.meta.env.DEV)console.error('Error loading real stats:', error)
+      } finally {
+        // 🔒 MUTEX: Always release lock
+        setLoadDataLock(false);
       }
   }
 
-  // Load real data on mount
+  // 🔥 FIX: Load real data IMMEDIATELY on mount (don't wait for tracking button)
   useEffect(() => {
     const initData = async () => {
+      console.log('🚀 [MOUNT] Loading dashboard data immediately...')
       await loadRealData()
-      // CRITICAL: Refresh Activity Pulse after updating step data
       loadActivities()
+      console.log('✅ [MOUNT] Initial data loaded')
+      
+      // 🔥 AUTO-START: Start foreground service automatically if not running
+      try {
+        console.log('🔍 [AUTO-START] Checking if foreground service is running...')
+        const nativeStepModule = await import('../services/nativeStepService').catch(err => {
+          console.error('❌ Failed to import nativeStepService:', err);
+          return null;
+        });
+        if (!nativeStepModule) {
+          console.warn('⚠️ [AUTO-START] Service module not available');
+          return;
+        }
+        const { default: nativeStepService } = nativeStepModule;
+        const isRunning = nativeStepService.isRunning
+        console.log('🔍 [AUTO-START] Service running status:', isRunning)
+        
+        if (!isRunning) {
+          console.log('🚀 [AUTO-START] Foreground service not running - starting automatically...')
+          
+          // Request notification permission first
+          const { LocalNotifications } = await import('@capacitor/local-notifications')
+          const notifPerm = await LocalNotifications.checkPermissions()
+          console.log('🔍 [AUTO-START] Notification permission:', notifPerm.display)
+          
+          if (notifPerm.display === 'granted') {
+            console.log('✅ [AUTO-START] Permission granted, starting service...')
+            const started = await nativeStepService.start()
+            console.log('🔍 [AUTO-START] Service start result:', started)
+            
+            if (started) {
+              setNativeServiceRunning(true)
+              console.log('✅ [AUTO-START] Foreground service started successfully!')
+              
+              // Start polling for updates
+              const pollInterval = setInterval(async () => {
+                console.log('🔄 [POLLING] Refreshing dashboard stats...')
+                await loadRealData()
+              }, 30000)
+              
+              window._stepPollInterval = pollInterval
+            }
+          } else {
+            console.log('⚠️ [AUTO-START] Notification permission not granted - service needs manual start')
+          }
+        } else {
+          console.log('✅ [AUTO-START] Foreground service already running')
+          setNativeServiceRunning(true)
+        }
+      } catch (error) {
+        console.error('❌ [AUTO-START] Failed to auto-start service:', error)
+      }
     }
     initData()
-    // Load initial data only, updates come from step listeners (no flickering!)
-    return () => {}
+    
+    return () => {
+      if (window._stepPollInterval) {
+        console.log('🧹 Cleaning up polling interval')
+        clearInterval(window._stepPollInterval)
+      }
+    }
   }, [])
 
   useEffect(() => {
     // Track dashboard view
     analytics.trackPageView('Dashboard_Home');
+    
+    // Initialize subscription service after component mount
+    window.subscriptionService = subscriptionService;
     
     // Initialize auth service to load user from Preferences
     const initAuth = async () => {
@@ -1133,6 +1266,128 @@ export default function NewDashboard() {
 
   return (
     <div className="new-dashboard">
+      {/* 🎮 GAMIFICATION COMPONENTS */}
+      <Suspense fallback={null}>
+        <StreakCounter />
+      </Suspense>
+
+      {achievementToShow && (
+        <Suspense fallback={null}>
+          <AchievementUnlock 
+            achievement={achievementToShow} 
+            onClose={() => setAchievementToShow(null)} 
+          />
+        </Suspense>
+      )}
+      
+      {/* 🎯 HIERARCHICAL MODAL SYSTEM */}
+      {showAIAssistantModal && (
+        <Suspense fallback={null}>
+          <AIAssistantModal 
+            userName={user?.name || user?.profile?.name || 'Friend'}
+            onClose={() => setShowAIAssistantModal(false)} 
+          />
+        </Suspense>
+      )}
+      
+      {/* 🧠 BRAIN.JS AI LEARNING SYSTEM */}
+      {showBrainInsights && (
+        <Suspense fallback={null}>
+          <BrainInsightsDashboard 
+            onClose={() => setShowBrainInsights(false)} 
+          />
+        </Suspense>
+      )}
+      
+      {showHealthToolsModal && (
+        <Suspense fallback={null}>
+          <HealthToolsModal 
+            onClose={() => setShowHealthToolsModal(false)}
+            onOpenHealthAvatar={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Health_Avatar'); setShowHealthAvatar(true); }}
+            onOpenARScanner={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('AR_Scanner'); setShowARScanner(true); }}
+            onOpenEmergency={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Emergency_Panel'); setShowEmergency(true); }}
+            onOpenInsurance={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Insurance_Rewards'); setShowInsurance(true); }}
+          />
+        </Suspense>
+      )}
+      
+      {showDataManagementModal && (
+        <Suspense fallback={null}>
+          <DataManagementModal 
+            onClose={() => setShowDataManagementModal(false)}
+            onOpenDNA={() => { setShowDataManagementModal(false); analytics.trackFeatureUse('DNA_Analysis'); setShowDNA(true); }}
+            onExportDailyStats={handleExportDailyStats}
+            onExportWorkoutHistory={handleExportWorkoutHistory}
+            onExportFoodLog={handleExportFoodLog}
+            onExportFullReport={handleExportFullReport}
+            checkFeatureAccess={(featureName, onSuccess) => {
+              if (subscriptionService.hasAccess(featureName)) {
+                onSuccess();
+              } else {
+                setShowDataManagementModal(false);
+                const paywallInfo = subscriptionService.showPaywall(featureName, () => setShowStripePayment(true));
+                setPaywallData(paywallInfo);
+              }
+            }}
+          />
+        </Suspense>
+      )}
+      
+      {showSocialFeaturesModal && (
+        <Suspense fallback={null}>
+          <SocialFeaturesModal 
+            onClose={() => setShowSocialFeaturesModal(false)}
+            onOpenBattles={() => { setShowSocialFeaturesModal(false); analytics.trackFeatureUse('Social_Battles'); setShowBattles(true); }}
+            onOpenMeals={() => { setShowSocialFeaturesModal(false); analytics.trackFeatureUse('Meal_Automation'); setShowMeals(true); }}
+            checkFeatureAccess={(featureName, onSuccess) => {
+              if (subscriptionService.hasAccess(featureName)) {
+                onSuccess();
+              } else {
+                setShowSocialFeaturesModal(false);
+                const paywallInfo = subscriptionService.showPaywall(featureName, () => setShowStripePayment(true));
+                setPaywallData(paywallInfo);
+              }
+            }}
+          />
+        </Suspense>
+      )}
+      
+      {showSettingsHubModal && (
+        <Suspense fallback={null}>
+          <SettingsHubModal 
+            onClose={() => setShowSettingsHubModal(false)}
+            onOpenNotifications={() => { setShowSettingsHubModal(false); setShowNotifications(true); }}
+            onOpenTheme={() => { setShowSettingsHubModal(false); setShowTheme(true); }}
+            onOpenDevUnlock={() => { setShowSettingsHubModal(false); setShowDevUnlock(true); }}
+            onLogout={() => {
+              setShowSettingsHubModal(false);
+              authService.signOut();
+              navigate('/');
+            }}
+            showDevButton={showDevButton}
+            isDevMode={isDevMode}
+            onDisableDevMode={handleDisableDevMode}
+            onResetStepCounter={handleResetStepCounter}
+            user={{
+              ...user,
+              onOpenStripePayment: () => setShowStripePayment(true),
+              onOpenAppleHealth: () => setShowAppleHealth(true),
+              onOpenWearables: () => setShowWearables(true),
+              onOpenDataRecovery: () => setShowDataRecovery(true)
+            }}
+          />
+        </Suspense>
+      )}
+      
+      {showQuickLogModal && (
+        <Suspense fallback={null}>
+          <QuickLogModal 
+            isOpen={showQuickLogModal}
+            onClose={() => setShowQuickLogModal(false)}
+          />
+        </Suspense>
+      )}
+
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="confetti-container">
@@ -1149,35 +1404,71 @@ export default function NewDashboard() {
       {/* Main Content Area */}
       <div className="dashboard-content">
         {activeTab === 'home' && (
-          <HomeTab 
-            stats={stats} 
-            greeting={getGreeting()}
-            motivation={getMotivation()}
-            onGoalComplete={handleGoalComplete}
-            recentActivities={recentActivities}
-            activityCount={activityCount}
-            onOpenActivityPulse={() => setShowActivityPulse(true)}
-            stepMethod={stepMethod}
-            handleOpenWorkouts={handleOpenWorkouts}
-            handleOpenFoodScanner={handleOpenFoodScanner}
-            handleOpenHeartRate={handleOpenHeartRate}
-            handleOpenSleep={handleOpenSleep}
-            onOpenBarcodeScanner={() => { analytics.trackFeatureUse('Barcode_Scanner'); setShowBarcodeScanner(true); }}
-            onOpenRecipeCreator={() => { analytics.trackFeatureUse('Recipe_Creator'); setShowMeals(true); }}
-            onOpenRestaurants={() => { analytics.trackFeatureUse('Restaurants'); setShowBarcodeScanner(true); }}
-            onOpenSocial={() => { analytics.trackFeatureUse('Social_Battles'); setShowBattles(true); }}
-            onOpenRepCounter={() => { analytics.trackFeatureUse('Rep_Counter'); setShowRepCounter(true); }}
-            nativeServiceRunning={nativeServiceRunning}
-            nativeServiceStarting={nativeServiceStarting}
-            onStartNativeService={handleStartNativeService}
-          />
+          <>
+            <Suspense fallback={<div>Loading...</div>}>
+              <LevelProgressBar />
+            </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>
+              <DailyChallenges onChallengeComplete={(xp) => {
+                // Show points popup
+              }} />
+            </Suspense>
+            <HomeTab 
+              stats={stats} 
+              greeting={getGreeting()}
+              motivation={getMotivation()}
+              onGoalComplete={handleGoalComplete}
+              recentActivities={recentActivities}
+              activityCount={activityCount}
+              onOpenActivityPulse={() => setShowActivityPulse(true)}
+              stepMethod={stepMethod}
+              handleOpenWorkouts={handleOpenWorkouts}
+              handleOpenFoodScanner={handleOpenFoodScanner}
+              handleOpenHeartRate={handleOpenHeartRate}
+              handleOpenSleep={handleOpenSleep}
+              onOpenBarcodeScanner={() => { analytics.trackFeatureUse('Barcode_Scanner'); setShowBarcodeScanner(true); }}
+              onOpenRecipeCreator={() => { analytics.trackFeatureUse('Recipe_Creator'); setShowMeals(true); }}
+              onOpenRestaurants={() => { analytics.trackFeatureUse('Restaurants'); setShowBarcodeScanner(true); }}
+              onOpenSocial={() => { analytics.trackFeatureUse('Social_Battles'); setShowBattles(true); }}
+              onOpenRepCounter={() => { analytics.trackFeatureUse('Rep_Counter'); setShowRepCounter(true); }}
+              onOpenBrainInsights={() => { analytics.trackFeatureUse('Brain_Insights'); setShowBrainInsights(true); }}
+              nativeServiceRunning={nativeServiceRunning}
+              nativeServiceStarting={nativeServiceStarting}
+              onStartNativeService={handleStartNativeService}
+              setNativeServiceRunning={setNativeServiceRunning}
+              onOpenQuickLog={() => setShowQuickLogModal(true)}
+            />
+          </>
         )}
         
-        {activeTab === 'voice' && (
+        {activeTab === 'voice' && useRedesignedTabs && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <VoiceTabRedesign 
+              userName={user?.name || user?.profile?.name || 'Friend'}
+              onOpenVoiceChat={(prompt) => {
+                // Open voice chat with prompt
+              }}
+              onOpenAIAssistant={() => setShowAIAssistantModal(true)}
+            />
+          </Suspense>
+        )}
+
+        {activeTab === 'voice' && !useRedesignedTabs && (
           <VoiceTab userName={user?.name || user?.profile?.name || 'Friend'} />
         )}
         
-        {activeTab === 'scan' && (
+        {activeTab === 'scan' && useRedesignedTabs && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ScanTabRedesign 
+              onOpenFoodScanner={() => { analytics.trackFeatureUse('Food_Scanner'); setShowFoodScanner(true); }}
+              onOpenARScanner={() => { analytics.trackFeatureUse('AR_Scanner'); setShowARScanner(true); }}
+              onOpenBarcodeScanner={() => { analytics.trackFeatureUse('Barcode_Scanner'); setShowBarcodeScanner(true); }}
+              onOpenRepCounter={() => { analytics.trackFeatureUse('Rep_Counter'); setShowRepCounter(true); }}
+            />
+          </Suspense>
+        )}
+
+        {activeTab === 'scan' && !useRedesignedTabs && (
           <ScanTab 
             onOpenFoodScanner={() => { analytics.trackFeatureUse('Food_Scanner'); setShowFoodScanner(true); }}
             onOpenARScanner={() => { analytics.trackFeatureUse('AR_Scanner'); setShowARScanner(true); }}
@@ -1186,7 +1477,16 @@ export default function NewDashboard() {
           />
         )}
         
-        {activeTab === 'zen' && (
+        {activeTab === 'zen' && useRedesignedTabs && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ZenTabRedesign 
+              onOpenBreathing={handleOpenBreathing}
+              onOpenMeditation={handleOpenMeditation}
+            />
+          </Suspense>
+        )}
+
+        {activeTab === 'zen' && !useRedesignedTabs && (
           <ZenTab 
             onOpenBreathing={handleOpenBreathing} 
             onOpenStressRelief={handleOpenBreathing}
@@ -1195,13 +1495,32 @@ export default function NewDashboard() {
           />
         )}
         
-        {activeTab === 'me' && (
+        {activeTab === 'me' && useRedesignedTabs && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ProfileTabRedesign 
+              user={user}
+              onOpenSettings={(section) => {
+                // Open settings
+              }}
+              onOpenPremium={() => setShowStripePayment(true)}
+              onOpenHealthTools={() => setShowHealthToolsModal(true)}
+              onOpenDataManagement={() => setShowDataManagementModal(true)}
+              onOpenSocialFeatures={() => setShowSocialFeaturesModal(true)}
+              onOpenSettingsHub={() => setShowSettingsHubModal(true)}
+              onEditProfile={() => setShowProfileSetup(true)}
+              onOpenFullStats={() => setShowFullStats(true)}
+            />
+          </Suspense>
+        )}
+
+        {activeTab === 'me' && !useRedesignedTabs && (
           <MeTab 
             user={{
               ...user,
               onOpenStripePayment: () => setShowStripePayment(true),
               onOpenAppleHealth: () => setShowAppleHealth(true),
-              onOpenWearables: () => setShowWearables(true)
+              onOpenWearables: () => setShowWearables(true),
+              onOpenDataRecovery: () => setShowDataRecovery(true)
             }}
             stats={stats}
             onOpenHealthAvatar={() => { analytics.trackFeatureUse('Health_Avatar'); setShowHealthAvatar(true); }}
@@ -1212,10 +1531,11 @@ export default function NewDashboard() {
             onOpenBattles={() => { analytics.trackFeatureUse('Social_Battles'); setShowBattles(true); }}
             onOpenMeals={() => { analytics.trackFeatureUse('Meal_Automation'); setShowMeals(true); }}
             onEditProfile={() => setShowProfileSetup(true)}
-            onOpenFullStats={() => {
-              if(import.meta.env.DEV)console.log('🔥 SETTING showFullStats to TRUE')
+            onOpenFullStats={async () => {
+              if(import.meta.env.DEV)console.log('🔥 Opening Full Stats - Refreshing data...')
+              await refreshStats(); // ✅ Get latest real-time data
               setShowFullStats(true)
-              if(import.meta.env.DEV)console.log('✅ State update called')
+              if(import.meta.env.DEV)console.log('✅ Full Stats opened with fresh data')
             }}
             onOpenNotifications={() => setShowNotifications(true)}
             onOpenTheme={() => setShowTheme(true)}
@@ -1363,7 +1683,7 @@ export default function NewDashboard() {
       {showTheme && <ThemeModal onClose={() => setShowTheme(false)} />}
       
       {/* Full Stats Modal - Placed outside parent to avoid CSS conflicts */}
-      {showFullStats && <FullStatsModal user={user} onClose={() => setShowFullStats(false)} />}
+      {showFullStats && <FullStatsModal user={user} stats={stats} onClose={() => setShowFullStats(false)} />}
       
       {/* Activity Pulse Modal */}
       {showActivityPulse && <ActivityPulseModal activitiesPromise={getAllActivities()} onClose={() => setShowActivityPulse(false)} />}
@@ -1464,6 +1784,13 @@ export default function NewDashboard() {
           />
         )}
       </Suspense>
+
+      {/* DATA RECOVERY & BACKUP */}
+      <Suspense fallback={<div className="modal-loading">Loading...</div>}>
+        {showDataRecovery && (
+          <DataRecovery onClose={() => setShowDataRecovery(false)} />
+        )}
+      </Suspense>
       
       <Suspense fallback={<div className="modal-loading">Loading...</div>}>
         {showGratitudeJournal && <GratitudeJournalModal onClose={() => setShowGratitudeJournal(false)} />}
@@ -1483,15 +1810,111 @@ export default function NewDashboard() {
 }
 
 // Home Tab Component
-function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities, activityCount, onOpenActivityPulse, stepMethod, handleOpenWorkouts, handleOpenFoodScanner, handleOpenHeartRate, handleOpenSleep, onOpenBarcodeScanner, onOpenRecipeCreator, onOpenRestaurants, onOpenSocial, onOpenRepCounter, nativeServiceRunning, nativeServiceStarting, onStartNativeService }) {
-  const stepsProgress = (stats.todaySteps / stats.goalSteps) * 100
-  const waterProgress = (stats.waterCups / stats.waterGoal) * 100
-  const mealsProgress = (stats.mealsLogged / stats.mealsGoal) * 100
-  const xpProgress = (stats.xp / stats.xpToNext) * 100
+function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities, activityCount, onOpenActivityPulse, stepMethod, handleOpenWorkouts, handleOpenFoodScanner, handleOpenHeartRate, handleOpenSleep, onOpenBarcodeScanner, onOpenRecipeCreator, onOpenRestaurants, onOpenSocial, onOpenRepCounter, onOpenBrainInsights, nativeServiceRunning, nativeServiceStarting, onStartNativeService, setNativeServiceRunning, onOpenQuickLog }) {
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showBattlesModal, setShowBattlesModal] = useState(false);
+  const [showFoodModal, setShowFoodModal] = useState(false);
+  const [showDNAModal, setShowDNAModal] = useState(false);
+  const [showWorkoutsModal, setShowWorkoutsModal] = useState(false);
+  const [showHealthModal, setShowHealthModal] = useState(false);
+  const [showGoalsModal, setShowGoalsModal] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+
+  const actionButtons = [
+    { icon: '🧠', label: 'AI INSIGHTS', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', onClick: onOpenBrainInsights },
+    { icon: '📊', label: 'MY STATS', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', onClick: () => setShowStatsModal(true) },
+    { icon: '🏆', label: 'BATTLES', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', onClick: () => setShowBattlesModal(true) },
+    { icon: '🍽️', label: 'FOOD', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', onClick: () => setShowFoodModal(true) },
+    { icon: '🧬', label: 'DNA', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', onClick: () => setShowDNAModal(true) },
+    { icon: '💪', label: 'WORKOUTS', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', onClick: () => setShowWorkoutsModal(true) },
+    { icon: '🏥', label: 'HEALTH', gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', onClick: () => setShowHealthModal(true) },
+    { icon: '🎯', label: 'GOALS', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', onClick: () => setShowGoalsModal(true) },
+    { icon: '📈', label: 'PROGRESS', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', onClick: () => setShowProgressModal(true) },
+    { icon: '💎', label: 'PREMIUM', gradient: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)', onClick: () => setShowPremiumModal(true) }
+  ];
 
   return (
-    <div className="home-tab">
-      {/* DNA Daily Tip Banner */}
+    <div className="home-tab" style={{ paddingBottom: '100px', overflowY: 'auto', height: '100%' }}>
+      {/* Today Overview - Top Summary */}
+      <Suspense fallback={<div>Loading...</div>}>
+        <TodayOverview todaySteps={stats.todaySteps} />
+      </Suspense>
+
+      {/* 24/7 Step Tracking - Compact Button */}
+      {!nativeServiceRunning && (
+        <button
+          onClick={onStartNativeService}
+          disabled={nativeServiceStarting}
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            background: 'linear-gradient(135deg, #00C8FF 0%, #0088FF 100%)',
+            border: 'none',
+            borderRadius: '12px',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: nativeServiceStarting ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginBottom: '12px',
+            boxShadow: '0 2px 8px rgba(0, 136, 255, 0.3)',
+            transition: 'all 0.3s ease',
+            opacity: nativeServiceStarting ? 0.7 : 1
+          }}
+          onMouseOver={(e) => { if (!nativeServiceStarting) e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 136, 255, 0.4)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 136, 255, 0.3)'; }}
+        >
+          <span style={{ fontSize: '18px' }}>{nativeServiceStarting ? '⏳' : '🚀'}</span>
+          <span>{nativeServiceStarting ? 'Starting...' : 'Enable 24/7 Step Tracking'}</span>
+        </button>
+      )}
+      
+      {nativeServiceRunning && (
+        <button
+          onClick={async () => {
+            try {
+              const { default: nativeStepService } = await import('../services/nativeStepService')
+              await nativeStepService.stop()
+            setNativeServiceRunning(false)
+            if (window.__stepPollingInterval) {
+              clearInterval(window.__stepPollingInterval)
+            }
+            } catch (err) {
+              console.error('Failed to stop native service:', err);
+              alert('Failed to stop tracking service');
+            }
+          }}
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            background: 'linear-gradient(135deg, #44FF44 0%, #00FF88 100%)',
+            border: 'none',
+            borderRadius: '12px',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '12px',
+            boxShadow: '0 2px 8px rgba(68, 255, 68, 0.3)',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>✅</span>
+            <span>24/7 Tracking Active</span>
+          </div>
+          <span style={{ fontSize: '12px', opacity: 0.9 }}>Tap to stop</span>
+        </button>
+      )}
+
+      {/* DNA Daily Tip Banner (if available) */}
       {window.dnaDailyTip && (
         <div className="dna-tip-banner" style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -1520,398 +1943,98 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
         </div>
       )}
 
-      {/* Weekly Steps Card */}
-      <div className="streak-card">
-        <div className="weekly-steps-grid" key={`weekly-${stats.todaySteps}`}>
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const todayName = dayNames[new Date().getDay()];
-            const isToday = day === todayName;
-            const rawSteps = isToday ? stats.todaySteps : (stats.weeklySteps?.[index]?.steps || 0);
-            const displaySteps = Math.floor(rawSteps / 50) * 50; // Round down to nearest 50
-            
-            return (
-              <div key={day} className={`day-column ${isToday ? 'today' : ''}`}>
-                <div className="day-label">{day}</div>
-                <div className="day-steps">{displaySteps.toLocaleString()}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Simple Step Tracker - Minimal Safe Version */}
-      <div className="step-tracker-minimal">
-        <div className="step-display">
-          <span className="step-icon">👟</span>
-          <div className="step-info">
-            <div className="step-count">{stats.todaySteps.toLocaleString()}</div>
-            <div className="step-label">steps today</div>
-          </div>
-        </div>
-      </div>
-
-      {/* 🔥 ALWAYS VISIBLE NATIVE SERVICE BUTTON */}
-      <div style={{
-        background: nativeServiceRunning ? 'linear-gradient(135deg, #44FF44, #00FF88)' : 'linear-gradient(135deg, #00C8FF, #0088FF)',
-        padding: '20px',
-        borderRadius: '16px',
-        margin: '16px 0',
-        boxShadow: '0 4px 20px rgba(0, 136, 255, 0.4)',
-        border: '2px solid rgba(0, 200, 255, 0.5)'
-      }}>
-        <div style={{
+      {/* Quick Log Button - Water/Sleep/Workout */}
+      <button
+        onClick={onOpenQuickLog}
+        style={{
+          width: '100%',
+          padding: '12px 16px',
+          background: 'linear-gradient(135deg, #8B5FE8 0%, #C084FC 100%)',
+          border: 'none',
+          borderRadius: '12px',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '600',
+          cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
-          gap: '15px',
-          marginBottom: '12px'
-        }}>
-          <span style={{fontSize: '40px'}}>{nativeServiceRunning ? '✅' : '🚀'}</span>
-          <div style={{flex: 1}}>
-            <div style={{color: 'white', fontWeight: 'bold', fontSize: '18px', marginBottom: '4px'}}>
-              {nativeServiceRunning ? '24/7 Tracking Active' : 'Enable 24/7 Step Tracking'}
-            </div>
-            <div style={{color: 'rgba(255,255,255,0.9)', fontSize: '13px'}}>
-              {nativeServiceRunning ? 'Steps counting in background' : 'Keep counting steps even when app is closed'}
-            </div>
-          </div>
-        </div>
-        {!nativeServiceRunning && (
-          <>
-            <button
-              onClick={onStartNativeService}
-              disabled={nativeServiceStarting}
-              style={{
-                width: '100%',
-                padding: '14px',
-                background: nativeServiceStarting ? 'rgba(255,255,255,0.3)' : 'white',
-                border: 'none',
-                borderRadius: '12px',
-                color: '#0088FF',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                cursor: nativeServiceStarting ? 'not-allowed' : 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-              }}
-            >
-              {nativeServiceStarting ? '⏳ Starting...' : '🔥 Start Background Tracking'}
-            </button>
-            <div style={{
-              marginTop: '10px',
-              fontSize: '11px',
-              color: 'rgba(255,255,255,0.8)',
-              textAlign: 'center'
-            }}>
-              ⚡ Uses native Android hardware sensor • Battery efficient • Always-on
-            </div>
-          </>
-        )}
-        {nativeServiceRunning && (
-          <button
-            onClick={async () => {
-              const { default: nativeStepService } = await import('../services/nativeStepService')
-              await nativeStepService.stop()
-              setNativeServiceRunning(false)
-              if (window.__stepPollingInterval) {
-                clearInterval(window.__stepPollingInterval)
-              }
-              alert('🛑 Background Tracking Stopped')
-            }}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: 'rgba(255,255,255,0.9)',
-              border: 'none',
-              borderRadius: '12px',
-              color: '#FF4444',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              marginTop: '12px'
-            }}
-          >
-            🛑 Stop Tracking
-          </button>
-        )}
+          justifyContent: 'center',
+          gap: '8px',
+          marginBottom: '12px',
+          boxShadow: '0 2px 8px rgba(139, 95, 232, 0.3)',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 95, 232, 0.4)'; }}
+        onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 95, 232, 0.3)'; }}
+      >
+        <span style={{ fontSize: '18px' }}>⚡</span>
+        <span>Quick Log - Water/Sleep/Workout</span>
+      </button>
+
+      {/* Action Button Grid - 3x3 */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '12px',
+        padding: '0 4px',
+        marginBottom: '20px'
+      }}>
+        {actionButtons.map((button, index) => (
+          <Suspense key={index} fallback={<div>Loading...</div>}>
+            <HomeActionButton
+              icon={button.icon}
+              label={button.label}
+              gradient={button.gradient}
+              onClick={button.onClick}
+            />
+          </Suspense>
+        ))}
       </div>
 
-      {/* OLD CODE - REMOVE THIS SECTION */}
-      {false && !nativeServiceRunning && (
-        <div style={{
-          background: 'linear-gradient(135deg, #00C8FF, #0088FF)',
-          padding: '20px',
-          borderRadius: '16px',
-          margin: '16px 0',
-          boxShadow: '0 4px 20px rgba(0, 136, 255, 0.4)',
-          border: '2px solid rgba(0, 200, 255, 0.5)'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '15px',
-            marginBottom: '12px'
-          }}>
-            <span style={{fontSize: '40px'}}>🚀</span>
-            <div style={{flex: 1}}>
-              <div style={{color: 'white', fontWeight: 'bold', fontSize: '18px', marginBottom: '4px'}}>
-                Enable 24/7 Step Tracking
-              </div>
-              <div style={{color: 'rgba(255,255,255,0.9)', fontSize: '13px'}}>
-                Keep counting steps even when app is closed
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={onStartNativeService}
-            disabled={nativeServiceStarting}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: nativeServiceStarting ? 'rgba(255,255,255,0.3)' : 'white',
-              border: 'none',
-              borderRadius: '12px',
-              color: '#0088FF',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: nativeServiceStarting ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-            }}
-          >
-            {nativeServiceStarting ? '⏳ Starting...' : '🔥 Start Background Tracking'}
-          </button>
-          <div style={{
-            marginTop: '10px',
-            fontSize: '11px',
-            color: 'rgba(255,255,255,0.8)',
-            textAlign: 'center'
-          }}>
-            ⚡ Uses native Android hardware sensor • Battery efficient • Always-on
-          </div>
-        </div>
-      )}
+      {/* Modals */}
+      <Suspense fallback={<div>Loading...</div>}>
+        <StatsModal isOpen={showStatsModal} onClose={() => setShowStatsModal(false)} todaySteps={stats.todaySteps} />
+      </Suspense>
 
-      {/* DUPLICATE REMOVED - Service status shown in button above */}
+      <Suspense fallback={<div>Loading...</div>}>
+        <PremiumModal isOpen={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
+      </Suspense>
 
-      {/* Activity Pulse - Real-Time Activity Timeline */}
-      <div className="activity-pulse-card" onClick={onOpenActivityPulse}>
-        <div className="pulse-header">
-          <div className="pulse-title">
-            <span className="pulse-icon">⚡</span>
-            <h3>Activity Pulse</h3>
-          </div>
-          <span className="pulse-count">{activityCount} today</span>
-        </div>
-        <div className="pulse-preview">
-          {!recentActivities || recentActivities.length === 0 ? (
-            // Skeleton loader for activities
-            <>
-              <div className="pulse-bubble skeleton">
-                <span className="bubble-icon">⏳</span>
-                <span className="bubble-text skeleton-text"></span>
-                <span className="bubble-time skeleton-text"></span>
-              </div>
-              <div className="pulse-bubble skeleton">
-                <span className="bubble-icon">⏳</span>
-                <span className="bubble-text skeleton-text"></span>
-                <span className="bubble-time skeleton-text"></span>
-              </div>
-            </>
-          ) : recentActivities.slice(0, 3).map((activity, idx) => {
-            // Calculate XP for each activity
-            let xp = 0
-            if (activity.type === 'steps') xp = 10
-            if (activity.type === 'workout') xp = 15
-            if (activity.type === 'meal') xp = 15
-            if (activity.type === 'water') xp = 5
-            if (activity.type === 'meditation') xp = 10
-            if (activity.type === 'sleep') xp = 10
-            
-            return (
-              <div key={idx} className={`pulse-bubble ${activity.type}`}>
-                <span className="bubble-icon">{activity.icon}</span>
-                <span className="bubble-text">{activity.text}</span>
-                <span className="bubble-time">{activity.time}</span>
-                <span className="bubble-xp">+{xp} XP</span>
-              </div>
-            )
-          })}
-        </div>
-        <p className="pulse-action">Tap to view all activities →</p>
-      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <BattlesModal isOpen={showBattlesModal} onClose={() => setShowBattlesModal(false)} />
+      </Suspense>
 
-      {/* Today's Goals */}
-      <div className="goals-section">
-        <h2 className="section-title">Today's Goals 🎯</h2>
-        
-        <div className="goal-card">
-          <div className="goal-header">
-            <span className="goal-icon">👟</span>
-            <span className="goal-name">Steps</span>
-            <span className="goal-count">{stats.todaySteps.toLocaleString()} / {stats.goalSteps.toLocaleString()}</span>
-          </div>
-          <div className="goal-bar">
-            <div className="goal-fill steps" style={{ width: `${Math.min(stepsProgress, 100)}%` }}></div>
-          </div>
-          {stepsProgress >= 100 && <span className="goal-complete">✅ Crushed it!</span>}
-        </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <FoodModal isOpen={showFoodModal} onClose={() => setShowFoodModal(false)} />
+      </Suspense>
 
-        <div className="goal-card">
-          <div className="goal-header">
-            <span className="goal-icon">💧</span>
-            <span className="goal-name">Water</span>
-            <span className="goal-count">{stats.waterCups} / {stats.waterGoal} cups</span>
-          </div>
-          <div className="goal-bar">
-            <div className="goal-fill water" style={{ width: `${Math.min(waterProgress, 100)}%` }}></div>
-          </div>
-          {waterProgress >= 100 && <span className="goal-complete">✅ Hydrated!</span>}
-        </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <DNAModal isOpen={showDNAModal} onClose={() => setShowDNAModal(false)} />
+      </Suspense>
 
-        <div className="goal-card">
-          <div className="goal-header">
-            <span className="goal-icon">🍽️</span>
-            <span className="goal-name">Meals</span>
-            <span className="goal-count">{stats.mealsLogged} / {stats.mealsGoal} logged</span>
-          </div>
-          <div className="goal-bar">
-            <div className="goal-fill meals" style={{ width: `${Math.min(mealsProgress, 100)}%` }}></div>
-          </div>
-        </div>
-      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <WorkoutsModal 
+          isOpen={showWorkoutsModal} 
+          onClose={() => setShowWorkoutsModal(false)}
+          onOpenRepCounter={onOpenRepCounter}
+          onOpenWorkouts={handleOpenWorkouts}
+        />
+      </Suspense>
 
-      {/* Quick Actions */}
-      <div className="quick-actions" style={{position: 'relative', zIndex: 10}}>
-        <h2 className="section-title">Quick Actions ⚡</h2>
-        <div className="action-grid">
-          <button className="action-btn" onClick={onOpenRepCounter}>
-            💪 Rep Counter
-          </button>
-          <button className="action-btn" onClick={handleOpenWorkouts}>
-            🏋️ Workouts {!subscriptionService.hasAccess('workouts') && '🔒'}
-          </button>
-          <button className="action-btn" onClick={handleOpenFoodScanner}>
-            📸 Log Meal {!subscriptionService.hasAccess('foodScanner') && `(${subscriptionService.checkLimit('foodScans').remaining}/3)`}
-          </button>
-          <button className="action-btn" onClick={() => window.dispatchEvent(new CustomEvent('openWaterModal'))}>💧 Add Water</button>
-          <button className="action-btn" onClick={handleOpenHeartRate}>
-            💓 Heart Rate {!subscriptionService.hasAccess('heartRate') && '🔒'}
-          </button>
-          <button className="action-btn" onClick={handleOpenSleep}>
-            😴 Sleep {!subscriptionService.hasAccess('sleepTracking') && '🔒'}
-          </button>
-        </div>
-      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <HealthModal isOpen={showHealthModal} onClose={() => setShowHealthModal(false)} />
+      </Suspense>
 
-      {/* 🔥 NEW FEATURES - Food Search & Recipes */}
-      <div className="quick-actions" style={{marginTop: '20px'}}>
-        <h2 className="section-title">🔥 NEW: MyFitnessPal Killers</h2>
-        <div className="action-grid">
-          <button className="action-btn" onClick={handleOpenFoodScanner} style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
-            🔍 Search 6M Foods
-          </button>
-          <button className="action-btn" onClick={onOpenRecipeCreator} style={{background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'}}>
-            👨‍🍳 Create Recipe
-          </button>
-          <button className="action-btn" onClick={handleOpenFoodScanner} style={{background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'}}>
-            🍔 Global Restaurants
-          </button>
-          <button className="action-btn" onClick={onOpenSocial} style={{background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'}}>
-            👥 Social (FREE!)
-          </button>
-          <button className="action-btn" onClick={handleOpenFoodScanner} style={{background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'}}>
-            🕌 Halal Foods
-          </button>
-          <button className="action-btn" onClick={handleOpenFoodScanner} style={{background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'}}>
-            🌍 World Cuisines
-          </button>
-        </div>
-      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <GoalsModal isOpen={showGoalsModal} onClose={() => setShowGoalsModal(false)} todaySteps={stats.todaySteps} />
+      </Suspense>
 
-      {/* Recent Activity - REAL DATA */}
-      <div className="activity-feed">
-        <h2 className="section-title">Today's Journey 📖</h2>
-        {recentActivities && recentActivities.length > 0 ? (
-          <>
-            {recentActivities.slice(0, 5).map((activity, idx) => {
-              // Calculate XP for each activity
-              let xp = 0
-              if (activity.type === 'steps') xp = 10
-              if (activity.type === 'workout') xp = 15
-              if (activity.type === 'meal') xp = 15
-              if (activity.type === 'water') xp = 5
-              if (activity.type === 'meditation') xp = 10
-              if (activity.type === 'sleep') xp = 10
-              
-              return (
-                <div key={idx} className="activity-item">
-                  <span className="activity-time">{activity.time}</span>
-                  <span className="activity-text">{activity.icon} {activity.text}</span>
-                  <span className="activity-xp">+{xp} XP</span>
-                </div>
-              )
-            })}
-            {/* Total XP Summary */}
-            <div className="activity-total" style={{
-              marginTop: '15px',
-              padding: '15px',
-              background: 'linear-gradient(135deg, rgba(139, 95, 232, 0.2), rgba(160, 82, 255, 0.15))',
-              borderRadius: '12px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              border: '2px solid rgba(139, 95, 232, 0.3)'
-            }}>
-              <span style={{color: 'white', fontSize: '16px', fontWeight: 'bold'}}>
-                ⚡ Total XP Today
-              </span>
-              <span style={{
-                color: '#FFB84D',
-                fontSize: '20px',
-                fontWeight: 'bold',
-                textShadow: '0 0 10px rgba(255, 184, 77, 0.5)'
-              }}>
-                +{recentActivities.reduce((sum, activity) => {
-                  let xp = 0
-                  if (activity.type === 'steps') xp = 10
-                  if (activity.type === 'workout') xp = 15
-                  if (activity.type === 'meal') xp = 15
-                  if (activity.type === 'water') xp = 5
-                  if (activity.type === 'meditation') xp = 10
-                  if (activity.type === 'sleep') xp = 10
-                  return sum + xp
-                }, 0)} XP
-              </span>
-            </div>
-          </>
-        ) : (
-          <div style={{
-            textAlign: 'center',
-            padding: '30px',
-            color: '#666'
-          }}>
-            <div style={{fontSize: '48px', marginBottom: '10px'}}>📭</div>
-            <p>No activities logged yet today</p>
-            <p style={{fontSize: '14px'}}>Start your wellness journey!</p>
-          </div>
-        )}
-      </div>
-
-      {/* FOMO Upgrade Banner */}
-      <div className="fomo-banner" onClick={() => window.dispatchEvent(new CustomEvent('openPaywallModal'))}>
-        <div className="fomo-content">
-          <span className="fomo-icon">🔥</span>
-          <div className="fomo-text">
-            <strong>50,000+ users upgraded!</strong>
-            <p>Unlock DNA Analysis, Social Battles & more</p>
-          </div>
-          <button className="fomo-btn">Upgrade 💎</button>
-        </div>
-      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ProgressModal isOpen={showProgressModal} onClose={() => setShowProgressModal(false)} todaySteps={stats.todaySteps} />
+      </Suspense>
 
       {/* Spacer to ensure bottom buttons are visible */}
-      <div style={{height: '120px', flexShrink: 0}}></div>
+      <div style={{height: '20px', flexShrink: 0}}></div>
     </div>
   )
 }
@@ -2642,6 +2765,13 @@ function MeTab({ user, stats, onOpenHealthAvatar, onOpenARScanner, onOpenEmergen
           <span className="icon-label">Full Report</span>
         </button>
 
+        <button className="me-icon-btn" onClick={() => user.onOpenDataRecovery()}>
+          <div className="icon-circle">
+            <span>💾</span>
+          </div>
+          <span className="icon-label">Backup/Restore</span>
+        </button>
+
         <button className="me-icon-btn premium-feature" onClick={() => checkFeatureAccess('appleHealthSync', user.onOpenAppleHealth)}>
           <div className="icon-circle">
             <span>❤️</span>
@@ -2689,18 +2819,21 @@ function MeTab({ user, stats, onOpenHealthAvatar, onOpenARScanner, onOpenEmergen
   )
 }
 
-// Full Stats Modal Component - With Safe Error Handling
-function FullStatsModal({ user, onClose }) {
+// Full Stats Modal Component - Fixed Data Sources
+function FullStatsModal({ user, stats, onClose }) {
   const [foodLog, setFoodLog] = useState([])
   const [statsLoaded, setStatsLoaded] = useState(false)
   
-  // Load food log from persistent storage on mount
+  // Load food log from localStorage (correct source)
   useEffect(() => {
     const loadFoodLog = async () => {
       try {
-        const { value: foodLogJson } = await Preferences.get({ key: 'foodLog' })
-        const meals = foodLogJson ? JSON.parse(foodLogJson) : []
-        setFoodLog(meals)
+        console.log('🔍 [FullStatsModal] Loading data from localStorage...')
+        
+        // ✅ FIX: Load foodLog from localStorage (not Capacitor Preferences)
+        const foodLogData = JSON.parse(localStorage.getItem('foodLog') || '[]')
+        console.log('🔍 [FullStatsModal] localStorage foodLog:', foodLogData.length, 'meals')
+        setFoodLog(foodLogData)
       } catch (e) {
         if(import.meta.env.DEV)console.error('Error reading foodLog', e)
       }
@@ -2709,34 +2842,72 @@ function FullStatsModal({ user, onClose }) {
     loadFoodLog()
   }, [])
   
-  // Safely get other data from localStorage with error handling
-  let stepHistory = [], workoutHistory = [], sleepLog = [], loginHistory = []
+  // ✅ FIX: Get data from localStorage with proper error handling
+  let stepHistory = [], workoutHistory = [], sleepLog = []
+  
+  console.log('🔍 [FullStatsModal] Loading data sources...')
+  console.log('🔍 [FullStatsModal] Live stats from parent:', {
+    todaySteps: stats?.todaySteps,
+    waterCups: stats?.waterCups,
+    mealsLogged: stats?.mealsLogged,
+    streak: stats?.streak,
+    wellnessScore: stats?.wellnessScore
+  })
   
   try {
-    stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '[]')
+    const rawStepHistory = localStorage.getItem('stepHistory')
+    stepHistory = JSON.parse(rawStepHistory || '[]')
+    console.log('🔍 [FullStatsModal] stepHistory length:', stepHistory.length)
+    console.log('🔍 [FullStatsModal] Last 3 entries:', stepHistory.slice(-3))
   } catch (e) { if(import.meta.env.DEV)console.error('Error reading stepHistory', e) }
   
   try {
-    workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]')
+    const rawWorkoutHistory = localStorage.getItem('workoutHistory')
+    console.log('🔍 [FullStatsModal] Raw workoutHistory:', rawWorkoutHistory)
+    workoutHistory = JSON.parse(rawWorkoutHistory || '[]')
+    console.log('🔍 [FullStatsModal] Parsed workoutHistory length:', workoutHistory.length)
+    console.log('🔍 [FullStatsModal] Workout entries:', workoutHistory)
   } catch (e) { if(import.meta.env.DEV)console.error('Error reading workoutHistory', e) }
   
   try {
     sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]')
   } catch (e) { if(import.meta.env.DEV)console.error('Error reading sleepLog', e) }
   
-  try {
-    loginHistory = JSON.parse(localStorage.getItem('loginHistory') || '[]')
-  } catch (e) { if(import.meta.env.DEV)console.error('Error reading loginHistory', e) }
+  // ✅ FIX: Calculate stats using correct sources
+  console.log('🔍 [FullStatsModal] Calculating stats...')
   
-  // Calculate stats safely
-  const totalSteps = Array.isArray(stepHistory) ? stepHistory.reduce((sum, day) => sum + (Number(day?.steps) || 0), 0) : 0
-  const avgSteps = stepHistory.length > 0 ? Math.round(totalSteps / stepHistory.length) : 0
+  // Total steps = historical steps + today's live steps
+  const historicalSteps = Array.isArray(stepHistory) ? stepHistory.reduce((sum, day) => {
+    return sum + (Number(day?.steps) || 0)
+  }, 0) : 0
+  const totalSteps = historicalSteps + (stats?.todaySteps || 0)
+  console.log('🔍 [FullStatsModal] Historical:', historicalSteps, 'Today:', stats?.todaySteps, 'Total:', totalSteps)
+  
+  // Average steps per day (including today)
+  const totalDays = stepHistory.length + 1 // +1 for today
+  const avgSteps = totalDays > 0 ? Math.round(totalSteps / totalDays) : 0
+  
   const totalFoodScans = Array.isArray(foodLog) ? foodLog.length : 0
   const totalWorkouts = Array.isArray(workoutHistory) ? workoutHistory.length : 0
   const totalSleepHours = Array.isArray(sleepLog) ? sleepLog.reduce((sum, night) => sum + (Number(night?.hours) || 0), 0) : 0
   const avgSleepHours = sleepLog.length > 0 ? (totalSleepHours / sleepLog.length).toFixed(1) : 0
-  const activeDays = Array.isArray(loginHistory) ? loginHistory.length : 0
-  const currentStreak = (Array.isArray(loginHistory) && loginHistory.length > 0) ? (loginHistory[loginHistory.length - 1]?.streak || 0) : 0
+  
+  // ✅ FIX: Use stats.streak from parent (correct source)
+  const currentStreak = stats?.streak || 0
+  
+  // ✅ FIX: Active days = days with step data (not loginHistory)
+  const activeDays = stepHistory.filter(s => s?.date).length + 1 // +1 for today
+  
+  console.log('📊 [FullStatsModal] FINAL STATS:', {
+    totalSteps,
+    avgSteps,
+    totalFoodScans,
+    totalWorkouts,
+    totalSleepHours,
+    avgSleepHours,
+    activeDays,
+    currentStreak
+  })
   
   const statCardStyle = {
     background: 'linear-gradient(135deg, rgba(139, 95, 232, 0.2), rgba(139, 95, 232, 0.05))',
@@ -2789,13 +2960,41 @@ function FullStatsModal({ user, onClose }) {
         <h2 style={{fontSize: '28px', marginBottom: '5px', color: 'white'}}>📊 Your Full Stats</h2>
         <p style={{fontSize: '14px', color: '#888', marginBottom: '25px'}}>Complete health overview</p>
 
+        {/* Today's Progress Section */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(139, 95, 232, 0.3), rgba(139, 95, 232, 0.1))',
+          border: '2px solid rgba(139, 95, 232, 0.5)',
+          borderRadius: '15px',
+          padding: '20px',
+          marginBottom: '20px'
+        }}>
+          <h3 style={{fontSize: '18px', marginBottom: '15px', color: 'white'}}>📅 Today's Progress</h3>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px'}}>
+            <div style={{textAlign: 'center'}}>
+              <div style={{fontSize: '24px'}}>👟</div>
+              <p style={{color: 'white', fontSize: '20px', margin: '5px 0'}}>{(stats?.todaySteps || 0).toLocaleString()}</p>
+              <small style={{color: '#aaa', fontSize: '12px'}}>Steps</small>
+            </div>
+            <div style={{textAlign: 'center'}}>
+              <div style={{fontSize: '24px'}}>💧</div>
+              <p style={{color: 'white', fontSize: '20px', margin: '5px 0'}}>{stats?.waterCups || 0}/8</p>
+              <small style={{color: '#aaa', fontSize: '12px'}}>Water</small>
+            </div>
+            <div style={{textAlign: 'center'}}>
+              <div style={{fontSize: '24px'}}>🍎</div>
+              <p style={{color: 'white', fontSize: '20px', margin: '5px 0'}}>{stats?.mealsLogged || 0}</p>
+              <small style={{color: '#aaa', fontSize: '12px'}}>Meals</small>
+            </div>
+          </div>
+        </div>
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
           gap: '15px',
           marginBottom: '30px'
         }}>
-          {/* Steps */}
+          {/* Total Steps */}
           <div style={statCardStyle}>
             <div style={{fontSize: '32px', marginBottom: '10px'}}>👟</div>
             <h3 style={{color: 'white', fontSize: '24px', margin: '5px 0'}}>{totalSteps.toLocaleString()}</h3>
@@ -2803,9 +3002,17 @@ function FullStatsModal({ user, onClose }) {
             <small style={{color: '#888', fontSize: '12px'}}>Avg: {avgSteps.toLocaleString()}/day</small>
           </div>
           
-          {/* Food */}
+          {/* Wellness Score */}
           <div style={statCardStyle}>
-            <div style={{fontSize: '32px', marginBottom: '10px'}}>🍎</div>
+            <div style={{fontSize: '32px', marginBottom: '10px'}}>⭐</div>
+            <h3 style={{color: 'white', fontSize: '24px', margin: '5px 0'}}>{stats?.wellnessScore || 0}</h3>
+            <p style={{color: '#8B5FE8', margin: '5px 0', fontSize: '14px'}}>Wellness Score</p>
+            <small style={{color: '#888', fontSize: '12px'}}>Out of 100</small>
+          </div>
+          
+          {/* Food Scans */}
+          <div style={statCardStyle}>
+            <div style={{fontSize: '32px', marginBottom: '10px'}}>🍽️</div>
             <h3 style={{color: 'white', fontSize: '24px', margin: '5px 0'}}>{totalFoodScans}</h3>
             <p style={{color: '#8B5FE8', margin: '5px 0', fontSize: '14px'}}>Food Scans</p>
             <small style={{color: '#888', fontSize: '12px'}}>Meals logged</small>
@@ -2816,7 +3023,15 @@ function FullStatsModal({ user, onClose }) {
             <div style={{fontSize: '32px', marginBottom: '10px'}}>💪</div>
             <h3 style={{color: 'white', fontSize: '24px', margin: '5px 0'}}>{totalWorkouts}</h3>
             <p style={{color: '#8B5FE8', margin: '5px 0', fontSize: '14px'}}>Workouts</p>
-            <small style={{color: '#888', fontSize: '12px'}}>Sessions</small>
+            <small style={{color: '#888', fontSize: '12px'}}>Total sessions</small>
+          </div>
+          
+          {/* Water Intake */}
+          <div style={statCardStyle}>
+            <div style={{fontSize: '32px', marginBottom: '10px'}}>💧</div>
+            <h3 style={{color: 'white', fontSize: '24px', margin: '5px 0'}}>{stats?.waterCups || 0}</h3>
+            <p style={{color: '#8B5FE8', margin: '5px 0', fontSize: '14px'}}>Water Today</p>
+            <small style={{color: '#888', fontSize: '12px'}}>Goal: 8 cups</small>
           </div>
           
           {/* Sleep */}
@@ -2825,6 +3040,14 @@ function FullStatsModal({ user, onClose }) {
             <h3 style={{color: 'white', fontSize: '24px', margin: '5px 0'}}>{avgSleepHours}h</h3>
             <p style={{color: '#8B5FE8', margin: '5px 0', fontSize: '14px'}}>Avg Sleep</p>
             <small style={{color: '#888', fontSize: '12px'}}>{sleepLog.length} nights</small>
+          </div>
+          
+          {/* Level & XP */}
+          <div style={statCardStyle}>
+            <div style={{fontSize: '32px', marginBottom: '10px'}}>🏆</div>
+            <h3 style={{color: 'white', fontSize: '24px', margin: '5px 0'}}>Level {stats?.level || 1}</h3>
+            <p style={{color: '#8B5FE8', margin: '5px 0', fontSize: '14px'}}>Progress</p>
+            <small style={{color: '#888', fontSize: '12px'}}>{stats?.xp || 0} XP</small>
           </div>
           
           {/* Streak */}
@@ -2855,14 +3078,19 @@ function FullStatsModal({ user, onClose }) {
           <h3 style={{fontSize: '18px', marginBottom: '15px', color: 'white'}}>📈 7-Day Step Activity</h3>
           <div style={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '120px', gap: '8px'}}>
             {[0, 1, 2, 3, 4, 5, 6].map(i => {
-              const dayData = stepHistory[stepHistory.length - 7 + i] || { steps: 0 }
-              const height = Math.max((dayData.steps / 10000) * 100, 5)
+              // ✅ FIX: Use stats.weeklySteps from parent (correct source)
+              const dayData = stats?.weeklySteps?.[i] || { steps: 0 }
+              const steps = dayData.steps || 0
+              const height = Math.max((steps / 10000) * 100, 5)
               return (
                 <div key={i} style={{flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                  <small style={{color: '#8B5FE8', fontSize: '10px', marginBottom: '3px'}}>
+                    {steps > 0 ? (steps / 1000).toFixed(1) + 'k' : '0'}
+                  </small>
                   <div style={{
                     width: '100%',
                     height: `${height}%`,
-                    background: 'linear-gradient(to top, #8B5FE8, #B794F6)',
+                    background: steps > 0 ? 'linear-gradient(to top, #8B5FE8, #B794F6)' : 'rgba(139, 95, 232, 0.2)',
                     borderRadius: '6px 6px 0 0',
                     minHeight: '5px'
                   }}></div>
@@ -2882,9 +3110,12 @@ function FullStatsModal({ user, onClose }) {
           borderRadius: '15px',
           padding: '20px'
         }}>
-          <h3 style={{fontSize: '18px', marginBottom: '10px', color: 'white'}}>👤 Health Profile</h3>
-          <p style={{color: '#aaa', fontSize: '14px', marginBottom: '10px'}}>Name: {user?.name || 'Julian'}</p>
-          <p style={{color: '#aaa', fontSize: '14px'}}>Keep up the great work! 💪</p>
+          <h3 style={{fontSize: '18px', marginBottom: '10px', color: 'white'}}>👤 Health Summary</h3>
+          <p style={{color: '#aaa', fontSize: '14px', marginBottom: '5px'}}>👋 {user?.name || user?.profile?.fullName || 'Champion'}</p>
+          <p style={{color: '#aaa', fontSize: '14px', marginBottom: '5px'}}>🏆 Level {stats?.level || 1} | {stats?.xp || 0} XP</p>
+          <p style={{color: '#aaa', fontSize: '14px', marginBottom: '5px'}}>🔥 {currentStreak} day streak | {activeDays} active days</p>
+          <p style={{color: '#aaa', fontSize: '14px', marginBottom: '10px'}}>⭐ Wellness Score: {stats?.wellnessScore || 0}/100</p>
+          <p style={{color: '#8B5FE8', fontSize: '14px', fontWeight: 'bold'}}>Keep crushing your goals! 💪</p>
         </div>
       </div>
     </div>
@@ -3042,8 +3273,63 @@ function NotificationsModal({ user, onClose }) {
   const [streakReminders, setStreakReminders] = useState(true)
   const [healthTips, setHealthTips] = useState(true)
   const [emergencyAlerts, setEmergencyAlerts] = useState(true)
+  const [permissionGranted, setPermissionGranted] = useState(false)
+  const [testingSent, setTestingSent] = useState(false)
 
-  const handleSave = () => {
+  // Check notification permission on mount
+  useEffect(() => {
+    checkPermission()
+  }, [])
+
+  const checkPermission = async () => {
+    try {
+      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const permission = await LocalNotifications.checkPermissions()
+      setPermissionGranted(permission.display === 'granted')
+    } catch (error) {
+      console.warn('Failed to check notification permission:', error)
+    }
+  }
+
+  const requestPermission = async () => {
+    try {
+      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const permission = await LocalNotifications.requestPermissions()
+      if (permission.display === 'granted') {
+        setPermissionGranted(true)
+        alert('✅ Notification permission granted!')
+      } else {
+        alert('⚠️ Please enable notifications in your device settings.')
+      }
+    } catch (error) {
+      console.error('Failed to request permission:', error)
+      alert('❌ Failed to request notification permission')
+    }
+  }
+
+  const sendTestNotification = async () => {
+    if (!permissionGranted) {
+      alert('⚠️ Please grant notification permission first')
+      return
+    }
+
+    try {
+      await notificationSchedulerService.testNotification('dailyReminders')
+      setTestingSent(true)
+      setTimeout(() => setTestingSent(false), 3000)
+      alert('✅ Test notification sent! Check your notification bar in 2 seconds.')
+    } catch (error) {
+      console.error('Failed to send test notification:', error)
+      alert('❌ Failed to send test notification')
+    }
+  }
+
+  const handleSave = async () => {
+    if (!permissionGranted) {
+      alert('⚠️ Please grant notification permission first to enable notifications.')
+      return
+    }
+
     const settings = {
       notificationsEnabled,
       dailyReminders,
@@ -3053,7 +3339,22 @@ function NotificationsModal({ user, onClose }) {
       emergencyAlerts
     }
     localStorage.setItem('notificationSettings', JSON.stringify(settings))
-    alert('✅ Notification settings saved!')
+    
+    // Update notification scheduler with new settings
+    await notificationSchedulerService.updateSettings(settings)
+    
+    // Show summary of what was scheduled
+    const enabled = []
+    if (dailyReminders) enabled.push('Daily Reminders (9 AM, 12 PM, 6 PM)')
+    if (goalAlerts) enabled.push('Goal Alerts (Real-time)')
+    if (streakReminders) enabled.push('Streak Reminders (8 PM)')
+    if (healthTips) enabled.push('Health Tips (10 AM, 3 PM, 7 PM)')
+    
+    const summary = enabled.length > 0 
+      ? `✅ Scheduled:\n\n${enabled.join('\n')}`
+      : '✅ All notifications disabled'
+    
+    alert(summary)
     onClose()
   }
 
@@ -3079,6 +3380,64 @@ function NotificationsModal({ user, onClose }) {
         <div className="modal-header">
           <h2>🔔 Notification Settings</h2>
           <p>Manage how we keep you informed</p>
+          {!permissionGranted && (
+            <div style={{
+              background: 'rgba(255, 165, 0, 0.1)',
+              border: '1px solid rgba(255, 165, 0, 0.3)',
+              borderRadius: '8px',
+              padding: '12px',
+              marginTop: '10px',
+              textAlign: 'center'
+            }}>
+              <p style={{ color: '#FFB84D', margin: '0 0 8px 0', fontSize: '14px' }}>
+                ⚠️ Notification permission required
+              </p>
+              <button 
+                onClick={requestPermission}
+                style={{
+                  background: '#FFB84D',
+                  color: 'black',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                Enable Notifications
+              </button>
+            </div>
+          )}
+          {permissionGranted && (
+            <div style={{
+              background: 'rgba(68, 255, 68, 0.1)',
+              border: '1px solid rgba(68, 255, 68, 0.3)',
+              borderRadius: '8px',
+              padding: '12px',
+              marginTop: '10px',
+              textAlign: 'center'
+            }}>
+              <p style={{ color: '#44FF44', margin: '0 0 8px 0', fontSize: '14px' }}>
+                ✅ Notifications enabled
+              </p>
+              <button 
+                onClick={sendTestNotification}
+                disabled={testingSent}
+                style={{
+                  background: testingSent ? '#666' : '#44FF44',
+                  color: 'black',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontWeight: 'bold',
+                  cursor: testingSent ? 'not-allowed' : 'pointer',
+                  opacity: testingSent ? 0.6 : 1
+                }}
+              >
+                {testingSent ? '📤 Sent!' : '🔔 Send Test Notification'}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="notification-settings">
@@ -3213,8 +3572,20 @@ function ThemeModal({ onClose }) {
       accentColor: accentColor
     }
     localStorage.setItem('themeSettings', JSON.stringify(themeSettings))
-    alert('🎨 Theme saved! (Full theme customization coming soon)')
+    
+    // Apply theme immediately to html element
+    document.documentElement.setAttribute('data-theme', selectedTheme)
+    document.documentElement.style.setProperty('--theme-accent-color', accentColor)
+    
+    // Also apply to body for immediate visual feedback
+    document.body.setAttribute('data-theme', selectedTheme)
+    
     onClose()
+    
+    // Force style recalculation
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'))
+    }, 100)
   }
 
   useEffect(() => {
@@ -3986,197 +4357,6 @@ function WaterModal({ onClose }) {
               ☕ Cup<br/>(200ml)
             </button>
           </div>
-        </div>
-        
-        <button onClick={onClose} className="close-button">✕</button>
-      </div>
-    </div>
-  )
-}
-
-// Workouts Modal with 500+ Exercise Library
-function WorkoutsModal({ onClose }) {
-  const [selectedCategory, setSelectedCategory] = useState('All')
-  const [exercises, setExercises] = useState([])
-  const [categories, setCategories] = useState([])
-
-  useEffect(() => {
-    // Import exercise library
-    import('../data/exerciseLibrary').then(module => {
-      const { exerciseLibrary, getExercisesByCategory, getCategories } = module
-      setExercises(exerciseLibrary)
-      setCategories(['All', ...getCategories()])
-    })
-  }, [])
-
-  const filteredExercises = selectedCategory === 'All' 
-    ? exercises 
-    : exercises.filter(ex => ex.category === selectedCategory)
-
-  const logWorkout = async (exercise) => {
-    const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]')
-    const today = new Date().toISOString().split('T')[0]
-    const newWorkout = {
-      type: exercise.name,
-      category: exercise.category,
-      duration: exercise.duration || 30,
-      calories: exercise.calories || 150,
-      date: today,
-      timestamp: Date.now()
-    }
-    workoutHistory.push(newWorkout)
-    
-    // Save to localStorage (instant)
-    localStorage.setItem('workoutHistory', JSON.stringify(workoutHistory))
-    
-    // ✅ FIX: Save to Firebase for cross-device sync and persistence
-    try {
-      const userId = authService.getCurrentUser()?.uid;
-      await firestoreService.save('workoutHistory', workoutHistory, userId);
-      if(import.meta.env.DEV)console.log('💾 Workout saved to Firebase + localStorage:', newWorkout);
-    } catch (e) {
-      console.warn('⚠️ Could not sync workout to Firebase:', e);
-    }
-    
-    alert(`✅ Logged ${exercise.name}! +${exercise.calories || 150} cal burned`)
-  }
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{maxWidth: '600px', maxHeight: '90vh', overflow: 'auto'}}>
-        <h2>🏋️ Workout Library (500+ Exercises)</h2>
-        
-        <div style={{padding: '20px'}}>
-          {/* Category Filter */}
-          <div style={{
-            marginBottom: '20px', 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: '10px',
-            justifyContent: 'center'
-          }}>
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                style={{
-                  padding: '10px 18px',
-                  background: selectedCategory === cat ? 'linear-gradient(135deg, #8B5FE8, #B794F6)' : '#333',
-                  color: 'white',
-                  border: selectedCategory === cat ? '2px solid #B794F6' : '1px solid #555',
-                  borderRadius: '25px',
-                  fontSize: '14px',
-                  fontWeight: selectedCategory === cat ? '600' : '400',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: selectedCategory === cat ? '0 4px 15px rgba(139, 95, 232, 0.4)' : 'none'
-                }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Exercise List */}
-          <div style={{display: 'grid', gap: '15px'}}>
-            {filteredExercises.slice(0, 50).map(exercise => (
-              <div key={exercise.id} style={{
-                padding: '15px',
-                background: '#1a1a1a',
-                borderRadius: '12px',
-                border: '1px solid #333'
-              }}>
-                {/* Exercise Header */}
-                <div style={{marginBottom: '10px'}}>
-                  <div style={{fontSize: '18px', fontWeight: 'bold', color: 'white', marginBottom: '8px'}}>
-                    {exercise.name}
-                  </div>
-                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '12px', marginBottom: '10px'}}>
-                    <span style={{background: '#333', padding: '4px 8px', borderRadius: '4px', color: '#888'}}>
-                      {exercise.category}
-                    </span>
-                    <span style={{
-                      background: exercise.difficulty === 'Beginner' ? '#44FF44' : 
-                                 exercise.difficulty === 'Intermediate' ? '#FFB84D' : '#FF4444',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      color: 'white'
-                    }}>
-                      {exercise.difficulty}
-                    </span>
-                    <span style={{background: '#8B5FE8', padding: '4px 8px', borderRadius: '4px', color: 'white'}}>
-                      {exercise.equipment}
-                    </span>
-                  </div>
-                </div>
-                {/* Exercise Details */}
-                {exercise.musclesTargeted && (
-                  <div style={{color: '#888', fontSize: '14px', marginBottom: '8px'}}>
-                    💪 {exercise.musclesTargeted.join(', ')}
-                  </div>
-                )}
-                {exercise.calories && (
-                  <div style={{color: '#FFB84D', fontSize: '14px', marginBottom: '12px'}}>
-                    🔥 {exercise.calories} cal per rep
-                  </div>
-                )}
-                
-                {/* Action Buttons */}
-                <div style={{display: 'flex', gap: '10px'}}>
-                  {exercise.videoUrl && (
-                    <button
-                      onClick={() => window.open(exercise.videoUrl.replace('/embed/', '/watch?v='), '_blank')}
-                      style={{
-                        flex: 1,
-                        padding: '12px',
-                        background: 'linear-gradient(135deg, #FF0000, #FF4444)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '10px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 15px rgba(255, 0, 0, 0.3)',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      ▶️ Watch Video
-                    </button>
-                  )}
-                  <button
-                    onClick={() => logWorkout(exercise)}
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      background: 'linear-gradient(135deg, #44FF44, #00FF88)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontSize: '15px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 15px rgba(68, 255, 68, 0.3)',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    ✅ Log It
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredExercises.length > 50 && (
-            <div style={{textAlign: 'center', marginTop: '20px', color: '#888'}}>
-              Showing 50 of {filteredExercises.length} exercises
-            </div>
-          )}
-
-          {filteredExercises.length === 0 && (
-            <div style={{textAlign: 'center', padding: '40px', color: '#888'}}>
-              No exercises found in this category
-            </div>
-          )}
         </div>
         
         <button onClick={onClose} className="close-button">✕</button>

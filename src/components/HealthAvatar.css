@@ -260,6 +260,93 @@
   border-radius: 8px;
 }
 
+/* Step History Section */
+.step-history-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.step-history-section h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.1em;
+  color: #fff;
+  text-align: center;
+}
+
+.step-history-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  padding: 5px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.step-history-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.step-history-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.step-history-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.step-history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.step-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease;
+}
+
+.step-history-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.step-history-item:last-child {
+  border-bottom: none;
+}
+
+.history-date {
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.history-steps {
+  font-size: 1em;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.history-summary {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.history-summary span {
+  text-align: center;
+}
+
 .data-note strong {
   color: #44FF44;
   font-weight: bold;

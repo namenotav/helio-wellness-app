@@ -3,6 +3,7 @@ import geminiService from './geminiService';
 import authService from './authService';
 import { Camera } from '@capacitor/camera';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 class AIVisionService {
   constructor() {
@@ -50,39 +51,72 @@ class AIVisionService {
       const prompt = this.buildAnalysisPrompt(allergenProfile);
       if(import.meta.env.DEV)console.log('📝 Analysis Prompt:', prompt.substring(0, 200) + '...');
 
-      // Call Railway proxy server for Gemini Vision API
-      if(import.meta.env.DEV)console.log('📡 Calling Railway server for vision analysis...');
-      if(import.meta.env.DEV)console.log('🖼️ Image data length:', imageBase64?.length || 0);
+      // Try Railway proxy server first, fallback to direct API call
+      let aiResponse;
       
-      const response = await fetch(
-        'https://helio-wellness-app-production.up.railway.app/api/vision',
-        {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            prompt: prompt,
-            imageData: imageBase64
-          }),
-          mode: 'cors'
+      try {
+        if(import.meta.env.DEV)console.log('📡 Trying Railway server for vision analysis...');
+        
+        const response = await fetch(
+          'https://helio-wellness-app-production.up.railway.app/api/vision',
+          {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              prompt: prompt,
+              imageData: imageBase64
+            }),
+            mode: 'cors'
+          }
+        );
+
+        if(import.meta.env.DEV)console.log('📥 Railway Response Status:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
         }
-      );
 
-      if(import.meta.env.DEV)console.log('📥 Railway Response Status:', response.status, response.statusText);
+        const data = await response.json();
+        aiResponse = data.response;
+        if(import.meta.env.DEV)console.log('✅ Railway server success');
+        
+      } catch (serverError) {
+        // Fallback to direct Gemini API call
+        if(import.meta.env.DEV)console.warn('⚠️ Railway server failed, using direct API:', serverError.message);
+        
+        const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!API_KEY) {
+          throw new Error('API key not configured');
+        }
+        
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: prompt },
+                  { inline_data: { mime_type: 'image/jpeg', data: imageBase64 }}
+                ]
+              }]
+            })
+          }
+        );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        if(import.meta.env.DEV)console.error('❌ Railway Error Response:', errorData);
-        const errorMsg = errorData.error || `Server Error: ${response.status} ${response.statusText}`;
-        throw new Error(errorMsg);
+        if (!directResponse.ok) {
+          const errorData = await directResponse.json().catch(() => ({}));
+          throw new Error(errorData.error?.message || `API Error: ${directResponse.status}`);
+        }
+
+        const directData = await directResponse.json();
+        aiResponse = directData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if(import.meta.env.DEV)console.log('✅ Direct API success');
       }
-
-      const data = await response.json();
-      if(import.meta.env.DEV)console.log('✅ Railway Response:', JSON.stringify(data).substring(0, 500));
-      
-      const aiResponse = data.response;
       if(import.meta.env.DEV)console.log('🤖 AI Response Text:', aiResponse?.substring(0, 300) + '...');
       
       if (!aiResponse) {
@@ -298,6 +332,176 @@ Format your response as JSON:
     }
   }
 
+  // Analyze Halal status (comprehensive Islamic dietary verification)
+  async analyzeHalalStatus(imageBase64) {
+    try {
+      const prompt = `🕌 HALAL STATUS ANALYSIS ONLY - DO NOT PERFORM FOOD SAFETY ANALYSIS
+
+You are a Halal certification expert analyzing this product for Islamic dietary compliance.
+
+⚠️ CRITICAL: You MUST return ONLY Halal status analysis. DO NOT analyze allergens, food safety, or nutritional content.
+
+**YOUR TASK:**
+Analyze this food product label ONLY for Islamic dietary compliance (Halal/Haram status).
+
+**HARAM INGREDIENTS** (strictly forbidden):
+
+1. **PORK/SWINE PRODUCTS:**
+   - Pork, bacon, ham, salami (pork), pepperoni (pork), chorizo (pork)
+   - Lard, pork fat, pancetta, prosciutto, sausage (pork), chicharrones
+   - Pork gelatin, pork collagen, pork enzymes
+   - Bacon bits, bacon flavoring, ham flavoring
+
+2. **ALCOHOL & DERIVATIVES:**
+   - Wine, beer, vodka, rum, whiskey, gin, tequila, liqueur
+   - Cooking wine, rice wine, mirin, sake, sherry
+   - Vanilla extract (alcohol-based), rum extract, brandy extract
+   - Beer batter, wine vinegar (with alcohol), alcoholic beverages
+   - Ethanol, ethyl alcohol (as ingredient, not trace from fermentation)
+
+3. **BLOOD PRODUCTS:**
+   - Blood sausage, black pudding, blood cake, morcilla, boudin noir
+   - Any product containing animal blood
+
+4. **MEAT FROM FORBIDDEN ANIMALS:**
+   - Carnivores: dog, cat, lion, tiger, wolf, bear, hyena
+   - Donkey, mule, horse (according to some schools)
+   - Birds of prey: eagle, hawk, falcon, vulture, owl
+   - Reptiles: snake, crocodile, alligator, turtle, lizard, frog
+   - Amphibians: frog, toad, salamander
+
+5. **INSECTS** (except locust/grasshopper):
+   - Crickets, mealworms, ants, bees, wasps, beetles
+   - Cochineal/Carmine (E120 - crushed beetles for red coloring)
+   - Any insect-based protein or flavoring
+
+6. **IMPROPER SLAUGHTER:**
+   - Meat not slaughtered with Islamic method (no Bismillah)
+   - Carrion, roadkill, dead animals, strangled animals
+   - Stunned animals (not properly slaughtered after)
+
+**DOUBTFUL/MUSHBOOH** (needs source verification):
+
+1. **ANIMAL-DERIVED (unknown source):**
+   - Gelatin (beef or pork? Check source)
+   - Rennet (animal or microbial?)
+   - Enzymes (animal, plant, or microbial?)
+   - Lipase, pepsin, trypsin (animal source?)
+   - Whey (if cheese made with animal rennet)
+   - L-cysteine (may be from human/pig hair or synthetic)
+   - Tallow, suet, animal fat, animal shortening
+
+2. **E-CODES** (potentially animal-derived):
+   - E120 (Carmine/Cochineal - beetle extract) ❌ HARAM
+   - E441 (Gelatin - pork or beef?) ⚠️ VERIFY
+   - E471, E472 (Mono/Diglycerides - animal or plant fat?) ⚠️ VERIFY
+   - E322 (Lecithin - soy or egg?) ⚠️ VERIFY
+   - E542 (Bone phosphate - animal bones) ⚠️ VERIFY
+   - E631, E627 (Disodium inosinate/guanylate - pork or synthetic?) ⚠️ VERIFY
+   - E904 (Shellac - insect secretion) ❌ HARAM (some schools)
+   - E1105 (Lysozyme - from egg, usually acceptable)
+
+3. **AMBIGUOUS ADDITIVES:**
+   - Natural flavors (may contain alcohol or animal derivatives)
+   - Artificial flavors (source unclear)
+   - Emulsifiers (animal or plant source?)
+   - Stabilizers (animal or plant?)
+   - Glycerin/Glycerol (animal fat or vegetable?)
+   - Stearic acid (animal or plant?)
+
+**E-CODES TO FLAG AS HARAM:**
+E120 (insect-based), E441 (gelatin), E904 (shellac from insects)
+
+**E-CODES TO FLAG AS DOUBTFUL:**
+E471, E472, E542, E322, E631, E627 (need source verification)
+
+**HALAL CERTIFICATIONS:**
+Look for Halal logos: JAKIM, MUI, HFA, IFANCA, Islamic symbols
+
+**CROSS-CONTAMINATION:**
+"May contain" warnings, shared facilities
+
+⚠️ YOU MUST RETURN THIS EXACT JSON STRUCTURE:
+{
+  "halalStatus": "halal" | "haram" | "doubtful" | "uncertain",
+  "confidence": 85,
+  "haramIngredients": ["Pork - Pig meat is strictly forbidden in Islam"],
+  "doubtfulIngredients": ["Gelatin - Source not specified"],
+  "eCodes": ["E441 - Gelatin from animal source"],
+  "certifications": ["No Halal certification found"],
+  "crossContamination": "May contain traces of alcohol",
+  "recommendation": "NOT PERMISSIBLE for Muslim consumption",
+  "details": "Product contains haram ingredients"
+}
+
+⚠️ DO NOT return foodName, safetyLevel, or detectedAllergens. ONLY return halalStatus data.`;
+
+      // BYPASS RAILWAY - Go directly to Gemini API for Halal analysis
+      if(import.meta.env.DEV)console.log('🕌 Using direct Gemini API for Halal analysis (bypassing Railway)...');
+      
+      // Create Gemini model directly using API key
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('Gemini API key not found. Please check your .env file.');
+      }
+      
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+      
+      const imagePart = {
+        inlineData: {
+          data: imageBase64.split(',')[1] || imageBase64,
+          mimeType: 'image/jpeg'
+        }
+      };
+      
+      const result = await model.generateContent([prompt, imagePart]);
+      const aiResponse = result.response.text();
+      if(import.meta.env.DEV)console.log('✅ Direct Gemini Halal analysis successful');
+
+      // Parse AI response
+      const cleanResponse = aiResponse.replace(/```json\n?|```\n?/g, '').trim();
+      if(import.meta.env.DEV)console.log('🔍 Raw AI response for Halal:', cleanResponse.substring(0, 300));
+      
+      const halalData = JSON.parse(cleanResponse);
+      
+      // CRITICAL VALIDATION: Detect if AI returned wrong data format
+      if (!halalData.halalStatus) {
+        console.error('❌ AI response missing halalStatus field!');
+        console.error('Response structure:', Object.keys(halalData));
+        
+        if (halalData.foodName || halalData.safetyLevel || halalData.detectedAllergens) {
+          throw new Error('Error: AI returned food analysis instead of Halal status. This is a pork product and should show HARAM. Please try scanning again.');
+        }
+        
+        throw new Error('Could not determine Halal status. Please ensure the product label is clearly visible and try again.');
+      }
+
+      // Format for display
+      return {
+        success: true,
+        analysis: {
+          halalStatus: halalData.halalStatus,
+          confidence: halalData.confidence || 85,
+          haramIngredients: halalData.haramIngredients || [],
+          doubtfulIngredients: halalData.doubtfulIngredients || [],
+          eCodes: halalData.eCodes || [],
+          certifications: halalData.certifications || [],
+          crossContamination: halalData.crossContamination || 'Unknown',
+          recommendation: halalData.recommendation || 'Consult with a Halal authority for confirmation',
+          details: halalData.details || 'Analysis completed'
+        }
+      };
+
+    } catch (error) {
+      console.error('Halal analysis error:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to analyze Halal status'
+      };
+    }
+  }
+
   // Analyze ingredient label (OCR + analysis)
   async analyzeIngredientLabel(imageBase64) {
     try {
@@ -317,40 +521,70 @@ Provide:
 
 Return as JSON with same format as food analysis.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: prompt },
-                {
-                  inline_data: {
-                    mime_type: 'image/jpeg',
-                    data: imageBase64
-                  }
-                }
-              ]
-            }]
-          })
+      // Try Railway server first, fallback to direct API
+      let aiResponse;
+      
+      try {
+        if(import.meta.env.DEV)console.log('📡 Trying Railway server for Halal analysis...');
+        
+        const response = await fetch(
+          'https://helio-wellness-app-production.up.railway.app/api/vision',
+          {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              prompt: prompt,
+              imageData: imageBase64
+            }),
+            mode: 'cors'
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
         }
-      );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMsg = errorData.error?.message || `API Error: ${response.status}`;
-        throw new Error(errorMsg);
-      }
+        const data = await response.json();
+        aiResponse = data.response;
+        if(import.meta.env.DEV)console.log('✅ Railway server success');
+        
+      } catch (serverError) {
+        // Fallback to direct Gemini API call
+        if(import.meta.env.DEV)console.warn('⚠️ Railway server failed, using direct API:', serverError.message);
+        
+        const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!API_KEY) {
+          throw new Error('API key not configured');
+        }
+        
+        const directResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: prompt },
+                  { inline_data: { mime_type: 'image/jpeg', data: imageBase64 }}
+                ]
+              }]
+            })
+          }
+        );
 
-      const data = await response.json();
-      
-      if (!data.candidates || !data.candidates[0]) {
-        throw new Error('Invalid API response');
+        if (!directResponse.ok) {
+          const errorData = await directResponse.json().catch(() => ({}));
+          throw new Error(errorData.error?.message || `API Error: ${directResponse.status}`);
+        }
+
+        const directData = await directResponse.json();
+        aiResponse = directData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if(import.meta.env.DEV)console.log('✅ Direct API success');
       }
-      
-      const aiResponse = data.candidates[0]?.content?.parts?.[0]?.text || '';
       
       if (!aiResponse) {
         throw new Error('Empty AI response');

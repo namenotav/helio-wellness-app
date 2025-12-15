@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import './EmergencyPanel.css';
 import emergencyService from '../services/emergencyService';
+import healthMonitoringService from '../services/healthMonitoringService';
 
 export default function EmergencyPanel({ onClose }) {
   const [monitoring, setMonitoring] = useState(false);
@@ -13,8 +14,12 @@ export default function EmergencyPanel({ onClose }) {
   const [locationStatus, setLocationStatus] = useState(null);
   const [sharingLocation, setSharingLocation] = useState(false);
   const [fallDetectionEnabled, setFallDetectionEnabled] = useState(false);
+  const [healthMonitoringEnabled, setHealthMonitoringEnabled] = useState(false);
+  const [healthStatus, setHealthStatus] = useState({});
   const [countdown, setCountdown] = useState(null);
   const [playingAlarm, setPlayingAlarm] = useState(false);
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [permissionChecked, setPermissionChecked] = useState(false);
 
   useEffect(() => {
     loadEmergencyData();
@@ -48,7 +53,30 @@ export default function EmergencyPanel({ onClose }) {
       emergencyService.startFallDetection(null);
       setFallDetectionEnabled(true);
     }
+    
+    // Check if health monitoring is running
+    if (healthMonitoringService.isActive()) {
+      setHealthMonitoringEnabled(true);
+      updateHealthStatus();
+    }
   };
+
+  const updateHealthStatus = async () => {
+    const status = healthMonitoringService.getFormattedStatus();
+    setHealthStatus(status);
+  };
+
+  useEffect(() => {
+    // Poll health status every 5 seconds if enabled
+    let healthPollInterval;
+    if (healthMonitoringEnabled) {
+      healthPollInterval = setInterval(updateHealthStatus, 5000);
+      updateHealthStatus();
+    }
+    return () => {
+      if (healthPollInterval) clearInterval(healthPollInterval);
+    };
+  }, [healthMonitoringEnabled]);
 
   const handleToggleMonitoring = async () => {
     try {
@@ -192,6 +220,18 @@ export default function EmergencyPanel({ onClose }) {
                   await emergencyService.stopFallDetection();
                   setFallDetectionEnabled(false);
                 } else {
+                  // Check permission on Android 14+ before enabling
+                  if (window.AndroidPermission) {
+                    const isAndroid14Plus = window.AndroidPermission.isAndroid14Plus();
+                    const canUseFullScreen = window.AndroidPermission.canUseFullScreenIntent();
+                    
+                    if (isAndroid14Plus && !canUseFullScreen && !permissionChecked) {
+                      setShowPermissionDialog(true);
+                      setPermissionChecked(true);
+                      return;
+                    }
+                  }
+                  
                   // Note: Global callback is registered in NewDashboard, will handle alerts globally
                   await emergencyService.startFallDetection(null);
                   setFallDetectionEnabled(true);
@@ -204,6 +244,114 @@ export default function EmergencyPanel({ onClose }) {
             </button>
           </div>
         </div>
+
+        {/* Health Monitoring Toggle */}
+        <div className="fall-detection-section">
+          <div className="fall-detection-header">
+            <span className="fall-icon">🩺</span>
+            <div className="fall-info">
+              <h3>24/7 Health Monitoring</h3>
+              <p className="fall-description">Monitor heart rate, movement, location for emergencies</p>
+            </div>
+            <button 
+              className={`toggle-fall-detection ${healthMonitoringEnabled ? 'active' : ''}`}
+              onClick={async () => {
+                try {
+                  if (healthMonitoringEnabled) {
+                    await healthMonitoringService.stop();
+                    setHealthMonitoringEnabled(false);
+                  } else {
+                    await healthMonitoringService.start();
+                    setHealthMonitoringEnabled(true);
+                    updateHealthStatus();
+                  }
+                } catch (error) {
+                  console.error('Health monitoring toggle error:', error);
+                  alert('⚠️ Error: ' + error.message);
+                }
+              }}
+            >
+              {healthMonitoringEnabled ? 'Disable' : 'Enable'}
+            </button>
+          </div>
+          
+          {/* Health Status Display */}
+          {healthMonitoringEnabled && (
+            <div className="health-status-display">
+              <div className="health-metric">
+                <span className="metric-label">💓 Heart Rate:</span>
+                <span className="metric-value">{healthStatus.heartRate || 'N/A'}</span>
+              </div>
+              <div className="health-metric">
+                <span className="metric-label">🏃 Last Movement:</span>
+                <span className="metric-value">{healthStatus.lastMovement || 'N/A'}</span>
+              </div>
+              <div className="health-metric">
+                <span className="metric-label">⏱️ Stillness:</span>
+                <span className="metric-value">
+                  {healthStatus.stillnessHours > 0 
+                    ? `${healthStatus.stillnessHours}h ${healthStatus.stillnessMinutes % 60}m`
+                    : `${healthStatus.stillnessMinutes || 0}m`}
+                </span>
+              </div>
+              <div className="health-metric">
+                <span className="metric-label">📍 Location:</span>
+                <span className="metric-value">
+                  {healthStatus.locationAvailable ? '✓ Tracking' : 'Not available'}
+                </span>
+              </div>
+              <div className="health-features">
+                <span className="feature-badge">✓ Heart Rate</span>
+                <span className="feature-badge">✓ Movement</span>
+                <span className="feature-badge">✓ Falls</span>
+                <span className="feature-badge">✓ Location</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Permission Dialog for Android 14+ */}
+        {showPermissionDialog && (
+          <div className="permission-dialog-overlay">
+            <div className="permission-dialog">
+              <h3>🔔 Enable Full-Screen Alerts</h3>
+              <p className="permission-message">
+                To show emergency alerts over the lock screen when a fall is detected, 
+                please enable "Display over other apps" permission.
+              </p>
+              <div className="permission-steps">
+                <div className="step">1️⃣ Tap "Open Settings" below</div>
+                <div className="step">2️⃣ Enable "Display over lock screen"</div>
+                <div className="step">3️⃣ Return here and tap "Enable" again</div>
+              </div>
+              <div className="permission-buttons">
+                <button 
+                  className="permission-btn open-settings"
+                  onClick={() => {
+                    if (window.AndroidPermission) {
+                      window.AndroidPermission.requestFullScreenIntentPermission();
+                    }
+                    setShowPermissionDialog(false);
+                  }}
+                >
+                  📱 Open Settings
+                </button>
+                <button 
+                  className="permission-btn skip"
+                  onClick={async () => {
+                    setShowPermissionDialog(false);
+                    // Enable anyway (will still detect falls, just notification-only alerts)
+                    await emergencyService.startFallDetection(null);
+                    setFallDetectionEnabled(true);
+                    await emergencyService.saveEmergencyData();
+                  }}
+                >
+                  Skip (Notification Only)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* GPS Location Status */}
         {locationStatus && (

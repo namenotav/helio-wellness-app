@@ -1,5 +1,5 @@
 // AI-Powered GPS Tracking and Habit Learning Service
-// Hybrid System: TensorFlow (on-device real-time) + Gemini AI (cloud-based analysis)
+// Hybrid System: TensorFlow (on-device real-time) + Gemini AI (cloud-based analysis) + Brain.js (habit learning)
 
 import { Geolocation } from '@capacitor/geolocation'
 import { Capacitor } from '@capacitor/core'
@@ -7,6 +7,7 @@ import { LocalNotifications } from '@capacitor/local-notifications'
 import { Motion } from '@capacitor/motion'
 import { analyzeLocationPattern, detectActivity as detectActivityGemini, predictBehavior } from './geminiService'
 import tensorflowService from './tensorflowService'
+import brainLearningService from './brainLearningService'
 
 class AITrackingService {
   constructor() {
@@ -339,7 +340,15 @@ class AITrackingService {
       // Good habit detected
       this.addGoodHabit('Regular gym visits')
 
-      if(import.meta.env.DEV)console.log('Gym visit detected ✅')
+      // 🧠 BRAIN.JS LEARNING - Track location for habit patterns
+      await brainLearningService.trackLocation({
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        type: 'gym',
+        duration: 60 // Estimated gym session
+      })
+
+      if(import.meta.env.DEV)console.log('Gym visit detected & learned ✅')
     }
   }
 

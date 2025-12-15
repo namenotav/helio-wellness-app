@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import barcodeScannerService from '../services/barcodeScannerService';
 import authService from '../services/authService';
+import { showToast } from './Toast';
 import './BarcodeScanner.css';
 
 const BarcodeScanner = ({ onClose, onFoodScanned }) => {
@@ -128,7 +129,7 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
 
       if (logResult.success !== false) {
         if(import.meta.env.DEV)console.log('✅ Meal logged successfully!');
-        alert(`✅ ${result.name} logged!\n+${result.calories} calories`);
+        showToast(`✅ ${result.name} logged! +${result.calories} cal`, 'success');
         
         // Notify parent if callback exists
         if (onFoodScanned) {
@@ -136,11 +137,11 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
         }
       } else {
         if(import.meta.env.DEV)console.error('❌ Failed to log meal:', logResult.error);
-        alert('⚠️ Failed to log meal. Please try again.');
+        showToast('Failed to log meal. Please try again.', 'error');
       }
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Error logging meal:', error);
-      alert('⚠️ Error logging meal. Please try again.');
+      showToast('Error logging meal. Please try again.', 'error');
     }
     
     // Keep modal open so user can scan another item

@@ -36,35 +36,37 @@ class HealthAvatarService {
       }
     }
 
-    // 2. Activity factor (REAL step data from native service - live count)
+    // 2. Activity factor (REAL step data from Android storage)
     const syncService = (await import('./syncService.js')).default;
     
-    // Get live step count from native service
+    // Get today's steps from Android CapacitorStorage (merged data from migration)
     let todaySteps = 0;
     try {
-      const { default: nativeStepService } = await import('./nativeStepService.js');
-      const rawSteps = await nativeStepService.getSteps();
-      const todayDate = new Date().toISOString().split('T')[0];
-      let stepBaseline = parseInt(await firestoreService.get('stepBaseline', authService.getCurrentUser()?.uid) || '0');
-      const baselineDate = await firestoreService.get('stepBaselineDate', authService.getCurrentUser()?.uid);
-      
-      // 🔥 FIX: Detect sensor reset (same as dashboard)
-      if (rawSteps < stepBaseline && baselineDate === todayDate) {
-        console.log('🧬 Health Avatar: Sensor RESET detected! Raw:', rawSteps, '< Baseline:', stepBaseline);
-        stepBaseline = rawSteps;
-        await firestoreService.save('stepBaseline', rawSteps.toString(), authService.getCurrentUser()?.uid);
+      const { Preferences } = await import('@capacitor/preferences');
+      const { value: androidData } = await Preferences.get({ key: 'wellnessai_stepHistory' });
+      if (androidData) {
+        const stepHistory = JSON.parse(androidData);
+        const todayDate = new Date().toISOString().split('T')[0];
+        const todayEntry = stepHistory.find(entry => entry.date === todayDate);
+        todaySteps = todayEntry?.steps || 0;
+        console.log('🧬 Health Avatar: Today steps from Android storage:', todaySteps);
       }
-      
-      if (baselineDate === todayDate) {
-        todaySteps = Math.max(0, rawSteps - stepBaseline);
-      }
-      console.log('🧬 Health Avatar: Native service steps today:', todaySteps);
     } catch (e) {
-      console.warn('⚠️ Could not read from native service for score:', e);
+      console.warn('⚠️ Could not read today steps from Android storage:', e);
     }
     
-    const stepHistoryRaw = await firestoreService.get('stepHistory', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('stepHistory') || '[]');
-    const stepHistory = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : Object.values(stepHistoryRaw);
+    // Safely load stepHistory with validation
+    let stepHistoryRaw = await firestoreService.get('stepHistory', authService.getCurrentUser()?.uid);
+    if (!stepHistoryRaw || typeof stepHistoryRaw === 'string') {
+      // Corrupted or missing from Firestore, try localStorage
+      try {
+        stepHistoryRaw = JSON.parse(localStorage.getItem('stepHistory') || '[]');
+      } catch (e) {
+        console.warn('⚠️ Could not parse stepHistory from localStorage:', e);
+        stepHistoryRaw = [];
+      }
+    }
+    const stepHistory = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : [];
     
     // Add today's live steps to history for averaging
     const stepHistoryWithToday = [...stepHistory];
@@ -99,10 +101,14 @@ class HealthAvatarService {
     // 3. Food quality factor (REAL food logs from scanner)
     let foodLog = [];
     try {
-      const foodLogRaw = localStorage.getItem('foodLog');
-      foodLog = foodLogRaw ? JSON.parse(foodLogRaw) : [];
-      // Ensure it's an array
-      if (!Array.isArray(foodLog)) foodLog = [];
+      // Check Firestore first, then localStorage
+      let foodLogRaw = await firestoreService.get('foodLog', authService.getCurrentUser()?.uid);
+      if (!foodLogRaw || typeof foodLogRaw === 'string') {
+        // Try localStorage fallback
+        const localData = localStorage.getItem('foodLog');
+        foodLogRaw = localData ? JSON.parse(localData) : [];
+      }
+      foodLog = Array.isArray(foodLogRaw) ? foodLogRaw : [];
     } catch (e) {
       if(import.meta.env.DEV)console.warn('Failed to parse foodLog:', e);
       foodLog = [];
@@ -135,7 +141,20 @@ class HealthAvatarService {
     }
 
     // 4. Workout consistency (REAL workout tracking)
-    const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+    let workoutHistory = [];
+    try {
+      // Check Firestore first, then localStorage
+      let workoutHistoryRaw = await firestoreService.get('workoutHistory', authService.getCurrentUser()?.uid);
+      if (!workoutHistoryRaw || typeof workoutHistoryRaw === 'string') {
+        // Try localStorage fallback
+        const localData = localStorage.getItem('workoutHistory');
+        workoutHistoryRaw = localData ? JSON.parse(localData) : [];
+      }
+      workoutHistory = Array.isArray(workoutHistoryRaw) ? workoutHistoryRaw : [];
+    } catch (e) {
+      if(import.meta.env.DEV)console.warn('Failed to parse workoutHistory:', e);
+      workoutHistory = [];
+    }
     const recentWorkouts = workoutHistory.filter(w => {
       const workoutTime = new Date(w.timestamp || w.date).getTime();
       return workoutTime >= Date.now() - last30DaysMs;
@@ -155,7 +174,20 @@ class HealthAvatarService {
     }
 
     // 5. Login consistency (REAL app usage)
-    const loginHistory = JSON.parse(localStorage.getItem('loginHistory') || '[]');
+    let loginHistory = [];
+    try {
+      // Check Firestore first, then localStorage
+      let loginHistoryRaw = await firestoreService.get('loginHistory', authService.getCurrentUser()?.uid);
+      if (!loginHistoryRaw || typeof loginHistoryRaw === 'string') {
+        // Try localStorage fallback
+        const localData = localStorage.getItem('loginHistory');
+        loginHistoryRaw = localData ? JSON.parse(localData) : [];
+      }
+      loginHistory = Array.isArray(loginHistoryRaw) ? loginHistoryRaw : [];
+    } catch (e) {
+      if(import.meta.env.DEV)console.warn('Failed to parse loginHistory:', e);
+      loginHistory = [];
+    }
     const recentLogins = loginHistory.filter(l => {
       const loginTime = new Date(l.timestamp || l.date).getTime();
       return loginTime >= Date.now() - last30DaysMs;
@@ -173,23 +205,86 @@ class HealthAvatarService {
     }
 
     // 6. DNA risk factors (REAL genetic analysis)
-    const dnaAnalysis = JSON.parse(localStorage.getItem('dnaAnalysis') || 'null');
-    if (dnaAnalysis && dnaAnalysis.traits) {
-      const highRisks = dnaAnalysis.traits.filter(t => t.risk === 'high').length;
-      const mediumRisks = dnaAnalysis.traits.filter(t => t.risk === 'medium').length;
+    let dnaAnalysis = null;
+    try {
+      // Check Firestore first, then Preferences, then localStorage (with decryption)
+      let dnaAnalysisRaw = await firestoreService.get('dnaAnalysis', authService.getCurrentUser()?.uid);
       
-      if(import.meta.env.DEV)console.log('🧬 REAL DNA Data:', { highRisks, mediumRisks });
+      // Validate Firestore data - reject if it's a corrupted string (like user ID)
+      if (!dnaAnalysisRaw || typeof dnaAnalysisRaw === 'string' || !dnaAnalysisRaw.traits) {
+        // Try Preferences fallback (unencrypted)
+        try {
+          const { value: prefsData } = await (await import('@capacitor/preferences')).Preferences.get({ key: 'dna_genetic_data' });
+          if (prefsData) {
+            dnaAnalysisRaw = JSON.parse(prefsData);
+            if(import.meta.env.DEV)console.log('🧬 Loaded DNA from Preferences');
+          }
+        } catch (prefsError) {
+          if(import.meta.env.DEV)console.warn('Could not load from Preferences:', prefsError);
+        }
+        
+        // Still nothing? Try localStorage (may be encrypted)
+        if (!dnaAnalysisRaw || typeof dnaAnalysisRaw === 'string') {
+          const localData = localStorage.getItem('dnaAnalysis');
+          if (localData) {
+            try {
+              // Try parsing as JSON first (unencrypted)
+              dnaAnalysisRaw = JSON.parse(localData);
+            } catch (jsonError) {
+              // Might be encrypted - try decrypting
+              try {
+                const { default: encryptionService } = await import('./encryptionService');
+                const decrypted = await encryptionService.decrypt(localData);
+                dnaAnalysisRaw = JSON.parse(decrypted);
+                if(import.meta.env.DEV)console.log('🧬 Decrypted DNA from localStorage');
+              } catch (decryptError) {
+                if(import.meta.env.DEV)console.warn('Could not decrypt DNA data:', decryptError);
+                dnaAnalysisRaw = null;
+              }
+            }
+          }
+        }
+      }
       
-      score -= (highRisks * 3);
-      score -= (mediumRisks * 1);
+      dnaAnalysis = dnaAnalysisRaw;
+    } catch (e) {
+      if(import.meta.env.DEV)console.warn('Failed to load dnaAnalysis:', e);
+      dnaAnalysis = null;
+    }
+    if (dnaAnalysis) {
+      // Support both old format (traits at root) and new format (merged with analysis)
+      const traits = dnaAnalysis.traits || [];
       
-      if (highRisks > 0) {
-        factors.push(`🧬 ${highRisks} high genetic risks`);
+      if (traits.length > 0) {
+        const highRisks = traits.filter(t => t.risk === 'high').length;
+        const mediumRisks = traits.filter(t => t.risk === 'medium').length;
+        
+        if(import.meta.env.DEV)console.log('🧬 REAL DNA Data:', { highRisks, mediumRisks });
+        
+        score -= (highRisks * 3);
+        score -= (mediumRisks * 1);
+        
+        if (highRisks > 0) {
+          factors.push(`🧬 ${highRisks} high genetic risks`);
+        }
       }
     }
 
     // 7. Sleep quality (REAL sleep tracking + profile data)
-    const sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]');
+    let sleepLog = [];
+    try {
+      // Check Firestore first, then localStorage
+      let sleepLogRaw = await firestoreService.get('sleepLog', authService.getCurrentUser()?.uid);
+      if (!sleepLogRaw || typeof sleepLogRaw === 'string') {
+        // Try localStorage fallback
+        const localData = localStorage.getItem('sleepLog');
+        sleepLogRaw = localData ? JSON.parse(localData) : [];
+      }
+      sleepLog = Array.isArray(sleepLogRaw) ? sleepLogRaw : [];
+    } catch (e) {
+      if(import.meta.env.DEV)console.warn('Failed to parse sleepLog:', e);
+      sleepLog = [];
+    }
     const recentSleep = sleepLog.filter(s => {
       const sleepTime = new Date(s.date).getTime();
       return sleepTime >= Date.now() - last30DaysMs;
@@ -373,19 +468,9 @@ class HealthAvatarService {
 
   // Generate full avatar state with REAL DATA breakdown
   async getAvatarState(forceRefresh = false) {
-    // CRITICAL: Force save current step data BEFORE loading avatar
-    console.log('🧬 FORCING save of current step data before avatar load...');
-    try {
-      const nativeHealthService = (await import('./nativeHealthService.js')).default;
-      await nativeHealthService.saveHealthData();
-      console.log('✅ Step data saved successfully');
-    } catch (e) {
-      console.warn('⚠️ Could not force save health data:', e);
-    }
-    
     // Skip cache if force refresh requested (always fresh data)
-    const now = Date.now();
-    if (!forceRefresh && this.cachedState && (now - this.cacheTimestamp) < this.cacheValidDuration) {
+    const nowTimestamp = Date.now();
+    if (!forceRefresh && this.cachedState && (nowTimestamp - this.cacheTimestamp) < this.cacheValidDuration) {
       if(import.meta.env.DEV)console.log('⚡ Using cached avatar state (fast load)');
       return this.cachedState;
     }
@@ -393,6 +478,12 @@ class HealthAvatarService {
     if(import.meta.env.DEV)console.log('🔄 Calculating fresh avatar state with latest data...');
     const user = authService.getCurrentUser();
     if (!user) return null;
+
+    // 🔥 MONTHLY TRACKING: Declare date variables at top to avoid temporal dead zone
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthName = now.toLocaleString('en-US', { month: 'long' });
 
     if(import.meta.env.DEV)console.log('👤 User profile data:', {
       age: user.profile?.age,
@@ -409,66 +500,178 @@ class HealthAvatarService {
     // Get REAL data sources for display (from native service first, then Firebase, then localStorage fallback)
     const syncService = (await import('./syncService.js')).default;
     
-    // CRITICAL: Read live step count from native service (same source as notification)
+    // CRITICAL: Read today's step count from Android storage (merged data)
     let todaySteps = 0;
+    const todayDate = new Date().toISOString().split('T')[0];
+    
+    // Safely load stepHistory with validation - READ FROM ANDROID'S KEY FIRST!
+    let stepHistoryRaw = null;
+    
+    // PRIORITY 1: Try Android's CapacitorStorage (wellnessai_ prefix) - REAL-TIME DATA
     try {
-      const { default: nativeStepService } = await import('./nativeStepService.js');
-      const rawSteps = await nativeStepService.getSteps();
-      const todayDate = new Date().toISOString().split('T')[0];
-      const stepBaseline = parseInt(await firestoreService.get('stepBaseline', authService.getCurrentUser()?.uid) || '0');
-      const baselineDate = await firestoreService.get('stepBaselineDate', authService.getCurrentUser()?.uid);
-      
-      if (baselineDate === todayDate) {
-        todaySteps = Math.max(0, rawSteps - stepBaseline);
+      const { Preferences } = await import('@capacitor/preferences');
+      const { value: androidData } = await Preferences.get({ key: 'wellnessai_stepHistory' });
+      if (androidData) {
+        stepHistoryRaw = JSON.parse(androidData);
+        console.log('🧬 Health Avatar loaded from Android CapacitorStorage:', stepHistoryRaw?.length, 'entries');
       }
-      console.log('🧬 Health Avatar: Native service steps today:', todaySteps);
     } catch (e) {
-      console.warn('⚠️ Could not read from native service:', e);
+      console.warn('⚠️ Could not read from Android CapacitorStorage:', e);
     }
     
-    const stepHistoryRaw = await firestoreService.get('stepHistory', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('stepHistory') || '[]');
-    console.log('🧬 Health Avatar loading stepHistory:', stepHistoryRaw);
-    const stepHistoryArray = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : Object.values(stepHistoryRaw);
-    
-    // If we have today's live steps, update the array
-    if (todaySteps > 0) {
-      const todayDate = new Date().toISOString().split('T')[0];
-      const todayIndex = stepHistoryArray.findIndex(s => s.date === todayDate);
-      if (todayIndex >= 0) {
-        stepHistoryArray[todayIndex] = { date: todayDate, steps: todaySteps, timestamp: Date.now() };
-      } else {
-        stepHistoryArray.push({ date: todayDate, steps: todaySteps, timestamp: Date.now() });
+    // PRIORITY 2: Fallback to Firestore (cloud backup)
+    if (!stepHistoryRaw) {
+      stepHistoryRaw = await firestoreService.get('stepHistory', authService.getCurrentUser()?.uid);
+      if (stepHistoryRaw) {
+        console.log('🧬 Fallback to Firestore stepHistory:', stepHistoryRaw?.length, 'entries');
       }
     }
-    const foodLog = user.profile?.foodLog || JSON.parse(localStorage.getItem('foodLog') || '[]');
-    const workoutHistory = await firestoreService.get('workoutHistory', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('workoutHistory') || '[]');
-    const dnaAnalysis = await firestoreService.get('dnaAnalysis', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('dnaAnalysis') || 'null');
-    const sleepLog = await firestoreService.get('sleepLog', authService.getCurrentUser()?.uid) || JSON.parse(localStorage.getItem('sleepLog') || '[]');
     
-    const last30DaysSteps = stepHistoryArray.slice(-30);
-    console.log('🧬 Last 30 days steps:', last30DaysSteps);
-    const totalSteps = last30DaysSteps.reduce((sum, entry) => sum + ((entry?.steps || entry) || 0), 0);
-    const avgSteps = last30DaysSteps.length > 0 ? totalSteps / last30DaysSteps.length : 0;
+    // PRIORITY 3: Fallback to localStorage (cache)
+    if (!stepHistoryRaw || typeof stepHistoryRaw === 'string') {
+      try {
+        stepHistoryRaw = JSON.parse(localStorage.getItem('stepHistory') || '[]');
+        console.log('🧬 Fallback to localStorage stepHistory:', stepHistoryRaw?.length, 'entries');
+      } catch (e) {
+        console.warn('⚠️ Could not parse stepHistory from localStorage:', e);
+        stepHistoryRaw = [];
+      }
+    }
     
-    const last30DaysMs = 30 * 24 * 60 * 60 * 1000;
-    const recentFoods = foodLog.filter(f => {
-      const logTime = new Date(f.timestamp || f.date).getTime();
-      return logTime >= Date.now() - last30DaysMs;
+    const stepHistoryArray = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : [];
+    
+    // Extract today's steps from the loaded history
+    const todayEntry = stepHistoryArray.find(s => s.date === todayDate);
+    todaySteps = todayEntry?.steps || 0;
+    console.log('🧬 Health Avatar: Today steps from history:', todaySteps);
+    
+    // Safely load all data sources with validation
+    let foodLog = [];
+    try {
+      let foodLogRaw = user.profile?.foodLog || await firestoreService.get('foodLog', authService.getCurrentUser()?.uid);
+      if (!foodLogRaw || typeof foodLogRaw === 'string') {
+        const localData = localStorage.getItem('foodLog');
+        foodLogRaw = localData ? JSON.parse(localData) : [];
+      }
+      foodLog = Array.isArray(foodLogRaw) ? foodLogRaw : [];
+    } catch (e) {
+      console.warn('⚠️ Could not load foodLog:', e);
+      foodLog = [];
+    }
+    
+    let workoutHistory = [];
+    try {
+      let workoutHistoryRaw = await firestoreService.get('workoutHistory', authService.getCurrentUser()?.uid);
+      if (!workoutHistoryRaw || typeof workoutHistoryRaw === 'string') {
+        const localData = localStorage.getItem('workoutHistory');
+        workoutHistoryRaw = localData ? JSON.parse(localData) : [];
+      }
+      workoutHistory = Array.isArray(workoutHistoryRaw) ? workoutHistoryRaw : [];
+    } catch (e) {
+      console.warn('⚠️ Could not load workoutHistory:', e);
+      workoutHistory = [];
+    }
+    
+    let dnaAnalysis = null;
+    try {
+      // Check Firestore first, then Preferences, then localStorage (with decryption)
+      let dnaAnalysisRaw = await firestoreService.get('dnaAnalysis', authService.getCurrentUser()?.uid);
+      
+      // Validate Firestore data - reject if it's a corrupted string (like user ID)
+      if (!dnaAnalysisRaw || typeof dnaAnalysisRaw === 'string' || !dnaAnalysisRaw.traits) {
+        // Try Preferences fallback (unencrypted)
+        try {
+          const { value: prefsData } = await (await import('@capacitor/preferences')).Preferences.get({ key: 'dna_genetic_data' });
+          if (prefsData) {
+            dnaAnalysisRaw = JSON.parse(prefsData);
+            if(import.meta.env.DEV)console.log('🧬 Loaded DNA from Preferences (getAvatarState)');
+          }
+        } catch (prefsError) {
+          if(import.meta.env.DEV)console.warn('Could not load from Preferences:', prefsError);
+        }
+        
+        // Still nothing? Try localStorage (may be encrypted)
+        if (!dnaAnalysisRaw || typeof dnaAnalysisRaw === 'string') {
+          const localData = localStorage.getItem('dnaAnalysis');
+          if (localData) {
+            try {
+              // Try parsing as JSON first (unencrypted)
+              dnaAnalysisRaw = JSON.parse(localData);
+            } catch (jsonError) {
+              // Might be encrypted - try decrypting
+              try {
+                const { default: encryptionService } = await import('./encryptionService');
+                const decrypted = await encryptionService.decrypt(localData);
+                dnaAnalysisRaw = JSON.parse(decrypted);
+                if(import.meta.env.DEV)console.log('🧬 Decrypted DNA from localStorage (getAvatarState)');
+              } catch (decryptError) {
+                if(import.meta.env.DEV)console.warn('Could not decrypt DNA data:', decryptError);
+                dnaAnalysisRaw = null;
+              }
+            }
+          }
+        }
+      }
+      
+      dnaAnalysis = dnaAnalysisRaw;
+    } catch (e) {
+      console.warn('⚠️ Could not load dnaAnalysis:', e);
+      dnaAnalysis = null;
+    }
+    
+    let sleepLog = [];
+    try {
+      let sleepLogRaw = await firestoreService.get('sleepLog', authService.getCurrentUser()?.uid);
+      if (!sleepLogRaw || typeof sleepLogRaw === 'string') {
+        const localData = localStorage.getItem('sleepLog');
+        sleepLogRaw = localData ? JSON.parse(localData) : [];
+      }
+      sleepLog = Array.isArray(sleepLogRaw) ? sleepLogRaw : [];
+    } catch (e) {
+      console.warn('⚠️ Could not load sleepLog:', e);
+      sleepLog = [];
+    }
+    
+    // Filter sleep logs for current month only
+    const thisMonthSleep = sleepLog.filter(s => {
+      const sleepDate = new Date(s.timestamp || s.date);
+      return sleepDate.getMonth() === currentMonth && sleepDate.getFullYear() === currentYear;
     });
     
-    const recentWorkouts = workoutHistory.filter(w => {
-      const workoutTime = new Date(w.timestamp || w.date).getTime();
-      return workoutTime >= Date.now() - last30DaysMs;
+    // Filter steps for current month only
+    const thisMonthSteps = stepHistoryArray.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
+    });
+    console.log('🧬 Current month steps (' + monthName + '):', thisMonthSteps);
+    
+    const totalMonthlySteps = thisMonthSteps.reduce((sum, entry) => {
+      const steps = typeof entry === 'object' ? entry?.steps : entry;
+      const validSteps = typeof steps === 'number' && !isNaN(steps) ? steps : 0;
+      return sum + validSteps;
+    }, 0);
+    const avgSteps = thisMonthSteps.length > 0 ? totalMonthlySteps / thisMonthSteps.length : 0;
+    
+    // Filter food scans for current month only
+    const thisMonthFoods = foodLog.filter(f => {
+      const logDate = new Date(f.timestamp || f.date);
+      return logDate.getMonth() === currentMonth && logDate.getFullYear() === currentYear;
     });
     
-    if(import.meta.env.DEV)console.log('📊 Avatar Data Sources:', {
-      stepDays: last30DaysSteps.length,
-      totalSteps,
+    // Filter workouts for current month only
+    const thisMonthWorkouts = workoutHistory.filter(w => {
+      const workoutDate = new Date(w.timestamp || w.date);
+      return workoutDate.getMonth() === currentMonth && workoutDate.getFullYear() === currentYear;
+    });
+    
+    if(import.meta.env.DEV)console.log('📊 Avatar Data Sources (' + monthName + '):', {
+      stepDays: thisMonthSteps.length,
+      totalMonthlySteps,
       avgSteps,
-      foodLogs: recentFoods.length,
-      workouts: recentWorkouts.length,
+      foodLogs: thisMonthFoods.length,
+      workouts: thisMonthWorkouts.length,
       hasDNA: !!dnaAnalysis,
-      sleepLogs: sleepLog.length
+      sleepLogs: thisMonthSleep.length
     });
     
     const avatarData = {
@@ -477,14 +680,17 @@ class HealthAvatarService {
         visuals: this.getAvatarVisuals(currentScore),
         age: user.profile.age || 30,
         dataBreakdown: {
-          stepsDays: last30DaysSteps.length,
+          monthName: monthName, // Current month name for display
+          currentYear: currentYear, // Current year for display
+          stepsDays: thisMonthSteps.length,
           todaySteps: todaySteps, // Live step count from native service (same as dashboard)
           avgDailySteps: Math.round(avgSteps),
-          totalSteps: Math.round(totalSteps),
-          foodLogsCount: recentFoods.length,
-          workoutsCount: recentWorkouts.length,
-          hasDNAAnalysis: !!dnaAnalysis,
-          sleepLogsCount: sleepLog.length
+          totalMonthlySteps: Math.round(totalMonthlySteps), // Total steps this month
+          stepHistory: thisMonthSteps, // Current month history only
+          foodLogsCount: thisMonthFoods.length,
+          workoutsCount: thisMonthWorkouts.length,
+          hasDNAAnalysis: !!(dnaAnalysis && (dnaAnalysis.traits || dnaAnalysis.analysis)),
+          sleepLogsCount: thisMonthSleep.length
         }
       },
       future1Year: this.projectFutureHealth(currentScore, 1),

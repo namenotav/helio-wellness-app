@@ -1,13 +1,14 @@
-// Food Scanner Component - AI-Powered Food & Label Analysis
+// Food Scanner Component - AI-Powered Food & Halal Analysis
 import { useState, useEffect } from 'react';
 import './FoodScanner.css';
 import aiVisionService from '../services/aiVisionService';
 import authService from '../services/authService';
 import subscriptionService from '../services/subscriptionService';
 import PaywallModal from './PaywallModal';
+import { showToast } from './Toast';
 
 export default function FoodScanner({ onClose }) {
-  const [scanMode, setScanMode] = useState('food'); // 'food' or 'label'
+  const [scanMode, setScanMode] = useState('food'); // 'food' or 'label' or 'halal' or 'search'
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -45,7 +46,36 @@ export default function FoodScanner({ onClose }) {
         throw new Error(photoResult.error || 'Failed to capture photo');
       }
 
-      // Analyze with AI
+      // HALAL MODE - Complete isolation
+      if (scanMode === 'halal') {
+        if(import.meta.env.DEV)console.log('🕌 HALAL MODE ACTIVE - Running Halal-only analysis');
+        
+        const analysisResult = await aiVisionService.analyzeHalalStatus(photoResult.imageData);
+        
+        if (!analysisResult.success) {
+          throw new Error(analysisResult.error || 'Halal analysis failed');
+        }
+        
+        if(import.meta.env.DEV)console.log('✅ Halal analysis complete:', analysisResult.analysis);
+        
+        setResult({
+          ...analysisResult.analysis,
+          imageData: photoResult.imageData,
+          scanMode: 'halal'
+        });
+        
+        // INCREMENT USAGE COUNT
+        subscriptionService.incrementUsage('foodScans');
+        const newLimit = subscriptionService.checkLimit('foodScans');
+        if(import.meta.env.DEV)console.log(`✅ Halal scan used. Remaining: ${newLimit.remaining}/${newLimit.limit}`);
+        
+        setAnalyzing(false);
+        return; // EXIT - No food database search
+      }
+
+      // FOOD/LABEL MODE - Standard analysis
+      if(import.meta.env.DEV)console.log(`📊 ${scanMode.toUpperCase()} MODE - Running food/label analysis`);
+      
       const analysisResult = scanMode === 'food'
         ? await aiVisionService.analyzeFoodImage(photoResult.imageData)
         : await aiVisionService.analyzeIngredientLabel(photoResult.imageData);
@@ -54,7 +84,7 @@ export default function FoodScanner({ onClose }) {
         throw new Error(analysisResult.error || 'Analysis failed');
       }
 
-      // Search ALL databases for better nutrition data
+      // Search ALL databases for better nutrition data (food/label mode only)
       const foodName = analysisResult.analysis.foodName || analysisResult.analysis.food;
       const smartFoodSearch = (await import('../services/smartFoodSearch')).default;
       const databaseMatches = await smartFoodSearch.searchAllDatabases(foodName);
@@ -129,7 +159,7 @@ export default function FoodScanner({ onClose }) {
     };
 
     await authService.logSymptom(symptomData);
-    alert('Symptom logged for AI learning');
+    showToast('Symptom logged for AI learning', 'success');
   };
 
   return (
@@ -187,6 +217,12 @@ export default function FoodScanner({ onClose }) {
             🏷️ Scan Label
           </button>
           <button
+            className={`mode-btn ${scanMode === 'halal' ? 'active' : ''}`}
+            onClick={() => setScanMode('halal')}
+          >
+            🕌 Halal Check
+          </button>
+          <button
             className={`mode-btn ${scanMode === 'search' ? 'active' : ''}`}
             onClick={() => setScanMode('search')}
           >
@@ -218,10 +254,11 @@ export default function FoodScanner({ onClose }) {
 
         {/* Scan Button */}
         {!result && scanMode !== 'search' && (
-          <button
-            className="scan-button"
+          <button 
+            className="scan-btn" 
             onClick={handleScanFood}
             disabled={analyzing}
+            aria-label="Start camera to scan food"
           >
             {analyzing ? (
               <>
@@ -230,7 +267,7 @@ export default function FoodScanner({ onClose }) {
               </>
             ) : (
               <>
-                📷 {scanMode === 'food' ? 'Scan Food' : 'Scan Ingredient Label'}
+                📷 {scanMode === 'food' ? 'Scan Food' : scanMode === 'halal' ? 'Check Halal Status' : 'Scan Ingredient Label'}
               </>
             )}
           </button>
@@ -243,8 +280,106 @@ export default function FoodScanner({ onClose }) {
           </div>
         )}
 
-        {/* Results Display */}
-        {result && (
+        {/* Halal Results Display */}
+        {result && scanMode === 'halal' && result.halalStatus && (
+          <div className="halal-results">
+            {/* Image Preview */}
+            <div className="result-image">
+              <img
+                src={`data:image/jpeg;base64,${result.imageData}`}
+                alt="Scanned product"
+              />
+            </div>
+
+            <div className={`halal-verdict ${result.halalStatus}`}>
+              {result.halalStatus === 'halal' && '✅ HALAL'}
+              {result.halalStatus === 'haram' && '❌ HARAM'}
+              {result.halalStatus === 'doubtful' && '⚠️ DOUBTFUL (MUSHBOOH)'}
+              {result.halalStatus === 'uncertain' && '❓ UNCERTAIN'}
+            </div>
+
+            <div className="halal-confidence">
+              Confidence: {result.confidence}%
+            </div>
+
+            {result.certifications && result.certifications.length > 0 && (
+              <div className="halal-section">
+                <h4>🏅 Certifications Found:</h4>
+                <ul>
+                  {result.certifications.map((cert, idx) => (
+                    <li key={idx} className="cert-item">{cert}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.haramIngredients && result.haramIngredients.length > 0 && (
+              <div className="halal-section danger">
+                <h4>🚫 Haram Ingredients:</h4>
+                <ul>
+                  {result.haramIngredients.map((ing, idx) => (
+                    <li key={idx} className="haram-item">{ing}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.doubtfulIngredients && result.doubtfulIngredients.length > 0 && (
+              <div className="halal-section warning">
+                <h4>⚠️ Doubtful Ingredients:</h4>
+                <ul>
+                  {result.doubtfulIngredients.map((ing, idx) => (
+                    <li key={idx} className="doubtful-item">{ing}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.eCodes && result.eCodes.length > 0 && (
+              <div className="halal-section">
+                <h4>🔢 E-Codes Found:</h4>
+                <ul>
+                  {result.eCodes.map((code, idx) => (
+                    <li key={idx} className="ecode-item">{code}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.crossContamination && (
+              <div className="halal-section">
+                <h4>⚗️ Cross-Contamination:</h4>
+                <p>{result.crossContamination}</p>
+              </div>
+            )}
+
+            {result.recommendation && (
+              <div className="halal-section recommendation">
+                <h4>💡 Recommendation:</h4>
+                <p>{result.recommendation}</p>
+              </div>
+            )}
+
+            {result.details && (
+              <div className="halal-section details">
+                <h4>📋 Detailed Analysis:</h4>
+                <p>{result.details}</p>
+              </div>
+            )}
+
+            <div className="result-actions">
+              <button className="action-btn" onClick={handleScanFood}>
+                📷 Scan Another Product
+              </button>
+              <button className="action-btn secondary" onClick={() => setResult(null)}>
+                ← Back
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Regular Food/Label Results Display */}
+        {result && scanMode !== 'halal' && (
           <div className="scan-results">
             {/* Image Preview */}
             <div className="result-image">
@@ -400,6 +535,8 @@ export default function FoodScanner({ onClose }) {
             <p>
               {scanMode === 'food'
                 ? '📸 Point camera at any food to identify ingredients and check allergens'
+                : scanMode === 'halal'
+                ? '🕌 Scan product labels for comprehensive Islamic dietary compliance verification'
                 : '🏷️ Scan ingredient labels to extract and analyze all contents'}
             </p>
           </div>
@@ -462,6 +599,7 @@ function SearchFoods({ onClose }) {
         const results = restaurantService.searchMenuItems(searchQuery, null, filters);
         setSearchResults(results);
       }
+      
     } catch (error) {
       if(import.meta.env.DEV)console.error('Search error:', error);
     } finally {
@@ -485,7 +623,7 @@ function SearchFoods({ onClose }) {
       carbs: food.carbs || food.carbohydrates,
       fat: food.fats || food.fat
     });
-    alert('✅ Food logged!');
+    showToast('✅ Food logged!', 'success');
   };
   
   return (
@@ -711,17 +849,6 @@ function SearchFoods({ onClose }) {
           </div>
         ) : null}
       </div>
-
-      {/* Paywall Modal */}
-      {showPaywall && (
-        <PaywallModal
-          isOpen={showPaywall}
-          onClose={() => setShowPaywall(false)}
-          featureName="Food Scanning"
-          message="You've reached your daily food scan limit. Upgrade for unlimited scans!"
-          currentPlan={subscriptionService.getCurrentPlan()}
-        />
-      )}
     </div>
   );
 }

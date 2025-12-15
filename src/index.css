@@ -5,12 +5,67 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background: linear-gradient(180deg, #1a1f35 0%, #2d3250 100%);
+  
+  /* Theme System - Default Dark Mode */
+  --theme-bg-primary: #0F0F23;
+  --theme-bg-secondary: #1A1A2E;
+  --theme-bg-gradient-start: #1a1f35;
+  --theme-bg-gradient-end: #2d3250;
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #b8b5d1;
+  --theme-accent-color: #8B5FE8;
+  
+  /* Gamification Colors */
+  --bg-primary: linear-gradient(180deg, #1a1f35 0%, #2d3250 100%);
+  --bg-card: rgba(74, 63, 107, 0.15);
+  --bg-card-hover: rgba(74, 63, 107, 0.25);
+  --text-primary: #ffffff;
+  --text-secondary: #b8b5d1;
+  --accent-glow: rgba(138, 116, 249, 0.3);
+  --accent-purple: #8a74f9;
+  --accent-cyan: #00f2fe;
+  --accent-green: #43e97b;
+  --accent-orange: #ff9a76;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light Theme */
+:root[data-theme="light"],
+[data-theme="light"] {
+  --theme-bg-primary: #FFFFFF !important;
+  --theme-bg-secondary: #F5F5F5 !important;
+  --theme-bg-gradient-start: #FFFFFF !important;
+  --theme-bg-gradient-end: #F0F0F0 !important;
+  --theme-text-primary: #000000 !important;
+  --theme-text-secondary: #666666 !important;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+/* Midnight Theme */
+:root[data-theme="midnight"],
+[data-theme="midnight"] {
+  --theme-bg-primary: #000000 !important;
+  --theme-bg-secondary: #1A1A1A !important;
+  --theme-bg-gradient-start: #000000 !important;
+  --theme-bg-gradient-end: #0a0a0a !important;
+  --theme-text-primary: #ffffff !important;
+  --theme-text-secondary: #b8b5d1 !important;
+}
+
+/* Ocean Theme */
+:root[data-theme="ocean"],
+[data-theme="ocean"] {
+  --theme-bg-primary: #001F3F !important;
+  --theme-bg-secondary: #003D5C !important;
+  --theme-bg-gradient-start: #001F3F !important;
+  --theme-bg-gradient-end: #002F4F !important;
+  --theme-text-primary: #ffffff !important;
+  --theme-text-secondary: #88ccff !important;
 }
 
 a {
@@ -28,6 +83,9 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: linear-gradient(180deg, var(--theme-bg-gradient-start, #1a1f35) 0%, var(--theme-bg-gradient-end, #2d3250) 100%);
+  background-attachment: fixed;
+  color: var(--theme-text-primary, #ffffff);
 }
 
 h1 {
@@ -52,17 +110,4 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
