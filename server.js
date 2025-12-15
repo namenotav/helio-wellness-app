@@ -64,10 +64,10 @@ async function connectDB() {
 
 connectDB();
 
-// SECURITY: Rate limiting to prevent abuse
+// SECURITY: Rate limiting to prevent abuse - generous for legitimate users
 const rateLimiter = new Map();
-const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 20; // 20 requests per minute per IP
+const RATE_LIMIT_WINDOW = 900000; // 15 minutes
+const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per 15 minutes per IP
 
 // Rate limiting middleware
 function rateLimit(req, res, next) {

@@ -12,6 +12,7 @@ export default function DNAUpload({ onClose }) {
   const [activeTab, setActiveTab] = useState('traits'); // traits, meals, exercise, risks
   const [loading, setLoading] = useState(true);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
   // 🔥 Load saved DNA data when component opens
   useEffect(() => {
@@ -127,6 +128,25 @@ export default function DNAUpload({ onClose }) {
       <div className="dna-modal">
         <button className="dna-close" onClick={onClose}>✕</button>
 
+        {/* Educational Disclaimer Banner */}
+        <div style={{background: 'rgba(255, 68, 68, 0.15)', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '2px solid rgba(255, 68, 68, 0.4)'}}>
+          <div style={{fontSize: '14px', color: 'rgba(255, 68, 68, 0.95)', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px'}}>
+            ⚠️ For Educational & Entertainment Purposes Only
+          </div>
+          <div style={{fontSize: '12px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.6', marginBottom: '12px'}}>
+            This DNA analysis is NOT a medical diagnostic tool and should not be used for medical decisions. Results are educational and based on publicly available genetic research. Always consult qualified healthcare professionals for medical advice.
+          </div>
+          <label style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px', color: 'white'}}>
+            <input 
+              type="checkbox" 
+              checked={disclaimerAccepted} 
+              onChange={(e) => setDisclaimerAccepted(e.target.checked)}
+              style={{width: '18px', height: '18px', cursor: 'pointer'}}
+            />
+            <span>I understand this is for educational purposes only and not medical advice</span>
+          </label>
+        </div>
+
         <h2 className="dna-title">🧬 DNA Personalization</h2>
 
         {loading ? (
@@ -140,13 +160,13 @@ export default function DNAUpload({ onClose }) {
             <h3>Upload Your DNA Data</h3>
             <p>Support for 23andMe, AncestryDNA, and more</p>
             
-            <label className="upload-button">
-              {uploading ? '⏳ Analyzing DNA...' : '📁 Choose File'}
+            <label className={`upload-button ${!disclaimerAccepted ? 'disabled' : ''}`}>
+              {uploading ? '⏳ Analyzing DNA...' : disclaimerAccepted ? '📁 Choose File' : '🔒 Accept Disclaimer First'}
               <input
                 type="file"
                 accept=".txt,.csv,.json"
                 onChange={handleFileUpload}
-                disabled={uploading}
+                disabled={uploading || !disclaimerAccepted}
                 style={{ display: 'none' }}
               />
             </label>
