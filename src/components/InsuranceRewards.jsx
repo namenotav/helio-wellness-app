@@ -44,8 +44,13 @@ export default function InsuranceRewards({ onClose }) {
       <div className="insurance-modal">
         <button className="insurance-close" onClick={onClose}>✕</button>
 
-        <h2 className="insurance-title">💰 Insurance Rewards</h2>
-        <p className="insurance-subtitle">Get up to 40% off your health insurance premiums</p>
+        <div style={{background: 'rgba(255, 193, 7, 0.15)', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(255, 193, 7, 0.3)'}}>
+          <div style={{fontSize: '13px', color: 'rgba(255, 193, 7, 0.95)', fontWeight: '600', marginBottom: '4px'}}>⚠️ Demo Feature - Coming Soon</div>
+          <div style={{fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', lineHeight: '1.4'}}>Insurance partnerships pending approval. Calculations shown are estimates for demonstration purposes only.</div>
+        </div>
+
+        <h2 className="insurance-title">💰 Insurance Rewards (Preview)</h2>
+        <p className="insurance-subtitle">Potential discounts up to 40% with partner approval</p>
 
         {/* Partner Selection */}
         <div className="partner-grid">

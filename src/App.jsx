@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage'
 import NewDashboard from './pages/NewDashboard'
 import PaymentSuccess from './pages/PaymentSuccess'
 import PaymentCanceled from './pages/PaymentCanceled'
+import CookieConsent from './components/CookieConsent'
 import { analytics } from './services/analyticsService'
 import { auth } from './config/firebase'
 import subscriptionService from './services/subscriptionService'
@@ -34,6 +35,7 @@ function App() {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-canceled" element={<PaymentCanceled />} />
       </Routes>
+      <CookieConsent />
     </Router>
   )
 }

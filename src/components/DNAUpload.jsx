@@ -12,6 +12,7 @@ export default function DNAUpload({ onClose }) {
   const [activeTab, setActiveTab] = useState('traits'); // traits, meals, exercise, risks
   const [loading, setLoading] = useState(true);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
   // 🔥 Load saved DNA data when component opens
   useEffect(() => {
@@ -136,17 +137,32 @@ export default function DNAUpload({ onClose }) {
           </div>
         ) : !dnaData ? (
           <div className="dna-upload-section">
+            <div style={{background: 'rgba(255, 107, 107, 0.15)', padding: '14px', borderRadius: '8px', marginBottom: '20px', border: '1px solid rgba(255, 107, 107, 0.3)'}}>
+              <div style={{fontSize: '14px', color: 'rgba(255, 107, 107, 0.95)', fontWeight: '600', marginBottom: '6px'}}>⚠️ For Educational & Entertainment Purposes Only</div>
+              <div style={{fontSize: '12px', color: 'rgba(255, 255, 255, 0.75)', lineHeight: '1.5', marginBottom: '8px'}}>
+                This analysis is NOT diagnostic medical advice. Results are for informational purposes only. Consult healthcare professionals before making health decisions.
+              </div>
+              <label style={{display: 'flex', alignItems: 'center', fontSize: '12px', color: 'rgba(255, 255, 255, 0.85)', cursor: 'pointer', userSelect: 'none'}}>
+                <input 
+                  type="checkbox" 
+                  checked={disclaimerAccepted}
+                  onChange={(e) => setDisclaimerAccepted(e.target.checked)}
+                  style={{marginRight: '8px', cursor: 'pointer'}}
+                />
+                I understand this is not medical advice
+              </label>
+            </div>
             <div className="dna-icon">🧬</div>
             <h3>Upload Your DNA Data</h3>
             <p>Support for 23andMe, AncestryDNA, and more</p>
             
-            <label className="upload-button">
+            <label className="upload-button" style={{opacity: disclaimerAccepted ? 1 : 0.5, cursor: disclaimerAccepted ? 'pointer' : 'not-allowed'}}>
               {uploading ? '⏳ Analyzing DNA...' : '📁 Choose File'}
               <input
                 type="file"
                 accept=".txt,.csv,.json"
                 onChange={handleFileUpload}
-                disabled={uploading}
+                disabled={uploading || !disclaimerAccepted}
                 style={{ display: 'none' }}
               />
             </label>
