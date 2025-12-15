@@ -42,7 +42,8 @@ const HealthToolsModal = ({ onClose, onOpenHealthAvatar, onOpenARScanner, onOpen
           </button>
 
           <button className="health-tool-card premium" onClick={() => {
-            alert('🚧 Coming Soon!\n\nInsurance Rewards feature is currently in development. Stay tuned!');
+            onClose();
+            onOpenInsurance();
           }}>
             <div className="tool-icon">🏥</div>
             <h3>Insurance Rewards</h3>

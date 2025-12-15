@@ -39,6 +39,7 @@ function App() {
           <Route path="/payment-canceled" element={<PaymentCanceled />} />
         </Routes>
         <Toast />
+        <CookieConsent />
       </Router>
     </ErrorBoundary>
   )
