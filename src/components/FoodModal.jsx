@@ -2,9 +2,14 @@
 import { useState } from 'react';
 import './FoodModal.css';
 import FoodScanner from './FoodScanner';
+import RecipeCreator from './RecipeCreator';
 
 export default function FoodModal({ isOpen, onClose }) {
   const [showFoodScanner, setShowFoodScanner] = useState(false);
+  const [showSearchFoods, setShowSearchFoods] = useState(false);
+  const [showRecipeCreator, setShowRecipeCreator] = useState(false);
+  const [scannerMode, setScannerMode] = useState(null);
+  const [searchInitialTab, setSearchInitialTab] = useState('usda');
 
   const foodOptions = [
     { icon: '📸', title: 'Scan Label', desc: 'Take photo of nutrition label' },
@@ -14,10 +19,60 @@ export default function FoodModal({ isOpen, onClose }) {
     { icon: '👨‍🍳', title: 'Create Recipe', desc: 'Build custom meal' }
   ];
 
+  const handleOptionClick = (title) => {
+    switch (title) {
+      case 'Scan Label':
+        setScannerMode('label');
+        setShowFoodScanner(true);
+        break;
+      case 'Search Foods':
+        setSearchInitialTab('foods');
+        setShowSearchFoods(true);
+        break;
+      case 'Halal Scanner':
+        setScannerMode('halal');
+        setShowFoodScanner(true);
+        break;
+      case 'Restaurants':
+        setSearchInitialTab('restaurants');
+        setShowSearchFoods(true);
+        break;
+      case 'Create Recipe':
+        setShowRecipeCreator(true);
+        break;
+      default:
+        setShowFoodScanner(true);
+    }
+  };
+
   if (!isOpen) return null;
 
+  // Render specific sub-modals with locked modes
   if (showFoodScanner) {
-    return <FoodScanner isOpen={true} onClose={() => { setShowFoodScanner(false); onClose(); }} />;
+    return (
+      <FoodScanner
+        isOpen={true}
+        onClose={() => { setShowFoodScanner(false); onClose(); }}
+        initialMode={scannerMode}
+        lockMode={true}
+      />
+    );
+  }
+
+  if (showSearchFoods) {
+    return (
+      <FoodScanner
+        isOpen={true}
+        onClose={() => { setShowSearchFoods(false); onClose(); }}
+        initialMode="search"
+        lockMode={true}
+        initialTab={searchInitialTab}
+      />
+    );
+  }
+
+  if (showRecipeCreator) {
+    return <RecipeCreator onClose={() => { setShowRecipeCreator(false); onClose(); }} />;
   }
 
   return (
@@ -39,7 +94,7 @@ export default function FoodModal({ isOpen, onClose }) {
             <button
               key={index}
               className="food-option-item"
-              onClick={() => setShowFoodScanner(true)}
+              onClick={() => handleOptionClick(option.title)}
             >
               <span className="option-icon">{option.icon}</span>
               <div className="option-info">

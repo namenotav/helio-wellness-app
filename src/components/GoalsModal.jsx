@@ -10,12 +10,29 @@ export default function GoalsModal({ isOpen, onClose, todaySteps = 0 }) {
     sleep: { current: 0, target: 8, unit: 'hours' },
     workouts: { current: 0, target: 1, unit: 'workout' }
   });
+  const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Real-time updates + midnight reset detection
   useEffect(() => {
     if (isOpen) {
       loadGoals();
+      
+      // Poll for updates every 2 seconds while modal is open
+      const pollInterval = setInterval(() => {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Detect midnight - date changed
+        if (today !== currentDate) {
+          if(import.meta.env.DEV)console.log('🌙 [GoalsModal] Date changed! Resetting for new day:', today);
+          setCurrentDate(today);
+        }
+        
+        loadGoals();
+      }, 2000);
+
+      return () => clearInterval(pollInterval);
     }
-  }, [isOpen]);
+  }, [isOpen, todaySteps, currentDate]);
 
   const loadGoals = () => {
     try {

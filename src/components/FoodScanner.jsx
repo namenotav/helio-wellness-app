@@ -7,8 +7,8 @@ import subscriptionService from '../services/subscriptionService';
 import PaywallModal from './PaywallModal';
 import { showToast } from './Toast';
 
-export default function FoodScanner({ onClose }) {
-  const [scanMode, setScanMode] = useState('food'); // 'food' or 'label' or 'halal' or 'search'
+export default function FoodScanner({ onClose, initialMode = null, lockMode = false, initialTab = 'usda' }) {
+  const [scanMode, setScanMode] = useState(initialMode || 'food'); // 'food' or 'label' or 'halal' or 'search'
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -202,33 +202,35 @@ export default function FoodScanner({ onClose }) {
           return null;
         })()}
 
-        {/* Mode Toggle */}
-        <div className="scan-mode-toggle">
-          <button
-            className={`mode-btn ${scanMode === 'food' ? 'active' : ''}`}
-            onClick={() => setScanMode('food')}
-          >
-            📸 Scan Food
-          </button>
-          <button
-            className={`mode-btn ${scanMode === 'label' ? 'active' : ''}`}
-            onClick={() => setScanMode('label')}
-          >
-            🏷️ Scan Label
-          </button>
-          <button
-            className={`mode-btn ${scanMode === 'halal' ? 'active' : ''}`}
-            onClick={() => setScanMode('halal')}
-          >
-            🕌 Halal Check
-          </button>
-          <button
-            className={`mode-btn ${scanMode === 'search' ? 'active' : ''}`}
-            onClick={() => setScanMode('search')}
-          >
-            🔍 Search 6M Foods
-          </button>
-        </div>
+        {/* Mode Toggle - Hidden when lockMode is true */}
+        {!lockMode && (
+          <div className="scan-mode-toggle">
+            <button
+              className={`mode-btn ${scanMode === 'food' ? 'active' : ''}`}
+              onClick={() => setScanMode('food')}
+            >
+              📸 Scan Food
+            </button>
+            <button
+              className={`mode-btn ${scanMode === 'label' ? 'active' : ''}`}
+              onClick={() => setScanMode('label')}
+            >
+              🏷️ Scan Label
+            </button>
+            <button
+              className={`mode-btn ${scanMode === 'halal' ? 'active' : ''}`}
+              onClick={() => setScanMode('halal')}
+            >
+              🕌 Halal Check
+            </button>
+            <button
+              className={`mode-btn ${scanMode === 'search' ? 'active' : ''}`}
+              onClick={() => setScanMode('search')}
+            >
+              🔍 Search 6M Foods
+            </button>
+          </div>
+        )}
 
         {/* Allergen Profile Summary */}
         {allergenProfile && allergenProfile.allergens?.length > 0 && (
@@ -249,13 +251,13 @@ export default function FoodScanner({ onClose }) {
 
         {/* Search Mode */}
         {scanMode === 'search' && !result && (
-          <SearchFoods onClose={onClose} />
+          <SearchFoods onClose={onClose} initialTab={initialTab} />
         )}
 
         {/* Scan Button */}
         {!result && scanMode !== 'search' && (
           <button 
-            className="scan-btn" 
+            className="scan-button" 
             onClick={handleScanFood}
             disabled={analyzing}
             aria-label="Start camera to scan food"
@@ -547,10 +549,10 @@ export default function FoodScanner({ onClose }) {
 }
 
 // Search Foods Component - OpenFoodFacts + Restaurants
-function SearchFoods({ onClose }) {
+function SearchFoods({ onClose, initialTab = 'usda' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [searchTab, setSearchTab] = useState('usda'); // 'usda', 'foods', or 'restaurants'
+  const [searchTab, setSearchTab] = useState(initialTab); // 'usda', 'foods', or 'restaurants'
   const [loading, setLoading] = useState(false);
   const [halalOnly, setHalalOnly] = useState(false);
   const [selectedCuisine, setSelectedCuisine] = useState('');

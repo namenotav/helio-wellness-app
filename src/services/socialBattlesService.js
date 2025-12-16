@@ -93,15 +93,15 @@ class SocialBattlesService {
       id: battleId,
       creator: {
         id: user.id,
-        name: user.name,
+        name: user.name || user.email?.split('@')[0] || 'Anonymous',
         avatar: user.profile?.avatar || '👤'
       },
       participants: [user.id],
       config: {
         duration: battleConfig.duration || 30, // days
-        goal: battleConfig.goal, // 'steps', 'weight-loss', 'health-score'
-        target: battleConfig.target,
-        stakes: battleConfig.stakes, // 'bragging-rights', 'money', 'subscription'
+        goal: battleConfig.goal || 'steps', // 'steps', 'weight-loss', 'health-score'
+        target: battleConfig.target || 10000,
+        stakes: battleConfig.stakes || 'bragging-rights', // 'bragging-rights', 'money', 'subscription'
         stakeAmount: battleConfig.stakeAmount || 0
       },
       startDate: null,

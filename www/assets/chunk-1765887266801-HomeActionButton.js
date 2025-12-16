@@ -1,0 +1,1 @@
+import{j as n}from"./entry-1765887266798-index.js";function c({icon:t,label:s,gradient:a,onClick:o}){return n.jsxs("button",{className:"home-action-button",style:{background:a},onClick:o,children:[n.jsx("span",{className:"action-icon",children:t}),n.jsx("span",{className:"action-label",children:s})]})}export{c as default};

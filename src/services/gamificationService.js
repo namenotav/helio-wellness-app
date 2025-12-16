@@ -154,6 +154,87 @@ class GamificationService {
         perfectDays: 0
       }
     };
+    
+    // 🔄 MIGRATION: Import old ProfileTabRedesign localStorage keys
+    await this.migrateOldData();
+  }
+
+  // 🔄 Migrate old localStorage keys from ProfileTabRedesign
+  async migrateOldData() {
+    try {
+      const oldAchievements = JSON.parse(localStorage.getItem('unlocked_achievements') || '[]');
+      const oldLevel = parseInt(localStorage.getItem('user_level') || '0');
+      const oldXP = parseInt(localStorage.getItem('user_xp') || '0');
+      const oldStreak = parseInt(localStorage.getItem('login_streak') || '0');
+      const oldWorkoutCount = parseInt(localStorage.getItem('workout_count') || '0');
+      const oldMealsLogged = parseInt(localStorage.getItem('meals_logged') || '0');
+      
+      // 🍽️ Count ACTUAL meals from foodLog array (the real meal storage)
+      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      const actualMealCount = foodLog.length;
+      
+      // Check if any old data exists
+      const hasOldData = oldAchievements.length > 0 || oldLevel > 0 || oldXP > 0 || oldStreak > 0 || oldWorkoutCount > 0 || oldMealsLogged > 0 || actualMealCount > 0;
+      
+      if (hasOldData) {
+        if(import.meta.env.DEV)console.log('🔄 [MIGRATION] Found old gamification data, migrating...');
+        
+        // Merge into new system (keep higher values to preserve progress)
+        if (oldLevel > this.data.level) {
+          this.data.level = oldLevel;
+          if(import.meta.env.DEV)console.log('  ↳ Level:', oldLevel);
+        }
+        if (oldXP > this.data.totalXP) {
+          this.data.totalXP = oldXP;
+          this.data.xp = oldXP;
+          if(import.meta.env.DEV)console.log('  ↳ XP:', oldXP);
+        }
+        if (oldStreak > this.data.streak) {
+          this.data.streak = oldStreak;
+          this.data.longestStreak = oldStreak;
+          if(import.meta.env.DEV)console.log('  ↳ Streak:', oldStreak);
+        }
+        if (oldWorkoutCount > this.data.stats.totalWorkouts) {
+          this.data.stats.totalWorkouts = oldWorkoutCount;
+          if(import.meta.env.DEV)console.log('  ↳ Workouts:', oldWorkoutCount);
+        }
+        // 🍽️ Use ACTUAL meal count from foodLog (higher value wins)
+        const finalMealCount = Math.max(oldMealsLogged, actualMealCount);
+        if (finalMealCount > this.data.stats.totalMeals) {
+          this.data.stats.totalMeals = finalMealCount;
+          if(import.meta.env.DEV)console.log('  ↳ Meals:', finalMealCount, '(from foodLog:', actualMealCount, ', old key:', oldMealsLogged, ')');
+        }
+        
+        // Migrate old achievements
+        if (oldAchievements.length > 0) {
+          oldAchievements.forEach(id => {
+            if (!this.hasAchievement(id)) {
+              this.data.achievements.push({
+                id: id,
+                unlockedAt: new Date().toISOString()
+              });
+            }
+          });
+          if(import.meta.env.DEV)console.log('  ↳ Achievements:', oldAchievements.length);
+        }
+        
+        // Save migrated data
+        await this.saveData();
+        
+        // Clear old localStorage keys
+        localStorage.removeItem('unlocked_achievements');
+        localStorage.removeItem('user_level');
+        localStorage.removeItem('user_xp');
+        localStorage.removeItem('login_streak');
+        localStorage.removeItem('workout_count');
+        localStorage.removeItem('meals_logged');
+        
+        if(import.meta.env.DEV)console.log('✅ [MIGRATION] Complete! Old keys cleared.');
+      }
+    } catch (error) {
+      console.error('❌ [MIGRATION] Error migrating old data:', error);
+      // Don't throw - continue with default data if migration fails
+    }
   }
 
   // Save gamification data via syncService (Preferences + Firebase + localStorage)

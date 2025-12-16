@@ -620,6 +620,22 @@ class AuthService {
       if(import.meta.env.DEV)console.warn('Brain.js meal tracking failed:', err);
     }
     
+    // ⭐ GAMIFICATION: Log meal activity (centralized for all meal types)
+    try {
+      const gamificationService = await import('./gamificationService');
+      await gamificationService.default.logActivity('meal');
+      if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Meal activity logged');
+    } catch (error) {
+      // Don't block meal logging if gamification fails
+      if(import.meta.env.DEV)console.error('❌ [GAMIFICATION] Failed to log meal activity:', error);
+    }
+    
+    // 🎯 DAILY CHALLENGE: Update "Log 3 Meals" challenge progress
+    if (window.updateDailyChallenge) {
+      window.updateDailyChallenge('log_meal', 1);
+      if(import.meta.env.DEV)console.log('🎯 [DAILY CHALLENGE] Meal logged - updated challenge progress');
+    }
+    
     return this.updateProfile({ foodLog });
   }
 

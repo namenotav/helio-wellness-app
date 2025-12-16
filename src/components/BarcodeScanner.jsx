@@ -131,6 +131,17 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
         if(import.meta.env.DEV)console.log('✅ Meal logged successfully!');
         showToast(`✅ ${result.name} logged! +${result.calories} cal`, 'success');
         
+        // ⭐ GAMIFICATION: Log scan activity (scan-specific XP)
+        try {
+          const { default: gamificationService } = await import('../services/gamificationService');
+          await gamificationService.logActivity('scan');
+          if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Scan activity logged');
+        } catch (error) {
+          console.error('❌ [GAMIFICATION] Failed to log scan activity:', error);
+        }
+        
+        // ⭐ Note: Meal activity is logged automatically by authService.logFood()
+        
         // Notify parent if callback exists
         if (onFoodScanned) {
           onFoodScanned(result);

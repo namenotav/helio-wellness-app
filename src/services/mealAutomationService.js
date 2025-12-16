@@ -15,9 +15,20 @@ class MealAutomationService {
     try {
       const saved = await firestoreService.get('mealPlan', authService.getCurrentUser()?.uid);
       if (saved && saved.plan) {
+        // ✅ CHECK IF PLAN IS OLDER THAN 7 DAYS
+        const generatedDate = new Date(saved.generatedDate);
+        const now = new Date();
+        const daysDiff = Math.floor((now - generatedDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff >= 7) {
+          console.log(`⚠️ Meal plan expired (${daysDiff} days old) - auto-clearing`);
+          await this.clearMealPlan();
+          return null; // Force regeneration
+        }
+        
         this.activeMealPlan = saved.plan;
         this.shoppingList = saved.plan.weeklyShoppingList || [];
-        console.log('✅ Loaded saved meal plan from', saved.generatedDate);
+        console.log(`✅ Loaded saved meal plan (${daysDiff} days old, ${7 - daysDiff} days remaining)`);
         return saved;
       }
       return null;
@@ -39,6 +50,148 @@ class MealAutomationService {
       return { success: true };
     } catch (error) {
       console.error('Failed to save meal plan:', error);
+      return { success: false, error };
+    }
+  }
+
+  // Get today's override (if user changed today's meals)
+  async getTodayOverride() {
+    try {
+      const override = await firestoreService.get('todayMealOverride', authService.getCurrentUser()?.uid);
+      if (override && override.meals) {
+        // Check if override is for today
+        const overrideDate = new Date(override.date).toDateString();
+        const today = new Date().toDateString();
+        
+        if (overrideDate === today) {
+          console.log('✅ Today override active:', override.meals);
+          return override.meals;
+        } else {
+          // Override is old, clear it
+          await this.clearTodayOverride();
+          return null;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to load today override:', error);
+      return null;
+    }
+  }
+
+  // Generate meals for today only (doesn't affect 7-day plan)
+  async generateTodayOverride(preferences = {}) {
+    const user = authService.getCurrentUser();
+    if (!user) {
+      throw new Error('Please sign in to generate meals');
+    }
+
+    const allergenProfile = user.profile?.allergens || [];
+    
+    let prompt = '';
+    
+    if (preferences.useOwnIngredients && preferences.availableIngredients) {
+      prompt = `Create TODAY's meals (breakfast, lunch, dinner) using ONLY these ingredients:
+
+${preferences.availableIngredients}
+
+Requirements:
+- MUST use only the ingredients listed
+- Avoids these allergens: ${allergenProfile.length > 0 ? allergenProfile.join(', ') : 'none'}
+- Quick and easy meals`;
+    } else {
+      prompt = `Create TODAY's meals (breakfast, lunch, dinner):
+- Avoids these allergens: ${allergenProfile.length > 0 ? allergenProfile.join(', ') : 'none'}
+- Quick, delicious, and balanced
+- Different from typical meal plans`;
+    }
+    
+    prompt += `
+
+Return ONLY valid JSON (no markdown):
+{
+  "breakfast": {
+    "name": "Scrambled Eggs with Toast",
+    "prepTime": "15 min",
+    "calories": 350,
+    "ingredients": [{"item": "eggs", "amount": "2", "unit": "pieces"}],
+    "steps": ["Beat eggs", "Cook in pan", "Serve with toast"]
+  },
+  "lunch": {
+    "name": "Grilled Chicken Salad",
+    "prepTime": "20 min",
+    "calories": 450,
+    "ingredients": [{"item": "chicken breast", "amount": "1", "unit": "piece"}],
+    "steps": ["Grill chicken", "Chop vegetables", "Mix salad"]
+  },
+  "dinner": {
+    "name": "Salmon with Vegetables",
+    "prepTime": "25 min",
+    "calories": 550,
+    "ingredients": [{"item": "salmon", "amount": "1", "unit": "fillet"}],
+    "steps": ["Season salmon", "Bake fish", "Steam vegetables"]
+  }
+}`;
+
+    if(import.meta.env.DEV)console.log('🍽️ Generating today override via Railway...');
+    
+    try {
+      const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/chat', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ message: prompt }),
+        mode: 'cors'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const text = data.response;
+      
+      let jsonText = text;
+      
+      if (text.includes('```json')) {
+        jsonText = text.split('```json')[1].split('```')[0].trim();
+      } else if (text.includes('```')) {
+        jsonText = text.split('```')[1].split('```')[0].trim();
+      }
+      
+      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const meals = JSON.parse(jsonMatch[0]);
+        
+        // Save today override
+        const overrideData = {
+          date: new Date().toISOString(),
+          meals: meals
+        };
+        await firestoreService.save('todayMealOverride', overrideData, authService.getCurrentUser()?.uid);
+        
+        if(import.meta.env.DEV)console.log('✅ Today override generated & saved');
+        
+        return meals;
+      } else {
+        throw new Error('No valid JSON found in response');
+      }
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('❌ Today override generation error:', error);
+      throw new Error(error.message || 'Failed to generate meals');
+    }
+  }
+
+  // Clear today's override
+  async clearTodayOverride() {
+    try {
+      await firestoreService.save('todayMealOverride', null, authService.getCurrentUser()?.uid);
+      console.log('✅ Today override cleared');
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to clear today override:', error);
       return { success: false, error };
     }
   }
@@ -413,19 +566,66 @@ Return ONLY valid JSON with modified days.`;
   }
 
   // Get today's meal instructions
-  getTodaysMeals() {
+  async getTodaysMeals() {
     if (!this.activeMealPlan) return null;
 
-    const today = new Date().getDay(); // 0-6
-    const dayPlan = this.activeMealPlan.days[today % this.activeMealPlan.days.length];
-
-    return {
-      date: new Date().toDateString(),
-      breakfast: dayPlan.breakfast,
-      lunch: dayPlan.lunch,
-      dinner: dayPlan.dinner,
-      snacks: dayPlan.snacks
-    };
+    try {
+      // ✅ CHECK PLAN FRESHNESS AND CALCULATE CORRECT DAY
+      const saved = await firestoreService.get('mealPlan', authService.getCurrentUser()?.uid);
+      if (saved?.generatedDate) {
+        const generatedDate = new Date(saved.generatedDate);
+        const now = new Date();
+        const daysDiff = Math.floor((now - generatedDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff >= 7) {
+          console.log('⚠️ Meal plan expired - needs refresh');
+          return null; // Plan expired, show "Generate New Plan" UI
+        }
+        
+        // ✅ Calculate correct day index based on generation date (not cycling)
+        const dayIndex = Math.min(daysDiff, 6); // Cap at day 6 (last day of plan)
+        const dayPlan = this.activeMealPlan.days[dayIndex];
+        
+        if (!dayPlan) {
+          console.warn(`⚠️ No meal plan for day ${dayIndex}`);
+          return null;
+        }
+        
+        return {
+          date: new Date().toDateString(),
+          dayNumber: dayIndex + 1,
+          daysRemaining: 7 - daysDiff,
+          dayName: dayPlan.dayName,
+          breakfast: dayPlan.breakfast,
+          lunch: dayPlan.lunch,
+          dinner: dayPlan.dinner,
+          snacks: dayPlan.snacks
+        };
+      }
+      
+      // Fallback to old logic if no generatedDate (shouldn't happen)
+      const today = new Date().getDay();
+      const dayPlan = this.activeMealPlan.days[today % this.activeMealPlan.days.length];
+      return {
+        date: new Date().toDateString(),
+        breakfast: dayPlan.breakfast,
+        lunch: dayPlan.lunch,
+        dinner: dayPlan.dinner,
+        snacks: dayPlan.snacks
+      };
+    } catch (error) {
+      console.error('Error getting today\'s meals:', error);
+      // Fallback to simple logic
+      const today = new Date().getDay();
+      const dayPlan = this.activeMealPlan.days[today % this.activeMealPlan.days.length];
+      return {
+        date: new Date().toDateString(),
+        breakfast: dayPlan.breakfast,
+        lunch: dayPlan.lunch,
+        dinner: dayPlan.dinner,
+        snacks: dayPlan.snacks
+      };
+    }
   }
 
   // Get shopping list

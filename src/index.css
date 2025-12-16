@@ -35,20 +35,24 @@
 }
 
 /* Light Theme */
-:root[data-theme="light"],
-[data-theme="light"] {
+:root[data-theme="light"] {
   --theme-bg-primary: #FFFFFF !important;
   --theme-bg-secondary: #F5F5F5 !important;
   --theme-bg-gradient-start: #FFFFFF !important;
   --theme-bg-gradient-end: #F0F0F0 !important;
   --theme-text-primary: #000000 !important;
   --theme-text-secondary: #666666 !important;
-  color: rgba(0, 0, 0, 0.87);
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+body[data-theme="light"] {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F0F0F0 100%) !important;
+  background-attachment: fixed;
+  color: #000000 !important;
 }
 
 /* Midnight Theme */
-:root[data-theme="midnight"],
-[data-theme="midnight"] {
+:root[data-theme="midnight"] {
   --theme-bg-primary: #000000 !important;
   --theme-bg-secondary: #1A1A1A !important;
   --theme-bg-gradient-start: #000000 !important;
@@ -57,15 +61,26 @@
   --theme-text-secondary: #b8b5d1 !important;
 }
 
+body[data-theme="midnight"] {
+  background: linear-gradient(180deg, #000000 0%, #0a0a0a 100%) !important;
+  background-attachment: fixed;
+  color: #ffffff !important;
+}
+
 /* Ocean Theme */
-:root[data-theme="ocean"],
-[data-theme="ocean"] {
+:root[data-theme="ocean"] {
   --theme-bg-primary: #001F3F !important;
   --theme-bg-secondary: #003D5C !important;
   --theme-bg-gradient-start: #001F3F !important;
   --theme-bg-gradient-end: #002F4F !important;
   --theme-text-primary: #ffffff !important;
   --theme-text-secondary: #88ccff !important;
+}
+
+body[data-theme="ocean"] {
+  background: linear-gradient(180deg, #001F3F 0%, #002F4F 100%) !important;
+  background-attachment: fixed;
+  color: #ffffff !important;
 }
 
 a {

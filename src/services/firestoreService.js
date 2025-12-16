@@ -271,6 +271,96 @@ class FirestoreService {
   }
 
   /**
+   * Save to a top-level Firestore collection (for shared/public data)
+   * @param {string} collectionName - Name of the collection (e.g., 'communityRecipes')
+   * @param {string} documentId - Document ID
+   * @param {any} data - Data to save
+   */
+  async saveToCollection(collectionName, documentId, data) {
+    try {
+      // Ensure auth is initialized
+      if (!this.authInitialized) {
+        await this.initAuth();
+      }
+
+      // Save to top-level collection (not under users/)
+      const docRef = doc(db, collectionName, documentId);
+      await setDoc(docRef, {
+        ...data,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      console.log(`✅ Saved to ${collectionName}/${documentId}`);
+      return { success: true };
+
+    } catch (error) {
+      console.error(`❌ Error saving to ${collectionName}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get document from a top-level collection
+   * @param {string} collectionName - Collection name
+   * @param {string} documentId - Document ID
+   */
+  async getFromCollection(collectionName, documentId) {
+    try {
+      if (!this.authInitialized) {
+        await this.initAuth();
+      }
+
+      const docRef = doc(db, collectionName, documentId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        console.log(`✅ Loaded from ${collectionName}/${documentId}`);
+        return docSnap.data();
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`❌ Error loading from ${collectionName}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Query documents from a collection
+   * @param {string} collectionName - Collection name
+   * @param {Array} queryConstraints - Optional Firestore query constraints
+   */
+  async queryCollection(collectionName, queryConstraints = []) {
+    try {
+      if (!this.authInitialized) {
+        await this.initAuth();
+      }
+
+      const collectionRef = collection(db, collectionName);
+      const q = queryConstraints.length > 0 
+        ? query(collectionRef, ...queryConstraints)
+        : collectionRef;
+
+      const querySnapshot = await getDocs(q);
+      const results = [];
+      
+      querySnapshot.forEach((doc) => {
+        results.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      console.log(`✅ Queried ${collectionName}: ${results.length} results`);
+      return results;
+
+    } catch (error) {
+      console.error(`❌ Error querying ${collectionName}:`, error);
+      return [];
+    }
+  }
+
+  /**
    * Get sync status
    */
   getStatus() {

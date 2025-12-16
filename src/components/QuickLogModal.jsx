@@ -30,6 +30,19 @@ export default function QuickLogModal({ isOpen, onClose }) {
     console.log('✅ [QuickLog] Water logged successfully:', result);
     setWaterAmount(prev => prev + amount);
     
+    // ⭐ GAMIFICATION: Log water activity
+    try {
+      const { default: gamificationService } = await import('../services/gamificationService');
+      const waterLog = JSON.parse(localStorage.getItem('waterLog') || '[]');
+      const today = new Date().toISOString().split('T')[0];
+      const waterToday = waterLog.filter(w => w.date === today);
+      const dailyTotal = waterToday.reduce((sum, w) => sum + (w.cups || 1), 0);
+      await gamificationService.logActivity('water', { cups: 1, dailyTotal });
+      if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Water activity logged, daily total:', dailyTotal);
+    } catch (error) {
+      console.error('❌ [GAMIFICATION] Failed to log water activity:', error);
+    }
+    
     // Trigger dashboard refresh
     window.dispatchEvent(new Event('quickLogUpdated'));
     
@@ -78,6 +91,15 @@ export default function QuickLogModal({ isOpen, onClose }) {
       date: new Date().toISOString().split('T')[0]
     });
     console.log('✅ [QuickLog] Workout logged successfully:', result);
+    
+    // ⭐ GAMIFICATION: Log workout activity
+    try {
+      const { default: gamificationService } = await import('../services/gamificationService');
+      await gamificationService.logActivity('workout');
+      if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Workout activity logged');
+    } catch (error) {
+      console.error('❌ [GAMIFICATION] Failed to log workout activity:', error);
+    }
     
     // Trigger dashboard refresh
     window.dispatchEvent(new Event('quickLogUpdated'));

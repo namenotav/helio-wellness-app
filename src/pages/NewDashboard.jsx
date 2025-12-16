@@ -73,6 +73,7 @@ const WorkoutsModal = lazy(() => import('../components/WorkoutsModalNew'))
 const HealthModal = lazy(() => import('../components/HealthModal'))
 const GoalsModal = lazy(() => import('../components/GoalsModal'))
 const ProgressModal = lazy(() => import('../components/ProgressModal'))
+const CommunityRecipes = lazy(() => import('../components/CommunityRecipes'))
 
 // 🎮 GAMIFICATION COMPONENTS
 const StreakCounter = lazy(() => import('../components/StreakCounter'))
@@ -402,11 +403,21 @@ export default function NewDashboard() {
         document.documentElement.style.setProperty('--theme-accent-color', accentColor || '#8B5FE8');
         console.log('🎨 Theme loaded on startup:', theme, accentColor);
         console.log('📋 HTML data-theme:', document.documentElement.getAttribute('data-theme'));
+        console.log('📋 Body data-theme:', document.body.getAttribute('data-theme'));
+        console.log('📋 Accent color:', document.documentElement.style.getPropertyValue('--theme-accent-color'));
+        // Force immediate repaint
+        setTimeout(() => {
+          document.body.style.display = 'none';
+          document.body.offsetHeight;
+          document.body.style.display = '';
+        }, 50);
       } catch (err) {
         console.warn('Failed to load theme:', err);
       }
     } else {
       console.log('⚠️ No saved theme found, using default dark theme');
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.body.setAttribute('data-theme', 'dark');
     }
   }, []);
 
@@ -673,6 +684,61 @@ export default function NewDashboard() {
     }
   }
 
+  // 🔥 FIX: Restore from Preferences on first launch after uninstall
+  useEffect(() => {
+    const restoreFromPreferences = async () => {
+      const userId = authService.getCurrentUser()?.uid
+      if (!userId) return
+      
+      // Check if this is first load (no cloud data yet)
+      const hasCloudData = await firestoreService.get('weeklySteps', userId)
+      if (hasCloudData && hasCloudData.length > 0) {
+        console.log('✅ [FIRST-LAUNCH] Cloud data exists, skipping restore')
+        return // Already has data
+      }
+      
+      // First launch - restore from Preferences
+      console.log('🔄 [FIRST-LAUNCH] No cloud data - restoring from Preferences...')
+      try {
+        const { Preferences } = await import('@capacitor/preferences')
+        const storedSteps = await Preferences.get({ key: 'wellnessai_todaySteps' })
+        
+        if (storedSteps.value) {
+          const rawValue = storedSteps.value
+          let steps = 0
+          try {
+            steps = parseInt(JSON.parse(rawValue))
+          } catch {
+            steps = parseInt(rawValue)
+          }
+          
+          console.log('✅ [FIRST-LAUNCH] Restored', steps, 'steps from Preferences')
+          
+          // Save to Firestore with timestamp
+          const today = new Date().toISOString().split('T')[0]
+          const currentDay = new Date().getDay()
+          const todayIndex = currentDay === 0 ? 6 : currentDay - 1
+          
+          const weeklySteps = Array(7).fill(null).map(() => ({ steps: 0, date: null, timestamp: 0 }))
+          weeklySteps[todayIndex] = {
+            steps: steps,
+            date: today,
+            timestamp: Date.now()
+          }
+          
+          await firestoreService.save('weeklySteps', weeklySteps, userId)
+          console.log('✅ [FIRST-LAUNCH] Saved to cloud with timestamp')
+        } else {
+          console.log('ℹ️ [FIRST-LAUNCH] No Preferences data to restore')
+        }
+      } catch (error) {
+        console.error('❌ [FIRST-LAUNCH] Restore failed:', error)
+      }
+    }
+    
+    restoreFromPreferences()
+  }, [])
+
   // Load real data from localStorage + Firebase cloud (moved outside useEffect so it can be called from anywhere)
   const loadRealData = async () => {
     // 🔒 MUTEX: Skip if another loadRealData is in progress
@@ -814,49 +880,95 @@ export default function NewDashboard() {
         
         // 🔥 todaySteps is now calculated above using same logic as notification
         
-        // 🛡️ DATE VALIDATION: Check if cloud data is from today
+        // 🛡️ SMART MERGE: Combine cloud history + live sensor data
         const cloudTodayData = weeklyStepsData[todayIndex]
-        if (cloudTodayData?.date === todayDate) {
-          // Cloud data is from today - use it if higher (multi-device sync)
-          if (cloudTodayData.steps > todaySteps) {
-            todaySteps = cloudTodayData.steps
-            if(import.meta.env.DEV)console.log('✅ Using cloud steps (higher than local):', todaySteps)
-          }
-        } else {
-          // Cloud data is old/stale or missing - ignore it
-          if(import.meta.env.DEV)console.log('⚠️ Cloud steps are from', cloudTodayData?.date, '- using fresh sensor value')
-        }
-        
-        // Update weekly array - ALWAYS update it with current steps
-        weeklyStepsData[todayIndex] = {
-          steps: todaySteps,
-          date: todayDate
-        }
-        if(import.meta.env.DEV)console.log('✅ Weekly array updated: index', todayIndex, 'steps', todaySteps)
-        
-        await firestoreService.save('weeklySteps', weeklyStepsData, userId)
-        
-        // Update localStorage stepHistory for Activity Pulse synchronization
         const stepHistoryRaw = JSON.parse(localStorage.getItem('stepHistory') || '[]')
         const stepHistory = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : []
-        const existingTodayIndex = stepHistory.findIndex(s => s.date === todayDate)
+        const historyEntry = stepHistory.find(s => s.date === todayDate)
+        const historySteps = historyEntry?.steps || 0
         
-        if (existingTodayIndex >= 0) {
-          // Update existing entry
-          stepHistory[existingTodayIndex] = {
-            date: todayDate,
-            steps: todaySteps,
-            timestamp: Date.now()
+        if (cloudTodayData?.date === todayDate) {
+          // Cloud data is from today
+          const cloudSteps = cloudTodayData.steps || 0
+          const liveSteps = todaySteps || 0
+          const cloudTimestamp = cloudTodayData.timestamp || 0
+          const now = Date.now()
+          
+          // 🔥 CORRUPTION FIX: Detect suspiciously high cloud data vs live sensor
+          const cloudTooHigh = cloudSteps > 1000 && liveSteps < 500 && cloudSteps > liveSteps * 10
+          if (cloudTooHigh) {
+            console.log('🚨 CORRUPTION DETECTED: Cloud=' + cloudSteps + ' vs Live=' + liveSteps + ' - using live sensor!')
+            todaySteps = liveSteps
+            // Force immediate save with new timestamp to fix corruption
+            weeklyStepsData[todayIndex] = {
+              steps: todaySteps,
+              date: todayDate,
+              timestamp: Date.now()
+            }
+            await firestoreService.save('weeklySteps', weeklyStepsData, userId)
+            // Also clear localStorage history corruption
+            localStorage.setItem('stepHistory', JSON.stringify([]))
+            console.log('✅ CORRUPTION FIXED: Reset to ' + todaySteps + ' steps')
+            
+            // Skip normal merge logic - we've already fixed it
+            console.log('📊 [DASHBOARD] Setting stats.todaySteps to:', todaySteps)
+            console.log('📊 [DASHBOARD] Stats updated! Should now show:', todaySteps, 'steps')
+            setStats({ ...stats, todaySteps })
+            return // Exit early - corruption fixed
           }
+          
+          // 🔥 NEW: Detect stale cloud data (older than 10 minutes)
+          const isCloudStale = cloudTimestamp > 0 && (now - cloudTimestamp) > 600000 // 10 min
+          
+          if (isCloudStale) {
+            console.log('⚠️ Cloud data is stale (' + Math.round((now - cloudTimestamp) / 60000) + ' min old) - ignoring and using live sensor')
+            todaySteps = Math.max(historySteps, liveSteps) // Ignore stale cloud data
+          } else {
+            // Cloud is fresh or has no timestamp (legacy) - use Math.max as before
+            const maxSteps = Math.max(cloudSteps, historySteps, liveSteps)
+            todaySteps = maxSteps
+          }
+          
+          console.log('✅ Step merge: cloud=' + cloudSteps + ' (stale=' + isCloudStale + ') history=' + historySteps + ' live=' + liveSteps + ' → using=' + todaySteps)
         } else {
-          // Add new entry
-          stepHistory.push({
-            date: todayDate,
-            steps: todaySteps,
-            timestamp: Date.now()
-          })
+          // Cloud data is old/stale - use max of history or live
+          const maxSteps = Math.max(historySteps, todaySteps)
+          todaySteps = maxSteps
+          console.log('⚠️ Cloud steps are from', cloudTodayData?.date, '- using max(history=' + historySteps + ', live=' + todaySteps + ') =', maxSteps)
         }
-        localStorage.setItem('stepHistory', JSON.stringify(stepHistory))
+        
+      // 🔥 CRITICAL FIX: Only update timestamp when step count CHANGES
+      const stepsChanged = cloudTodayData.steps !== todaySteps
+      const newTimestamp = stepsChanged ? Date.now() : (cloudTimestamp || Date.now())
+      
+      weeklyStepsData[todayIndex] = {
+        steps: todaySteps,
+        date: todayDate,
+        timestamp: newTimestamp
+      }
+      console.log('✅ Weekly array updated: index', todayIndex, 'steps', todaySteps, 'timestamp', newTimestamp, 'changed=', stepsChanged)
+      
+      await firestoreService.save('weeklySteps', weeklyStepsData, userId)
+      
+      // Update localStorage stepHistory for Activity Pulse synchronization
+      const existingTodayIndex = stepHistory.findIndex(s => s.date === todayDate)
+      
+      if (existingTodayIndex >= 0) {
+        // Update existing entry
+        stepHistory[existingTodayIndex] = {
+          steps: todaySteps,
+          date: todayDate,
+          timestamp: Date.now()
+        }
+      } else {
+        // Add new entry
+        stepHistory.push({
+          steps: todaySteps,
+          date: todayDate,
+          timestamp: Date.now()
+        })
+      }
+      localStorage.setItem('stepHistory', JSON.stringify(stepHistory))
         if(import.meta.env.DEV)console.log('💾 Updated stepHistory in localStorage for Activity Pulse')
 
         console.log('📊 [DASHBOARD] Setting stats.todaySteps to:', todaySteps);
@@ -884,6 +996,23 @@ export default function NewDashboard() {
       await loadRealData()
       loadActivities()
       console.log('✅ [MOUNT] Initial data loaded')
+      
+      // ⭐ GAMIFICATION: Daily check-in for streaks
+      try {
+        const checkInResult = await gamificationService.checkIn()
+        if (!checkInResult.alreadyCheckedIn) {
+          if(import.meta.env.DEV)console.log('🎉 [GAMIFICATION] Daily check-in! +10 XP, Streak:', checkInResult.streak)
+          // Optionally show notification to user
+          if (checkInResult.leveledUp) {
+            if(import.meta.env.DEV)console.log('🎊 [GAMIFICATION] LEVEL UP!')
+          }
+        } else {
+          if(import.meta.env.DEV)console.log('✅ [GAMIFICATION] Already checked in today, Streak:', checkInResult.streak)
+        }
+      } catch (error) {
+        console.error('❌ [GAMIFICATION] Check-in failed:', error)
+        // Don't block app - continue without gamification
+      }
       
       // 🔥 AUTO-START: Start foreground service automatically if not running
       try {
@@ -1820,6 +1949,7 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
   const [showHealthModal, setShowHealthModal] = useState(false);
   const [showGoalsModal, setShowGoalsModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
+  const [showRecipesModal, setShowRecipesModal] = useState(false);
 
   const actionButtons = [
     { icon: '🧠', label: 'AI INSIGHTS', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', onClick: onOpenBrainInsights },
@@ -1831,7 +1961,8 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
     { icon: '🏥', label: 'HEALTH', gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', onClick: () => setShowHealthModal(true) },
     { icon: '🎯', label: 'GOALS', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', onClick: () => setShowGoalsModal(true) },
     { icon: '📈', label: 'PROGRESS', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', onClick: () => setShowProgressModal(true) },
-    { icon: '💎', label: 'PREMIUM', gradient: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)', onClick: () => setShowPremiumModal(true) }
+    { icon: '💎', label: 'PREMIUM', gradient: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)', onClick: () => setShowPremiumModal(true) },
+    { icon: '👨‍🍳', label: 'RECIPES', gradient: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)', onClick: () => setShowRecipesModal(true) }
   ];
 
   return (
@@ -2031,6 +2162,10 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
 
       <Suspense fallback={<div>Loading...</div>}>
         <ProgressModal isOpen={showProgressModal} onClose={() => setShowProgressModal(false)} todaySteps={stats.todaySteps} />
+      </Suspense>
+
+      <Suspense fallback={<div>Loading...</div>}>
+        <CommunityRecipes isOpen={showRecipesModal} onClose={() => setShowRecipesModal(false)} />
       </Suspense>
 
       {/* Spacer to ensure bottom buttons are visible */}
@@ -3580,11 +3715,30 @@ function ThemeModal({ onClose }) {
     // Also apply to body for immediate visual feedback
     document.body.setAttribute('data-theme', selectedTheme)
     
+    // Clear any cached theme CSS
+    const styleSheets = document.styleSheets;
+    for (let i = 0; i < styleSheets.length; i++) {
+      try {
+        styleSheets[i].disabled = true;
+        styleSheets[i].disabled = false;
+      } catch (e) {
+        // Cross-origin stylesheets can't be accessed
+      }
+    }
+    
+    console.log('✅ Theme applied:', selectedTheme, accentColor);
+    console.log('📋 HTML data-theme:', document.documentElement.getAttribute('data-theme'));
+    console.log('📋 Body data-theme:', document.body.getAttribute('data-theme'));
+    
     onClose()
     
     // Force style recalculation
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'))
+      // Force repaint
+      document.body.style.display = 'none';
+      document.body.offsetHeight; // Trigger reflow
+      document.body.style.display = '';
     }, 100)
   }
 
@@ -5395,6 +5549,14 @@ function GuidedMeditationModal({ onClose }) {
     }
     
     await directAudioService.speak('You have completed this powerful meditation. Notice how strong and energized you feel.')
+    
+    // ⭐ GAMIFICATION: Log meditation activity
+    try {
+      await gamificationService.logActivity('meditation')
+      if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Meditation activity logged')
+    } catch (error) {
+      console.error('❌ [GAMIFICATION] Failed to log meditation activity:', error)
+    }
     
     setIsPlaying(false)
     setCurrentStep(0)

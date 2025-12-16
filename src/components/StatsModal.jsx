@@ -45,25 +45,27 @@ export default function StatsModal({ isOpen, onClose, todaySteps = 0 }) {
         ? stepHistory.reduce((sum, day) => sum + (Number(day?.steps) || 0), 0) 
         : 0;
 
-      // Calculate TODAY'S CALORIES from steps + workouts (same as TodayOverview)
+      // Calculate ALL TIME CALORIES from ALL steps + ALL workouts
       const today = new Date().toISOString().split('T')[0];
       const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
-      const workoutsToday = workoutHistory.filter(w => w.date === today);
       
-      const stepCalories = Math.round(liveSteps * 0.04);
+      // ALL TIME STEP CALORIES
+      const allTimeStepCalories = Math.round(totalSteps * 0.04);
+      
+      // ALL TIME WORKOUT CALORIES
       const calorieRateMap = {
         'Running': 11, 'Cycling': 10, 'Swimming': 12, 'Weights': 7,
         'Yoga': 3, 'HIIT': 13, 'Walking': 5, 'Sports': 9, 'Other': 7
       };
       
-      let workoutCalories = 0;
-      workoutsToday.forEach(workout => {
+      let allTimeWorkoutCalories = 0;
+      workoutHistory.forEach(workout => {
         const type = workout.type || workout.activity || 'Other';
         const rate = calorieRateMap[type] || 7;
-        workoutCalories += (workout.duration || 0) * rate;
+        allTimeWorkoutCalories += (workout.duration || 0) * rate;
       });
       
-      const totalCalories = stepCalories + workoutCalories;
+      const totalCalories = allTimeStepCalories + allTimeWorkoutCalories;
 
       // Calculate AVG SLEEP from sleepLog array
       const sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]');
@@ -110,7 +112,7 @@ export default function StatsModal({ isOpen, onClose, todaySteps = 0 }) {
             <span className="stat-icon">🔥</span>
             <div className="stat-info">
               <span className="stat-value">{stats.totalCaloriesBurned.toLocaleString()}</span>
-              <span className="stat-label">Calories Burned</span>
+              <span className="stat-label">Total Calories</span>
             </div>
           </div>
 
