@@ -131,6 +131,40 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
         if(import.meta.env.DEV)console.log('✅ Meal logged successfully!');
         showToast(`✅ ${result.name} logged! +${result.calories} cal`, 'success');
         
+        // UPDATE SCAN STATS - Track successful scan
+        const totalScans = parseInt(localStorage.getItem('total_scans') || '0');
+        localStorage.setItem('total_scans', (totalScans + 1).toString());
+        
+        const todayScans = parseInt(localStorage.getItem('scans_today') || '0');
+        localStorage.setItem('scans_today', (todayScans + 1).toString());
+        
+        // Track calories
+        const scanCalories = result.calories || 0;
+        const totalCalories = parseInt(localStorage.getItem('calories_tracked') || '0');
+        localStorage.setItem('calories_tracked', (totalCalories + scanCalories).toString());
+        
+        // Save to recent scans history
+        const recentScans = JSON.parse(localStorage.getItem('recent_scans') || '[]');
+        recentScans.unshift({
+          name: result.name,
+          calories: scanCalories,
+          time: 'Just now',
+          icon: '📊'
+        });
+        localStorage.setItem('recent_scans', JSON.stringify(recentScans.slice(0, 10)));
+        
+        // Award XP for successful scan
+        if (window.addPoints) {
+          window.addPoints(5, { x: window.innerWidth / 2, y: 100 });
+        }
+        
+        // Update daily challenge
+        if (window.updateDailyChallenge) {
+          window.updateDailyChallenge('scan_food', 1);
+        }
+        
+        if(import.meta.env.DEV)console.log('📊 Scan stats updated:', { totalScans: totalScans + 1, calories: scanCalories });
+        
         // ⭐ GAMIFICATION: Log scan activity (scan-specific XP)
         try {
           const { default: gamificationService } = await import('../services/gamificationService');

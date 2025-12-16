@@ -11,40 +11,110 @@ export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
   }, [])
 
   const loadStats = () => {
-    const minutes = parseInt(localStorage.getItem('meditation_minutes_today') || '0')
+    const today = new Date().toISOString().split('T')[0]
+    const lastDate = localStorage.getItem('meditation_last_date') || ''
+    
+    // Daily reset for minutes
+    let minutes = 0
+    if (lastDate === today) {
+      minutes = parseInt(localStorage.getItem('meditation_minutes_today') || '0')
+    } else {
+      localStorage.setItem('meditation_minutes_today', '0')
+    }
+    
+    // Calculate streak
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayStr = yesterday.toISOString().split('T')[0]
+    
+    let streak = parseInt(localStorage.getItem('meditation_streak') || '0')
+    if (lastDate === today) {
+      // Already meditated today, keep streak
+    } else if (lastDate === yesterdayStr) {
+      // Meditated yesterday, will increment on next session
+    } else if (lastDate && lastDate < yesterdayStr) {
+      // Missed a day, reset streak
+      streak = 0
+      localStorage.setItem('meditation_streak', '0')
+    }
+    
     const sessions = parseInt(localStorage.getItem('meditation_sessions') || '0')
-    const streak = parseInt(localStorage.getItem('meditation_streak') || '0')
     setStats({ minutesToday: minutes, totalSessions: sessions, streak })
   }
 
   const startBreathingExercise = (exercise) => {
-    addPoints(20, { x: 50, y: 40 })
-    
     // Update challenges
     if (window.updateDailyChallenge) {
       window.updateDailyChallenge('meditate', exercise.duration)
     }
 
     // Update stats
+    const today = new Date().toISOString().split('T')[0]
+    const lastDate = localStorage.getItem('meditation_last_date') || ''
+    
     const minutes = parseInt(localStorage.getItem('meditation_minutes_today') || '0')
     localStorage.setItem('meditation_minutes_today', (minutes + exercise.duration).toString())
     
     const sessions = parseInt(localStorage.getItem('meditation_sessions') || '0')
     localStorage.setItem('meditation_sessions', (sessions + 1).toString())
-
+    
+    // Update streak
+    if (lastDate !== today) {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      const yesterdayStr = yesterday.toISOString().split('T')[0]
+      
+      let streak = parseInt(localStorage.getItem('meditation_streak') || '0')
+      if (lastDate === yesterdayStr) {
+        streak += 1
+      } else {
+        streak = 1
+      }
+      localStorage.setItem('meditation_streak', streak.toString())
+    }
+    
+    localStorage.setItem('meditation_last_date', today)
+    
+    // XP will be awarded in BreathingModal on completion
     if (onOpenBreathing) {
       onOpenBreathing(exercise.type)
     }
   }
 
   const startMeditation = (duration) => {
-    addPoints(25, { x: 50, y: 40 })
-    
     // Update challenges
     if (window.updateDailyChallenge) {
       window.updateDailyChallenge('meditate', duration)
     }
 
+    // Update stats
+    const today = new Date().toISOString().split('T')[0]
+    const lastDate = localStorage.getItem('meditation_last_date') || ''
+    
+    const minutes = parseInt(localStorage.getItem('meditation_minutes_today') || '0')
+    localStorage.setItem('meditation_minutes_today', (minutes + duration).toString())
+    
+    const sessions = parseInt(localStorage.getItem('meditation_sessions') || '0')
+    localStorage.setItem('meditation_sessions', (sessions + 1).toString())
+    
+    // Update streak
+    if (lastDate !== today) {
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      const yesterdayStr = yesterday.toISOString().split('T')[0]
+      
+      let streak = parseInt(localStorage.getItem('meditation_streak') || '0')
+      if (lastDate === yesterdayStr) {
+        streak += 1
+      } else {
+        streak = 1
+      }
+      localStorage.setItem('meditation_streak', streak.toString())
+    }
+    
+    localStorage.setItem('meditation_last_date', today)
+    
+    // XP will be awarded in GuidedMeditationModal on completion
     if (onOpenMeditation) {
       onOpenMeditation(duration)
     }
@@ -134,6 +204,8 @@ export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
               className="mood-button"
               onClick={() => {
                 localStorage.setItem('mood_today', mood)
+                const today = new Date().toISOString().split('T')[0]
+                localStorage.setItem('mood_last_date', today)
                 addPoints(5, { x: 50, y: 60 })
               }}
             >

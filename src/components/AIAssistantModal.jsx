@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './AIAssistantModal.css'
 
 // Main AI Assistant Modal - Full Voice Chat Functionality
-function AIAssistantModal({ userName, onClose }) {
+function AIAssistantModal({ userName, initialPrompt, onClose }) {
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -11,6 +11,62 @@ function AIAssistantModal({ userName, onClose }) {
   const [messages, setMessages] = useState([
     { type: 'ai', text: `Hey ${userName}! I'm here to help. What's on your mind?` }
   ])
+  
+  // Voice stats tracking
+  const [conversationStartTime] = useState(Date.now())
+  const [conversationTopic, setConversationTopic] = useState(null)
+  const [hasTrackedConversation, setHasTrackedConversation] = useState(false)
+
+  // Auto-process initial prompt if provided (from Quick Actions)
+  useEffect(() => {
+    if (initialPrompt) {
+      // Small delay to let modal render
+      setTimeout(() => {
+        processUserMessage(initialPrompt, true)
+      }, 300)
+    }
+  }, [initialPrompt])
+  
+  // Save conversation stats on unmount (when modal closes)
+  useEffect(() => {
+    return () => {
+      // Only save if conversation actually happened
+      if (hasTrackedConversation && conversationTopic) {
+        // Calculate duration in minutes
+        const durationMs = Date.now() - conversationStartTime
+        const durationMinutes = Math.ceil(durationMs / 60000) // Round up to nearest minute
+        
+        // Update total minutes
+        const totalMinutes = parseInt(localStorage.getItem('voice_minutes') || '0')
+        localStorage.setItem('voice_minutes', (totalMinutes + durationMinutes).toString())
+        
+        // Update topics count
+        const topicsCount = parseInt(localStorage.getItem('voice_topics') || '0')
+        localStorage.setItem('voice_topics', (topicsCount + 1).toString())
+        
+        // Save to recent chats history
+        const recentChats = JSON.parse(localStorage.getItem('recent_voice_chats') || '[]')
+        const chatEntry = {
+          topic: conversationTopic,
+          duration: durationMinutes,
+          timestamp: Date.now(),
+          date: new Date().toLocaleDateString()
+        }
+        
+        // Keep last 50 chats
+        recentChats.unshift(chatEntry)
+        if (recentChats.length > 50) recentChats.pop()
+        localStorage.setItem('recent_voice_chats', JSON.stringify(recentChats))
+        
+        if(import.meta.env.DEV)console.log('📊 Voice stats saved:', {
+          duration: durationMinutes,
+          topic: conversationTopic,
+          totalMinutes: totalMinutes + durationMinutes,
+          totalTopics: topicsCount + 1
+        })
+      }
+    }
+  }, [hasTrackedConversation, conversationTopic, conversationStartTime])
 
   const startListening = async () => {
     setIsListening(true)
@@ -267,6 +323,28 @@ function AIAssistantModal({ userName, onClose }) {
       
       if(import.meta.env.DEV)console.log('Got AI response:', response)
       setMessages(prev => [...prev, { type: 'ai', text: response }])
+      
+      // TRACK VOICE STATS - Increment conversation count (only once per session)
+      if (!hasTrackedConversation) {
+        const conversations = parseInt(localStorage.getItem('voice_conversations') || '0')
+        localStorage.setItem('voice_conversations', (conversations + 1).toString())
+        setHasTrackedConversation(true)
+        
+        // AWARD XP - Only after actual AI conversation (prevents button spam farming)
+        if (window.addPoints) {
+          window.addPoints(15, { x: window.innerWidth / 2, y: 100 })
+          if(import.meta.env.DEV)console.log('✨ +15 XP awarded for AI conversation')
+        }
+        
+        if(import.meta.env.DEV)console.log('📊 Voice stats: Conversation tracked')
+      }
+      
+      // TRACK TOPIC - Save first user message as conversation topic
+      if (!conversationTopic) {
+        const topic = userText.length > 50 ? userText.substring(0, 50) + '...' : userText
+        setConversationTopic(topic)
+        if(import.meta.env.DEV)console.log('📊 Voice stats: Topic saved:', topic)
+      }
       
       // INCREMENT USAGE COUNT (only if not dev mode)
       if (!isDevMode && window.subscriptionService) {

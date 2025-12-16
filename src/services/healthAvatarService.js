@@ -17,23 +17,37 @@ class HealthAvatarService {
 
     let score = 100;
     const factors = [];
+    const scoreBreakdown = []; // NEW: Track each factor's contribution for visualization
 
-    // 1. BMI factor (REAL body measurements)
-    if (height && weight) {
+    // 1. BMI factor (REAL body measurements with validation)
+    if (height && weight && height >= 100 && height <= 250 && weight >= 30 && weight <= 300) {
       const heightM = height / 100;
       const bmi = weight / (heightM * heightM);
-      if (bmi < 18.5) {
+      
+      // Additional validation - check for NaN or Infinity
+      if (isNaN(bmi) || !isFinite(bmi)) {
+        factors.push('⚠️ BMI calculation error - check profile data');
+      } else if (bmi < 18.5) {
         score -= 15;
         factors.push('⚠️ BMI too low');
+        scoreBreakdown.push({ factor: 'BMI (Underweight)', points: -15, icon: '⚠️' });
       } else if (bmi > 25 && bmi < 30) {
         score -= 10;
         factors.push('⚠️ Overweight BMI');
+        scoreBreakdown.push({ factor: 'BMI (Overweight)', points: -10, icon: '⚠️' });
       } else if (bmi >= 30) {
         score -= 25;
         factors.push('🚨 Obese BMI');
+        scoreBreakdown.push({ factor: 'BMI (Obese)', points: -25, icon: '🚨' });
       } else {
         factors.push('✅ Healthy BMI');
+        scoreBreakdown.push({ factor: 'BMI (Healthy)', points: 0, icon: '✅' });
       }
+      if(import.meta.env.DEV)console.log('📏 BMI Data:', { height, weight, bmi: bmi.toFixed(1) });
+    } else {
+      // Invalid or missing height/weight
+      factors.push('⚠️ BMI unavailable - complete profile');
+      if(import.meta.env.DEV)console.log('📏 BMI Data: Invalid or missing', { height, weight });
     }
 
     // 2. Activity factor (REAL step data from Android storage)
@@ -87,15 +101,30 @@ class HealthAvatarService {
     
     if(import.meta.env.DEV)console.log('📊 REAL Step Data:', { avgSteps, stepGoal, daysTracked: last30Days.length, totalSteps: totalRecentSteps });
     
+    // Outlier detection: Flag suspiciously high step counts
+    const suspiciousStepDays = last30Days.filter(entry => {
+      const steps = entry?.steps || entry || 0;
+      return steps > 40000; // Likely phone in car/pocket during driving
+    }).length;
+    
+    if (suspiciousStepDays > 0) {
+      factors.push(`⚠️ ${suspiciousStepDays} days with suspicious step counts (>40k)`);
+    }
+    
     if (avgSteps < stepGoal * 0.5) {
       score -= 20;
       factors.push('🚨 Very low activity');
+      scoreBreakdown.push({ factor: 'Daily Steps', points: -20, icon: '🚨' });
     } else if (avgSteps < stepGoal * 0.8) {
       score -= 10;
       factors.push('⚠️ Below step goal');
+      scoreBreakdown.push({ factor: 'Daily Steps', points: -10, icon: '⚠️' });
     } else if (avgSteps >= stepGoal) {
       score += 5;
       factors.push('✅ Meeting step goal');
+      scoreBreakdown.push({ factor: 'Daily Steps', points: +5, icon: '✅' });
+    } else {
+      scoreBreakdown.push({ factor: 'Daily Steps', points: 0, icon: '📊' });
     }
 
     // 3. Food quality factor (REAL food logs from scanner)
@@ -128,16 +157,33 @@ class HealthAvatarService {
     const warningFoods = recentFoods.filter(f => f && f.safety === 'warning').length;
     const safeFoods = recentFoods.filter(f => f && f.safety === 'safe').length;
     
-    if(import.meta.env.DEV)console.log('🍽️ REAL Food Data:', { total: recentFoods.length, danger: dangerFoods, warning: warningFoods, safe: safeFoods });
+    // Only penalize allergens user actually has
+    const userAllergies = userProfile.allergies || [];
+    const relevantDangerFoods = recentFoods.filter(f => {
+      if (!f || f.safety !== 'danger') return false;
+      // If user has no allergies, don't penalize
+      if (userAllergies.length === 0) return false;
+      // Only count if food contains user's allergens
+      return f.allergens?.some(allergen => userAllergies.includes(allergen));
+    }).length;
     
-    score -= (dangerFoods * 5);
-    score -= (warningFoods * 2);
+    if(import.meta.env.DEV)console.log('🍽️ REAL Food Data:', { total: recentFoods.length, danger: dangerFoods, relevantDanger: relevantDangerFoods, warning: warningFoods, safe: safeFoods, userAllergies });
+    
+    const foodPenalty = (relevantDangerFoods * 5) + (warningFoods * 2);
+    score -= foodPenalty;
+    
+    if (relevantDangerFoods > 5) {
+      factors.push('🚨 Too many allergen exposures');
+    }
+    
     if (safeFoods > 30) {
       score += 5;
       factors.push('✅ Good diet choices');
-    }
-    if (dangerFoods > 5) {
-      factors.push('🚨 Too many allergen exposures');
+      scoreBreakdown.push({ factor: 'Food Quality', points: +5 - foodPenalty, icon: '🍽️' });
+    } else if (foodPenalty > 0) {
+      scoreBreakdown.push({ factor: 'Food Quality', points: -foodPenalty, icon: '⚠️' });
+    } else {
+      scoreBreakdown.push({ factor: 'Food Quality', points: 0, icon: '🍽️' });
     }
 
     // 4. Workout consistency (REAL workout tracking)
@@ -165,12 +211,17 @@ class HealthAvatarService {
     if (recentWorkouts.length >= 12) {
       score += 10;
       factors.push('✅ Excellent workout routine');
+      scoreBreakdown.push({ factor: 'Workouts', points: +10, icon: '💪' });
     } else if (recentWorkouts.length >= 8) {
       score += 5;
       factors.push('✅ Good workout consistency');
+      scoreBreakdown.push({ factor: 'Workouts', points: +5, icon: '💪' });
     } else if (recentWorkouts.length < 4) {
       score -= 10;
       factors.push('⚠️ Low workout frequency');
+      scoreBreakdown.push({ factor: 'Workouts', points: -10, icon: '⚠️' });
+    } else {
+      scoreBreakdown.push({ factor: 'Workouts', points: 0, icon: '💪' });
     }
 
     // 5. Login consistency (REAL app usage)
@@ -199,9 +250,13 @@ class HealthAvatarService {
     if (activeDays >= 20) {
       score += 5;
       factors.push('✅ Very engaged with health tracking');
+      scoreBreakdown.push({ factor: 'Engagement', points: +5, icon: '📱' });
     } else if (activeDays < 10) {
       score -= 5;
       factors.push('⚠️ Low engagement');
+      scoreBreakdown.push({ factor: 'Engagement', points: -5, icon: '⚠️' });
+    } else {
+      scoreBreakdown.push({ factor: 'Engagement', points: 0, icon: '📱' });
     }
 
     // 6. DNA risk factors (REAL genetic analysis)
@@ -270,7 +325,7 @@ class HealthAvatarService {
       }
     }
 
-    // 7. Sleep quality (REAL sleep tracking + profile data)
+    // 7. Sleep quality (REAL sleep tracking only - no profile defaults)
     let sleepLog = [];
     try {
       // Check Firestore first, then localStorage
@@ -290,14 +345,18 @@ class HealthAvatarService {
       return sleepTime >= Date.now() - last30DaysMs;
     });
     
-    let avgSleepHours = userProfile.sleepHours || 7; // Default from profile
+    let avgSleepHours = null;
     if (recentSleep.length > 0) {
       avgSleepHours = recentSleep.reduce((sum, s) => sum + s.hours, 0) / recentSleep.length;
     }
     
-    if(import.meta.env.DEV)console.log('😴 REAL Sleep Data:', { avgHours: avgSleepHours });
+    if(import.meta.env.DEV)console.log('😴 REAL Sleep Data:', { avgHours: avgSleepHours, logsCount: recentSleep.length });
     
-    if (avgSleepHours < 6) {
+    if (avgSleepHours === null) {
+      // No sleep tracking - penalize for missing data
+      score -= 10;
+      factors.push('⚠️ No sleep data tracked');
+    } else if (avgSleepHours < 6) {
       score -= 15;
       factors.push('🚨 Severe sleep deprivation');
     } else if (avgSleepHours < 7) {
@@ -377,7 +436,7 @@ class HealthAvatarService {
     const finalScore = Math.max(0, Math.min(100, score));
     if(import.meta.env.DEV)console.log('🎯 FINAL HEALTH SCORE:', finalScore, 'Factors:', factors);
     
-    return finalScore;
+    return { score: finalScore, breakdown: scoreBreakdown, factors };
   }
 
   // Project future health score based on current habits
@@ -495,7 +554,10 @@ class HealthAvatarService {
       smoker: user.profile?.smoker
     });
 
-    const currentScore = await this.calculateHealthScore(user.profile, user.stats);
+    const scoreResult = await this.calculateHealthScore(user.profile, user.stats);
+    const currentScore = scoreResult.score;
+    const scoreBreakdown = scoreResult.breakdown;
+    const scoringFactors = scoreResult.factors;
     
     // Get REAL data sources for display (from native service first, then Firebase, then localStorage fallback)
     const syncService = (await import('./syncService.js')).default;
@@ -674,11 +736,174 @@ class HealthAvatarService {
       sleepLogs: thisMonthSleep.length
     });
     
+    // Calculate data completeness percentage
+    let completenessScore = 0;
+    let maxCompleteness = 7; // 7 data categories
+    
+    // Check each data category
+    if (user.profile.height && user.profile.weight && user.profile.height >= 100 && user.profile.weight >= 30) completenessScore++; // BMI data
+    if (thisMonthSteps.length >= 5) completenessScore++; // Step tracking (at least 5 days)
+    if (thisMonthFoods.length >= 5) completenessScore++; // Food tracking (at least 5 scans)
+    if (thisMonthWorkouts.length >= 2) completenessScore++; // Workout tracking (at least 2)
+    if (thisMonthSleep.length >= 5) completenessScore++; // Sleep tracking (at least 5 nights)
+    if (dnaAnalysis && (dnaAnalysis.traits || dnaAnalysis.analysis)) completenessScore++; // DNA uploaded
+    if (user.profile.medicalConditions || user.profile.fitnessLevel) completenessScore++; // Medical profile
+    
+    const dataCompleteness = Math.round((completenessScore / maxCompleteness) * 100);
+    
+    if(import.meta.env.DEV)console.log('📊 Data Completeness:', dataCompleteness + '%', { completenessScore, maxCompleteness });
+    
+    // CRITICAL: Medical emergency warnings
+    const emergencyWarnings = [];
+    const { height, weight } = user.profile;
+    
+    // BMI emergency (< 16 or > 40)
+    if (height && weight && height >= 100 && height <= 250 && weight >= 30 && weight <= 300) {
+      const bmi = weight / ((height / 100) ** 2);
+      if (bmi < 16) {
+        emergencyWarnings.push({
+          severity: 'critical',
+          icon: '🚨',
+          title: 'Severely Underweight BMI',
+          message: 'Your BMI is dangerously low. Consult a doctor immediately.',
+          action: 'See healthcare provider urgently'
+        });
+      } else if (bmi > 40) {
+        emergencyWarnings.push({
+          severity: 'critical',
+          icon: '🚨',
+          title: 'Severely Obese BMI',
+          message: 'Your BMI is at a dangerous level. Medical consultation recommended.',
+          action: 'Consult doctor for weight management'
+        });
+      }
+    }
+    
+    // Zero activity for 7+ days
+    const last7Days = stepHistoryArray.slice(-7);
+    const totalLast7Steps = last7Days.reduce((sum, entry) => sum + ((entry?.steps || entry) || 0), 0);
+    if (last7Days.length >= 7 && totalLast7Steps === 0) {
+      emergencyWarnings.push({
+        severity: 'warning',
+        icon: '⚠️',
+        title: 'No Activity Detected',
+        message: 'No steps recorded for 7 days. Are you okay?',
+        action: 'Check in with support or start light activity'
+      });
+    }
+    
+    // Chronic sleep deprivation (<3 hours for 5+ nights)
+    const last7DaysSleep = thisMonthSleep.slice(-7);
+    const severeSleepDays = last7DaysSleep.filter(s => s.hours < 3).length;
+    if (severeSleepDays >= 5) {
+      emergencyWarnings.push({
+        severity: 'critical',
+        icon: '🚨',
+        title: 'Severe Sleep Deprivation',
+        message: 'Less than 3 hours sleep for multiple nights is a health emergency.',
+        action: 'Seek medical help immediately'
+      });
+    }
+    
+    // OUTLIER DETECTION: Weight changed >20 lbs in 1 week
+    if (user.profile.lastWeightCheck && user.profile.weight) {
+      const weightDiff = Math.abs(user.profile.weight - user.profile.lastWeightCheck);
+      if (weightDiff > 9) { // 9 kg ≈ 20 lbs
+        emergencyWarnings.push({
+          severity: 'warning',
+          icon: '⚠️',
+          title: 'Suspicious Weight Change',
+          message: `Weight changed by ${weightDiff.toFixed(1)} kg recently. Please verify measurement.`,
+          action: 'Re-check weight or consult doctor if accurate'
+        });
+      }
+    }
+    
+    if(import.meta.env.DEV)console.log('🚨 Emergency Warnings:', emergencyWarnings);
+    
+    // Generate personalized improvement suggestions (top 3 highest impact)
+    const suggestions = [];
+    
+    // Suggestion 1: Sleep tracking (if not tracking)
+    if (thisMonthSleep.length < 5) {
+      suggestions.push({
+        icon: '😴',
+        action: 'Track sleep for 5 nights',
+        impact: '+10 points',
+        reason: 'Currently missing sleep data'
+      });
+    }
+    
+    // Suggestion 2: Food logging
+    if (thisMonthFoods.length < 30) {
+      const needed = Math.min(30 - thisMonthFoods.length, 10);
+      suggestions.push({
+        icon: '🍽️',
+        action: `Log ${needed} more healthy meals`,
+        impact: `+${Math.min(needed * 2, 10)} points`,
+        reason: 'Good diet boosts health score'
+      });
+    }
+    
+    // Suggestion 3: Workout frequency
+    if (thisMonthWorkouts.length < 8) {
+      const needed = 8 - thisMonthWorkouts.length;
+      suggestions.push({
+        icon: '💪',
+        action: `Add ${needed} more workouts this month`,
+        impact: '+5 to +10 points',
+        reason: 'Consistency is key to fitness'
+      });
+    }
+    
+    // Suggestion 4: BMI optimization
+    if (height && weight && height >= 100 && weight >= 30) {
+      const bmi = weight / ((height / 100) ** 2);
+      if (bmi > 25 && bmi < 30) {
+        const targetWeight = 25 * ((height / 100) ** 2);
+        const loseWeight = weight - targetWeight;
+        suggestions.push({
+          icon: '⚖️',
+          action: `Lose ${loseWeight.toFixed(1)} kg to reach healthy BMI`,
+          impact: '+10 points',
+          reason: `Current BMI: ${bmi.toFixed(1)} (overweight)`
+        });
+      } else if (bmi >= 30) {
+        suggestions.push({
+          icon: '⚖️',
+          action: 'Work on weight management with doctor',
+          impact: '+25 points',
+          reason: `Current BMI: ${bmi.toFixed(1)} (obese)`
+        });
+      }
+    }
+    
+    // Suggestion 5: Step goal
+    const userStepGoal = user.profile?.goalSteps || 10000;
+    if (avgSteps < userStepGoal) {
+      const needed = Math.round(userStepGoal - avgSteps);
+      suggestions.push({
+        icon: '👟',
+        action: `Increase daily steps by ${needed.toLocaleString()}`,
+        impact: '+5 to +20 points',
+        reason: 'Currently below step goal'
+      });
+    }
+    
+    // Sort by impact (highest first) and take top 3
+    const topSuggestions = suggestions.slice(0, 3);
+    
+    if(import.meta.env.DEV)console.log('💡 Improvement Suggestions:', topSuggestions);
+    
     const avatarData = {
       current: {
         score: currentScore,
+        scoreBreakdown: scoreBreakdown, // NEW: Detailed factor breakdown
+        emergencyWarnings: emergencyWarnings, // NEW: Critical health alerts
+        suggestions: topSuggestions, // NEW: Personalized improvement suggestions
         visuals: this.getAvatarVisuals(currentScore),
         age: user.profile.age || 30,
+        dataCompleteness: dataCompleteness, // NEW: Data quality indicator
         dataBreakdown: {
           monthName: monthName, // Current month name for display
           currentYear: currentYear, // Current year for display

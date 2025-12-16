@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { usePointsPopup } from './PointsPopup'
 import './ScanTabRedesign.css'
 
-export default function ScanTabRedesign({ onOpenFoodScanner, onOpenARScanner, onOpenBarcodeScanner, onOpenRepCounter }) {
+export default function ScanTabRedesign({ onOpenFoodScanner, onOpenARScanner, onOpenBarcodeScanner }) {
   const { addPoints, PopupsRenderer } = usePointsPopup()
   const [stats, setStats] = useState({ scannedToday: 0, totalScans: 0, caloriesTracked: 0 })
   const [recentScans, setRecentScans] = useState([])
@@ -27,19 +27,8 @@ export default function ScanTabRedesign({ onOpenFoodScanner, onOpenARScanner, on
   }
 
   const handleScanOption = (option) => {
-    addPoints(5, { x: 50, y: 40 })
-    
-    // Update challenges
-    if (window.updateDailyChallenge) {
-      window.updateDailyChallenge('scan_food', 1)
-    }
-
-    // Update stats
-    const today = parseInt(localStorage.getItem('scans_today') || '0')
-    localStorage.setItem('scans_today', (today + 1).toString())
-    
-    const total = parseInt(localStorage.getItem('total_scans') || '0')
-    localStorage.setItem('total_scans', (total + 1).toString())
+    // Note: XP and stats are now tracked in scanner components after successful scan
+    // This prevents XP farming and ensures accurate statistics
 
     // Open respective scanner
     switch (option.id) {
@@ -48,12 +37,6 @@ export default function ScanTabRedesign({ onOpenFoodScanner, onOpenARScanner, on
         break
       case 'barcode':
         if (onOpenBarcodeScanner) onOpenBarcodeScanner()
-        break
-      case 'ar_body':
-        if (onOpenARScanner) onOpenARScanner()
-        break
-      case 'rep_counter':
-        if (onOpenRepCounter) onOpenRepCounter()
         break
       default:
         alert(`${option.label} coming soon!`)
@@ -64,9 +47,7 @@ export default function ScanTabRedesign({ onOpenFoodScanner, onOpenARScanner, on
     { id: 'food', icon: '🍽️', label: 'Food Scanner', description: 'Identify meals', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
     { id: 'barcode', icon: '📊', label: 'Barcode', description: 'Scan labels', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
     { id: 'ar_body', icon: '📸', label: 'Body Scanner', description: 'Track progress', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
-    { id: 'posture', icon: '🧍', label: 'Posture Check', description: 'AI analysis', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-    { id: 'meal_photo', icon: '📷', label: 'Meal Photo', description: 'Log instantly', gradient: 'linear-gradient(135deg, #ffd93d 0%, #ff6b6b 100%)' },
-    { id: 'rep_counter', icon: '💪', label: 'Rep Counter', description: 'AI workout', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }
+    { id: 'posture', icon: '🧍', label: 'Posture Check', description: 'AI analysis', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
   ]
 
   return (

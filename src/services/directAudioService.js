@@ -180,11 +180,19 @@ class DirectAudioService {
   /**
    * Stop current audio
    */
-  stop() {
+  async stop() {
+    // Stop Howl audio
     if (this.currentAudio) {
       this.currentAudio.stop();
       this.currentAudio.unload();
       this.currentAudio = null;
+    }
+    
+    // Stop native TTS
+    try {
+      await TextToSpeech.stop();
+    } catch (error) {
+      // Ignore error if TTS wasn't playing
     }
   }
 

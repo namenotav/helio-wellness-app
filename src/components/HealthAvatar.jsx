@@ -59,6 +59,19 @@ export default function HealthAvatar({ onClose }) {
         <button className="avatar-close" onClick={onClose}>✕</button>
 
         <h2 className="avatar-title">🧬 Your Health Avatar</h2>
+        
+        {/* Medical Disclaimer */}
+        <div className="health-disclaimer" style={{
+          background: 'rgba(255, 152, 0, 0.1)',
+          border: '1px solid rgba(255, 152, 0, 0.3)',
+          borderRadius: '8px',
+          padding: '10px',
+          margin: '10px 0',
+          fontSize: '12px',
+          color: '#FFA500'
+        }}>
+          ⚠️ <strong>Not Medical Advice:</strong> This is an educational estimate based on your activity data. Always consult healthcare professionals for medical decisions.
+        </div>
 
         {/* Timeline Navigation */}
         <div className="avatar-timeline">
@@ -117,6 +130,17 @@ export default function HealthAvatar({ onClose }) {
                 <div className="score-text">
                   <span className="score-number">{activeData.score}</span>
                   <span className="score-label">Health Score</span>
+                  {activeView === 'current' && activeData.dataCompleteness !== undefined && (
+                    <span className="data-quality" style={{
+                      fontSize: '11px',
+                      color: activeData.dataCompleteness >= 70 ? '#44FF44' : '#FFA500',
+                      marginTop: '5px',
+                      display: 'block'
+                    }}>
+                      Based on {activeData.dataCompleteness}% complete data
+                      {activeData.dataCompleteness < 70 && ' ⚠️'}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -126,6 +150,116 @@ export default function HealthAvatar({ onClose }) {
               <div className="age-warning">
                 <h3>⚠️ You'll look {activeData.ageAppearance} years old</h3>
                 <p>Actual age: {avatarState.current.age + parseInt(activeView.replace(/\D/g, ''))}</p>
+              </div>
+            )}
+
+            {/* Emergency Warnings */}
+            {activeView === 'current' && activeData.emergencyWarnings && activeData.emergencyWarnings.length > 0 && (
+              <div className="emergency-warnings" style={{
+                background: 'rgba(255, 68, 68, 0.1)',
+                border: '2px solid #FF4444',
+                borderRadius: '12px',
+                padding: '15px',
+                margin: '15px 0'
+              }}>
+                <h3 style={{ color: '#FF4444', margin: '0 0 10px 0' }}>🚨 Health Alerts</h3>
+                {activeData.emergencyWarnings.map((warning, idx) => (
+                  <div key={idx} style={{
+                    background: warning.severity === 'critical' ? 'rgba(255, 0, 0, 0.15)' : 'rgba(255, 152, 0, 0.15)',
+                    border: `1px solid ${warning.severity === 'critical' ? '#FF0000' : '#FFA500'}`,
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginBottom: '10px'
+                  }}>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>
+                      {warning.icon} {warning.title}
+                    </div>
+                    <div style={{ fontSize: '14px', marginBottom: '5px' }}>{warning.message}</div>
+                    <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#FFA500' }}>
+                      👉 {warning.action}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Score Breakdown Visualization */}
+            {activeView === 'current' && activeData.scoreBreakdown && activeData.scoreBreakdown.length > 0 && (
+              <div className="score-breakdown" style={{
+                background: 'rgba(68, 255, 68, 0.05)',
+                border: '1px solid rgba(68, 255, 68, 0.3)',
+                borderRadius: '12px',
+                padding: '15px',
+                margin: '15px 0'
+              }}>
+                <h3 style={{ margin: '0 0 15px 0' }}>📊 Score Breakdown</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {activeData.scoreBreakdown.map((item, idx) => (
+                    <div key={idx} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 12px',
+                      background: item.points > 0 ? 'rgba(68, 255, 68, 0.1)' : item.points < 0 ? 'rgba(255, 68, 68, 0.1)' : 'rgba(128, 128, 128, 0.1)',
+                      borderRadius: '8px',
+                      border: `1px solid ${item.points > 0 ? '#44FF44' : item.points < 0 ? '#FF4444' : '#888'}`
+                    }}>
+                      <span style={{ fontSize: '14px' }}>
+                        {item.icon} {item.factor}
+                      </span>
+                      <span style={{
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        color: item.points > 0 ? '#44FF44' : item.points < 0 ? '#FF4444' : '#888'
+                      }}>
+                        {item.points > 0 ? '+' : ''}{item.points}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{
+                  marginTop: '15px',
+                  padding: '10px',
+                  background: 'rgba(68, 255, 68, 0.15)',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  fontSize: '14px'
+                }}>
+                  💡 <strong>Your Score:</strong> {activeData.score}/100 (Higher is better!)
+                </div>
+              </div>
+            )}
+
+            {/* Improvement Suggestions */}
+            {activeView === 'current' && activeData.suggestions && activeData.suggestions.length > 0 && (
+              <div className="improvement-suggestions" style={{
+                background: 'rgba(255, 152, 0, 0.05)',
+                border: '1px solid rgba(255, 152, 0, 0.3)',
+                borderRadius: '12px',
+                padding: '15px',
+                margin: '15px 0'
+              }}>
+                <h3 style={{ margin: '0 0 15px 0', color: '#FFA500' }}>💡 Top Improvements</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {activeData.suggestions.map((suggestion, idx) => (
+                    <div key={idx} style={{
+                      background: 'rgba(255, 152, 0, 0.1)',
+                      border: '1px solid rgba(255, 152, 0, 0.4)',
+                      borderRadius: '8px',
+                      padding: '12px'
+                    }}>
+                      <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>
+                        {suggestion.icon} {suggestion.action}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#44FF44', marginBottom: '3px' }}>
+                        Impact: {suggestion.impact}
+                      </div>
+                      <div style={{ fontSize: '12px', fontStyle: 'italic', opacity: 0.8 }}>
+                        {suggestion.reason}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

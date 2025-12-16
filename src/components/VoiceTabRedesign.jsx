@@ -27,7 +27,8 @@ export default function VoiceTabRedesign({ userName, onOpenVoiceChat, onOpenAIAs
   }
 
   const handleQuickAction = (action) => {
-    addPoints(15, { x: 50, y: 40 })
+    // Note: XP is now awarded in AIAssistantModal after actual AI conversation
+    // This prevents XP farming by just clicking buttons
     
     // Update challenges
     if (window.updateDailyChallenge) {
@@ -70,7 +71,7 @@ export default function VoiceTabRedesign({ userName, onOpenVoiceChat, onOpenAIAs
       {/* Stats Overview */}
       <div className="voice-stats-card">
         <h3 className="section-title">🎤 Voice Assistant Stats</h3>
-        <div className="stats-grid">
+        <div className="stats-grid-top">
           <div className="stat-item">
             <span className="stat-value">{stats.conversations}</span>
             <span className="stat-label">Conversations</span>
@@ -79,10 +80,10 @@ export default function VoiceTabRedesign({ userName, onOpenVoiceChat, onOpenAIAs
             <span className="stat-value">{stats.minutesTalked}</span>
             <span className="stat-label">Minutes Talked</span>
           </div>
-          <div className="stat-item">
-            <span className="stat-value">{stats.topicsDiscussed}</span>
-            <span className="stat-label">Topics Discussed</span>
-          </div>
+        </div>
+        <div className="stat-item-full">
+          <span className="stat-value">{stats.topicsDiscussed}</span>
+          <span className="stat-label">Topics Discussed</span>
         </div>
       </div>
 

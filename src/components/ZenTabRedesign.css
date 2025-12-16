@@ -183,16 +183,20 @@
 
 .mood-button {
   flex: 1;
-  font-size: 32px;
+  font-size: 28px;
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
-  padding: 12px;
+  padding: 14px 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
 }
 
 .mood-button:active {
-  transform: scale(1.2);
+  transform: scale(1.1);
   background: rgba(255, 255, 255, 0.2);
 }

@@ -195,7 +195,10 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
                 <button
                   key={ex.id}
                   className={`exercise-btn ${exercise === ex.id ? 'selected' : ''}`}
-                  onClick={() => setExercise(ex.id)}
+                  onClick={() => {
+                    console.log('🔥 Exercise clicked:', ex.id);
+                    setExercise(ex.id);
+                  }}
                 >
                   <span className="exercise-icon">{ex.icon}</span>
                   <span className="exercise-name">{ex.name}</span>
@@ -203,19 +206,17 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
               ))}
             </div>
 
-            <div className="instructions">
-              <h4>📱 Setup Instructions</h4>
-              <ul>
-                <li>Place phone on the floor or in your pocket</li>
-                <li>Phone should move with your body during exercise</li>
-                <li>Start workout and begin exercising</li>
-                <li>Rep counter will automatically detect each rep</li>
-              </ul>
-            </div>
-
-            <button className="start-btn" onClick={startTracking}>
+            <button className="start-btn" onClick={() => {
+              console.log('🚀 Start Workout clicked');
+              startTracking();
+            }}>
               ▶️ Start Workout
             </button>
+
+            <div className="instructions">
+              <h4>📱 Tip</h4>
+              <p>Place phone in your pocket or on the floor during exercise</p>
+            </div>
           </div>
         )}
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useCallback } from 'react'
+import { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BarcodeScanner as BarcodeScannerPlugin } from '@capacitor-community/barcode-scanner'
 import { Preferences } from '@capacitor/preferences'
@@ -150,6 +150,7 @@ export default function NewDashboard() {
   
   // 🎯 NEW HIERARCHICAL MODAL SYSTEM
   const [showAIAssistantModal, setShowAIAssistantModal] = useState(false)
+  const [initialAIPrompt, setInitialAIPrompt] = useState(null)
   const [showHealthToolsModal, setShowHealthToolsModal] = useState(false)
   const [showDataManagementModal, setShowDataManagementModal] = useState(false)
   
@@ -1433,7 +1434,11 @@ export default function NewDashboard() {
         <Suspense fallback={null}>
           <AIAssistantModal 
             userName={user?.name || user?.profile?.name || 'Friend'}
-            onClose={() => setShowAIAssistantModal(false)} 
+            initialPrompt={initialAIPrompt}
+            onClose={() => {
+              setShowAIAssistantModal(false)
+              setInitialAIPrompt(null)
+            }} 
           />
         </Suspense>
       )}
@@ -1594,9 +1599,13 @@ export default function NewDashboard() {
             <VoiceTabRedesign 
               userName={user?.name || user?.profile?.name || 'Friend'}
               onOpenVoiceChat={(prompt) => {
-                // Open voice chat with prompt
+                setInitialAIPrompt(prompt)
+                setShowAIAssistantModal(true)
               }}
-              onOpenAIAssistant={() => setShowAIAssistantModal(true)}
+              onOpenAIAssistant={() => {
+                setInitialAIPrompt(null)
+                setShowAIAssistantModal(true)
+              }}
             />
           </Suspense>
         )}
@@ -1611,7 +1620,6 @@ export default function NewDashboard() {
               onOpenFoodScanner={() => { analytics.trackFeatureUse('Food_Scanner'); setShowFoodScanner(true); }}
               onOpenARScanner={() => { analytics.trackFeatureUse('AR_Scanner'); setShowARScanner(true); }}
               onOpenBarcodeScanner={() => { analytics.trackFeatureUse('Barcode_Scanner'); setShowBarcodeScanner(true); }}
-              onOpenRepCounter={() => { analytics.trackFeatureUse('Rep_Counter'); setShowRepCounter(true); }}
             />
           </Suspense>
         )}
@@ -1840,7 +1848,7 @@ export default function NewDashboard() {
       {showStressRelief && <StressReliefModal onClose={() => setShowStressRelief(false)} />}
       
       {/* Guided Meditation Modal */}
-      {showGuidedMeditation && <GuidedMeditationModal onClose={() => setShowGuidedMeditation(false)} />}
+      {showGuidedMeditation && <GuidedMeditationModal onClose={() => { setShowGuidedMeditation(false); refreshStats(); }} />}
 
       {/* New Feature Modals */}
       {showHeartRateModal && <HeartRateModal onClose={() => { setShowHeartRateModal(false); refreshStats(); }} />}
@@ -1981,7 +1989,8 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
     { icon: '🎯', label: 'GOALS', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', onClick: () => setShowGoalsModal(true) },
     { icon: '📈', label: 'PROGRESS', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', onClick: () => setShowProgressModal(true) },
     { icon: '💎', label: 'PREMIUM', gradient: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)', onClick: () => setShowPremiumModal(true) },
-    { icon: '👨‍🍳', label: 'RECIPES', gradient: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)', onClick: () => setShowRecipesModal(true) }
+    { icon: '👨‍🍳', label: 'RECIPES', gradient: 'linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)', onClick: () => setShowRecipesModal(true) },
+    { icon: '💪', label: 'REP COUNTER', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', onClick: onOpenRepCounter }
   ];
 
   return (
@@ -4584,6 +4593,8 @@ function BreathingModal({ onClose }) {
         // Exercise complete
         setIsActive(false)
         setStep('complete')
+        // Award XP on completion
+        gamificationService.addXP(20)
       }
     )
   }
@@ -5359,6 +5370,7 @@ function GuidedMeditationModal({ onClose }) {
   const [selectedMeditation, setSelectedMeditation] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const shouldStopRef = useRef(false)
 
   const meditations = {
     morning: {
@@ -5565,6 +5577,7 @@ function GuidedMeditationModal({ onClose }) {
   const handlePlayMeditation = async () => {
     if (!selectedMeditation) return
     
+    shouldStopRef.current = false
     setIsPlaying(true)
     setCurrentStep(0)
     
@@ -5572,15 +5585,30 @@ function GuidedMeditationModal({ onClose }) {
     
     // Play audio introduction
     await directAudioService.speak(meditation.audioScript)
+    if (shouldStopRef.current) {
+      setIsPlaying(false)
+      setCurrentStep(0)
+      return
+    }
     await new Promise(resolve => setTimeout(resolve, 1500))
     
     // Guide through each step with pauses
     for (let i = 0; i < meditation.steps.length; i++) {
+      if (shouldStopRef.current) break
+      
       setCurrentStep(i)
       await directAudioService.speak(meditation.steps[i])
       
+      if (shouldStopRef.current) break
+      
       // Longer pause between steps for meditation
       await new Promise(resolve => setTimeout(resolve, 2000))
+    }
+    
+    if (shouldStopRef.current) {
+      setIsPlaying(false)
+      setCurrentStep(0)
+      return
     }
     
     await directAudioService.speak('You have completed this powerful meditation. Notice how strong and energized you feel.')
@@ -5764,39 +5792,40 @@ function GuidedMeditationModal({ onClose }) {
           ))}
         </div>
 
-        {/* Play/Stop Button */}
-        {!isPlaying ? (
-          <button onClick={handlePlayMeditation} style={{
-            width: '100%',
+        {/* Play/Stop Buttons */}
+        <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
+          <button onClick={handlePlayMeditation} disabled={isPlaying} style={{
+            flex: 1,
             padding: '18px',
-            background: 'linear-gradient(135deg, #FFB84D, #FF9500)',
+            background: isPlaying ? 'rgba(255, 184, 77, 0.3)' : 'linear-gradient(135deg, #FFB84D, #FF9500)',
             border: 'none',
             borderRadius: '15px',
             color: 'white',
             fontSize: '18px',
             fontWeight: 'bold',
-            cursor: 'pointer',
-            marginBottom: '20px',
-            boxShadow: '0 5px 20px rgba(255, 184, 77, 0.4)'
+            cursor: isPlaying ? 'not-allowed' : 'pointer',
+            boxShadow: isPlaying ? 'none' : '0 5px 20px rgba(255, 184, 77, 0.4)',
+            opacity: isPlaying ? 0.5 : 1
           }}>
-            🎧 Start Guided Meditation
+            🎧 Start
           </button>
-        ) : (
-          <button onClick={handleStop} style={{
-            width: '100%',
+          
+          <button onClick={handleStop} disabled={!isPlaying} style={{
+            flex: 1,
             padding: '18px',
-            background: 'linear-gradient(135deg, #FF4444, #FF6B6B)',
+            background: !isPlaying ? 'rgba(255, 68, 68, 0.3)' : 'linear-gradient(135deg, #FF4444, #FF6B6B)',
             border: 'none',
             borderRadius: '15px',
             color: 'white',
             fontSize: '18px',
             fontWeight: 'bold',
-            cursor: 'pointer',
-            marginBottom: '20px'
+            cursor: !isPlaying ? 'not-allowed' : 'pointer',
+            boxShadow: !isPlaying ? 'none' : '0 5px 20px rgba(255, 68, 68, 0.4)',
+            opacity: !isPlaying ? 0.5 : 1
           }}>
             ⏹️ Stop
           </button>
-        )}
+        </div>
 
         {/* Written Instructions */}
         <div style={{
