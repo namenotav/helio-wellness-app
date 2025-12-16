@@ -221,8 +221,9 @@ class AuthService {
         throw new Error('No account found with this email');
       }
 
-      const hashedPassword = this.hashPassword(password);
-      if (user.password !== hashedPassword) {
+      // Verify password using secure PBKDF2
+      const isPasswordValid = await this.verifyPasswordSecure(password, user.password);
+      if (!isPasswordValid) {
         throw new Error('Incorrect password');
       }
 

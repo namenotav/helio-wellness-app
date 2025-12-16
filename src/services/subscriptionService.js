@@ -150,6 +150,23 @@ class SubscriptionService {
   // Get current user's subscription plan
   getCurrentPlan() {
     const planId = localStorage.getItem('subscription_plan') || 'free';
+    const verified = localStorage.getItem('subscription_verified') === 'true';
+    
+    // If plan is not free and not verified by server, downgrade to free
+    if (planId !== 'free' && !verified) {
+      if(import.meta.env.DEV)console.warn('⚠️ Unverified subscription plan, using free tier');
+      return this.plans.free;
+    }
+    
+    // Check if subscription has expired
+    const periodEnd = localStorage.getItem('subscription_period_end');
+    if (periodEnd && Date.now() > new Date(periodEnd).getTime()) {
+      if(import.meta.env.DEV)console.warn('⚠️ Subscription expired, reverting to free');
+      localStorage.setItem('subscription_plan', 'free');
+      localStorage.removeItem('subscription_verified');
+      return this.plans.free;
+    }
+    
     return this.plans[planId] || this.plans.free;
   }
 
@@ -180,11 +197,13 @@ class SubscriptionService {
         localStorage.setItem('subscription_plan', data.plan);
         localStorage.setItem('subscription_status', data.status);
         localStorage.setItem('subscription_period_end', data.currentPeriodEnd);
+        localStorage.setItem('subscription_verified', 'true');
         if(import.meta.env.DEV) console.log(`✅ Subscription verified: ${data.plan} (${data.status})`);
       } else {
         // Subscription expired or inactive - downgrade to free
         localStorage.setItem('subscription_plan', 'free');
         localStorage.setItem('subscription_status', 'none');
+        localStorage.removeItem('subscription_verified');
         if(import.meta.env.DEV) console.log('⚠️ Subscription expired or inactive, downgraded to free');
       }
 

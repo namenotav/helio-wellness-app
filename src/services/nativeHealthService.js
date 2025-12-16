@@ -15,6 +15,8 @@ class NativeHealthService {
     this.stepCount = 0;
     this.stepGoal = 10000;
     this.lastStepUpdate = Date.now();
+    this.initialized = false;
+    this.intervals = [];
     this.healthData = {
       steps: 0,
       calories: 0,
@@ -55,6 +57,12 @@ class NativeHealthService {
 
   async initialize() {
     try {
+      // Prevent multiple initializations
+      if (this.initialized) {
+        if(import.meta.env.DEV)console.log('✅ Health service already initialized, skipping...');
+        return true;
+      }
+      
       if(import.meta.env.DEV)console.log('🌟 Initializing MULTI-SENSOR Health Service...');
       if(import.meta.env.DEV)console.log('📱 Device Platform:', Capacitor.getPlatform());
       if(import.meta.env.DEV)console.log('📱 Is Native Platform:', Capacitor.isNativePlatform());
@@ -91,17 +99,17 @@ class NativeHealthService {
               this.stepCount = steps;
               this.healthData.steps = steps;
               this.healthData.calories = Math.round(steps * 0.04);
-              this.healthData.distance = (steps * 0.0008).toFixed(2);
+              this.healthData.distance = (steps * 0.0008);
               
               // Poll for updates every 30 seconds
-              setInterval(async () => {
+              const healthConnectInterval = setInterval(async () => {
                 try {
                   const currentSteps = await healthConnectService.getTodaySteps();
                   if (currentSteps !== this.stepCount) {
                     this.stepCount = currentSteps;
                     this.healthData.steps = currentSteps;
                     this.healthData.calories = Math.round(currentSteps * 0.04);
-                    this.healthData.distance = (currentSteps * 0.0008).toFixed(2);
+                    this.healthData.distance = (currentSteps * 0.0008);
                     this.notifyStepListeners();
                     this.saveHealthData().catch(err => console.error('Save error:', err));
                   }
@@ -109,6 +117,7 @@ class NativeHealthService {
                   console.error('❌ Failed to poll Health Connect:', error);
                 }
               }, 30000);
+              this.intervals.push(healthConnectInterval);
               
               return true;
             } else {
@@ -148,7 +157,7 @@ class NativeHealthService {
             this.stepCount = steps;
             this.healthData.steps = steps;
             this.healthData.calories = Math.round(steps * 0.04);
-            this.healthData.distance = (steps * 0.0008).toFixed(2);
+            this.healthData.distance = (steps * 0.0008);
             
             if (steps % 10 === 0) {
               this.saveHealthData().catch(err => { if(import.meta.env.DEV)console.error('Save error:', err); });
@@ -183,7 +192,7 @@ class NativeHealthService {
               this.stepCount = steps;
               this.healthData.steps = steps;
               this.healthData.calories = Math.round(steps * 0.04);
-              this.healthData.distance = (steps * 0.0008).toFixed(2);
+              this.healthData.distance = (steps * 0.0008);
               
               // Start periodic sync (every 30 seconds)
               this.googleFitSyncInterval = setInterval(async () => {
@@ -193,7 +202,7 @@ class NativeHealthService {
                     this.stepCount = latestSteps;
                     this.healthData.steps = latestSteps;
                     this.healthData.calories = Math.round(latestSteps * 0.04);
-                    this.healthData.distance = (latestSteps * 0.0008).toFixed(2);
+                    this.healthData.distance = (latestSteps * 0.0008);
                     this.notifyStepListeners();
                     await this.saveHealthData();
                   }
@@ -201,6 +210,7 @@ class NativeHealthService {
                   console.error('Google Fit sync error:', error);
                 }
               }, 30000); // 30 seconds
+              this.intervals.push(this.googleFitSyncInterval);
               
               return true;
             }
@@ -262,6 +272,7 @@ class NativeHealthService {
         if(import.meta.env.DEV)console.warn('⚠️ All auto-detection failed, manual mode only:', error);
       }
       
+      this.initialized = true;
       return true;
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Failed to initialize health service:', error);
@@ -354,6 +365,7 @@ class NativeHealthService {
       this.debugInterval = setInterval(() => {
         if(import.meta.env.DEV)console.log(`📊 Status - Events: ${this.totalEventsReceived}, Steps: ${this.stepCount}, Magnitude: ${this.lastMagnitude.toFixed(2)}`);
       }, 10000);
+      this.intervals.push(this.debugInterval);
       
       return true;
     } catch (error) {
@@ -380,7 +392,7 @@ class NativeHealthService {
           this.stepCount++;
           this.healthData.steps = this.stepCount;
           this.healthData.calories = Math.round(this.stepCount * 0.04);
-          this.healthData.distance = (this.stepCount * 0.0008).toFixed(2);
+          this.healthData.distance = (this.stepCount * 0.0008);
           
           if (this.stepCount % 10 === 0) {
             this.saveHealthData().catch(err => { if(import.meta.env.DEV)console.error('Save error:', err); });
@@ -435,7 +447,7 @@ class NativeHealthService {
         
         // Update derived metrics
         this.healthData.calories = Math.round(this.stepCount * 0.04);
-        this.healthData.distance = (this.stepCount * 0.0008).toFixed(2);
+        this.healthData.distance = (this.stepCount * 0.0008);
         
         // Save periodically (every 10 steps to avoid too many writes)
         if (this.stepCount % 10 === 0) {
@@ -522,7 +534,7 @@ class NativeHealthService {
       this.stepCount += amount;
       this.healthData.steps = this.stepCount;
       this.healthData.calories = Math.round(this.stepCount * 0.04);
-      this.healthData.distance = (this.stepCount * 0.0008).toFixed(2);
+      this.healthData.distance = (this.stepCount * 0.0008);
       
       await this.saveHealthData();
       this.notifyStepListeners();
@@ -816,7 +828,7 @@ class NativeHealthService {
         unit: 'kcal'
       },
       distance: {
-        traveled: this.healthData.distance.toFixed(2),
+        traveled: Number(this.healthData.distance || 0).toFixed(2),
         unit: 'km'
       },
       activeTime: {
@@ -895,7 +907,7 @@ class NativeHealthService {
     this.healthData = {
       steps: 0,
       calories: 0,
-      distance: 0,
+      distance: 0.0,
       activeMinutes: 0,
       heartRate: this.healthData.heartRate,
       weight: this.healthData.weight,
@@ -1141,6 +1153,30 @@ class NativeHealthService {
     }
     
     this.saveHealthData();
+  }
+
+  shutdown() {
+    // Clear all polling intervals
+    this.intervals.forEach(interval => clearInterval(interval));
+    this.intervals = [];
+    
+    // Clear individual tracked intervals
+    if (this.googleFitSyncInterval) {
+      clearInterval(this.googleFitSyncInterval);
+      this.googleFitSyncInterval = null;
+    }
+    if (this.debugInterval) {
+      clearInterval(this.debugInterval);
+      this.debugInterval = null;
+    }
+    
+    // Stop motion tracking
+    this.stopStepCounting();
+    
+    // Reset initialization flag
+    this.initialized = false;
+    
+    if(import.meta.env.DEV)console.log('🛑 Health service shut down, all intervals cleared');
   }
 
   getAchievements() {
