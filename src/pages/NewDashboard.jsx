@@ -404,14 +404,14 @@ export default function NewDashboard() {
         
         // 🎨 FORCE BACKGROUND VIA INLINE STYLES ON STARTUP
         if (theme === 'light') {
-          document.body.style.background = 'linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%)';
-          document.body.style.color = '#000000';
+          document.body.style.background = 'linear-gradient(135deg, #E8F4F8 0%, #D6EAF8 100%)';
+          document.body.style.color = '#1a1a2e'; // Dark text for readability
         } else if (theme === 'midnight') {
-          document.body.style.background = 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)';
+          document.body.style.background = 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)';
           document.body.style.color = '#FFFFFF';
         } else if (theme === 'ocean') {
-          document.body.style.background = 'linear-gradient(135deg, #0C4A6E 0%, #075985 100%)';
-          document.body.style.color = '#FFFFFF';
+          document.body.style.background = 'linear-gradient(135deg, #00B4D8 0%, #48CAE4 100%)';
+          document.body.style.color = '#0A1929'; // Very dark blue for contrast
         } else { // dark
           document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
           document.body.style.color = '#FFFFFF';
@@ -3706,9 +3706,9 @@ function ThemeModal({ onClose }) {
 
   const themes = [
     { id: 'dark', name: 'Dark Mode', icon: '🌙', colors: { bg: '#0F0F23', card: '#1A1A2E' } },
-    { id: 'light', name: 'Light Mode', icon: '☀️', colors: { bg: '#FFFFFF', card: '#F5F5F5' } },
-    { id: 'midnight', name: 'Midnight', icon: '🌃', colors: { bg: '#000000', card: '#1A1A1A' } },
-    { id: 'ocean', name: 'Ocean', icon: '🌊', colors: { bg: '#001F3F', card: '#003D5C' } },
+    { id: 'light', name: 'Light Mode', icon: '☀️', colors: { bg: '#E8F4F8', card: '#D6EAF8' } },
+    { id: 'midnight', name: 'Midnight', icon: '🌃', colors: { bg: '#1E3A8A', card: '#3B82F6' } },
+    { id: 'ocean', name: 'Ocean Breeze', icon: '🌊', colors: { bg: '#00B4D8', card: '#0096C7' } },
   ]
 
   const accentColors = [
@@ -3736,14 +3736,14 @@ function ThemeModal({ onClose }) {
     
     // 🎨 FORCE BACKGROUND VIA INLINE STYLES (CSS not working due to minification)
     if (selectedTheme === 'light') {
-      document.body.style.background = 'linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%)';
-      document.body.style.color = '#000000';
+      document.body.style.background = 'linear-gradient(135deg, #E8F4F8 0%, #D6EAF8 100%)';
+      document.body.style.color = '#1a1a2e'; // Dark text for readability
     } else if (selectedTheme === 'midnight') {
-      document.body.style.background = 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)';
+      document.body.style.background = 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)';
       document.body.style.color = '#FFFFFF';
     } else if (selectedTheme === 'ocean') {
-      document.body.style.background = 'linear-gradient(135deg, #0C4A6E 0%, #075985 100%)';
-      document.body.style.color = '#FFFFFF';
+      document.body.style.background = 'linear-gradient(135deg, #00B4D8 0%, #48CAE4 100%)';
+      document.body.style.color = '#0A1929'; // Very dark blue for contrast
     } else { // dark
       document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
       document.body.style.color = '#FFFFFF';
