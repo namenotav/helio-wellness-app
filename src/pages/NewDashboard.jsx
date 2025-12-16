@@ -401,10 +401,27 @@ export default function NewDashboard() {
         document.documentElement.setAttribute('data-theme', theme || 'dark');
         document.body.setAttribute('data-theme', theme || 'dark');
         document.documentElement.style.setProperty('--theme-accent-color', accentColor || '#8B5FE8');
+        
+        // 🎨 FORCE BACKGROUND VIA INLINE STYLES ON STARTUP
+        if (theme === 'light') {
+          document.body.style.background = 'linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%)';
+          document.body.style.color = '#000000';
+        } else if (theme === 'midnight') {
+          document.body.style.background = 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)';
+          document.body.style.color = '#FFFFFF';
+        } else if (theme === 'ocean') {
+          document.body.style.background = 'linear-gradient(135deg, #0C4A6E 0%, #075985 100%)';
+          document.body.style.color = '#FFFFFF';
+        } else { // dark
+          document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+          document.body.style.color = '#FFFFFF';
+        }
+        
         console.log('🎨 Theme loaded on startup:', theme, accentColor);
         console.log('📋 HTML data-theme:', document.documentElement.getAttribute('data-theme'));
         console.log('📋 Body data-theme:', document.body.getAttribute('data-theme'));
         console.log('📋 Accent color:', document.documentElement.style.getPropertyValue('--theme-accent-color'));
+        console.log('🎨 Body background:', document.body.style.background);
         // Force immediate repaint
         setTimeout(() => {
           document.body.style.display = 'none';
@@ -418,6 +435,8 @@ export default function NewDashboard() {
       console.log('⚠️ No saved theme found, using default dark theme');
       document.documentElement.setAttribute('data-theme', 'dark');
       document.body.setAttribute('data-theme', 'dark');
+      document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+      document.body.style.color = '#FFFFFF';
     }
   }, []);
 
@@ -3715,6 +3734,21 @@ function ThemeModal({ onClose }) {
     // Also apply to body for immediate visual feedback
     document.body.setAttribute('data-theme', selectedTheme)
     
+    // 🎨 FORCE BACKGROUND VIA INLINE STYLES (CSS not working due to minification)
+    if (selectedTheme === 'light') {
+      document.body.style.background = 'linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%)';
+      document.body.style.color = '#000000';
+    } else if (selectedTheme === 'midnight') {
+      document.body.style.background = 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)';
+      document.body.style.color = '#FFFFFF';
+    } else if (selectedTheme === 'ocean') {
+      document.body.style.background = 'linear-gradient(135deg, #0C4A6E 0%, #075985 100%)';
+      document.body.style.color = '#FFFFFF';
+    } else { // dark
+      document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+      document.body.style.color = '#FFFFFF';
+    }
+    
     // Clear any cached theme CSS
     const styleSheets = document.styleSheets;
     for (let i = 0; i < styleSheets.length; i++) {
@@ -3729,6 +3763,7 @@ function ThemeModal({ onClose }) {
     console.log('✅ Theme applied:', selectedTheme, accentColor);
     console.log('📋 HTML data-theme:', document.documentElement.getAttribute('data-theme'));
     console.log('📋 Body data-theme:', document.body.getAttribute('data-theme'));
+    console.log('🎨 Body background:', document.body.style.background);
     
     onClose()
     

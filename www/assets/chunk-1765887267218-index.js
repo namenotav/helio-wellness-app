@@ -1,2 +1,0 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/chunk-1765887267259-web.js","assets/entry-1765887266798-index.js","assets/asset-1765887267361-index.css"])))=>i.map(i=>d[i]);
-import{k as o,_ as t}from"./entry-1765887266798-index.js";const r=o("GoogleFit",{web:()=>t(()=>import("./chunk-1765887267259-web.js"),__vite__mapDeps([0,1,2])).then(e=>new e.GoogleFitWeb)});export{r as GoogleFit};

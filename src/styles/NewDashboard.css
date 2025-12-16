@@ -139,7 +139,7 @@ button, input, select, textarea {
   position: relative;
   min-height: 100vh;
   min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
-  background: linear-gradient(135deg, var(--theme-bg-gradient-start, #1a1a2e) 0%, var(--theme-bg-gradient-end, #16213e) 100%);
+  background: transparent !important; /* Let body background show through */
   padding-bottom: calc(70px + env(safe-area-inset-bottom)); /* Auto adjust for notches */
   overflow-x: hidden;
   width: 100vw;
