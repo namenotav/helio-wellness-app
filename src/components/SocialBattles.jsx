@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import './SocialBattles.css';
 import socialBattlesService from '../services/socialBattlesService';
 import gamificationService from '../services/gamificationService';
+import subscriptionService from '../services/subscriptionService';
 
 export default function SocialBattles({ onClose }) {
   const [view, setView] = useState('list'); // list, create, leaderboard, global, teams, history, rewards
@@ -615,7 +616,10 @@ export default function SocialBattles({ onClose }) {
                     {participant.rank > 3 && `#${participant.rank}`}
                   </div>
                   <div className="participant-info">
-                    <div className="participant-name">{participant.userId}</div>
+                    <div className="participant-name">
+                      {participant.userId}
+                      {participant.isVIP && ' 👑'}
+                    </div>
                     <div className="participant-progress">
                       Progress: {participant.progress}%
                     </div>
@@ -673,7 +677,10 @@ export default function SocialBattles({ onClose }) {
                   </div>
                   <div className="user-avatar">{user.profilePic}</div>
                   <div className="user-details">
-                    <div className="user-name">{user.username}</div>
+                    <div className="user-name">
+                      {user.username}
+                      {user.isVIP && ' 👑'}
+                    </div>
                     <div className="user-level">Level {user.level}</div>
                   </div>
                   <div className="user-stat">

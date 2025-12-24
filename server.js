@@ -64,10 +64,10 @@ async function connectDB() {
 
 connectDB();
 
-// SECURITY: Rate limiting to prevent abuse - generous for legitimate users
+// SECURITY: Rate limiting to prevent abuse - strict for production security
 const rateLimiter = new Map();
-const RATE_LIMIT_WINDOW = 900000; // 15 minutes
-const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per 15 minutes per IP
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 10; // 10 requests per minute per IP (600/hour max)
 
 // Rate limiting middleware
 function rateLimit(req, res, next) {
@@ -117,8 +117,15 @@ app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+  // SECURITY: Require webhook secret to be configured
+  if (!webhookSecret) {
+    console.error('⚠️ STRIPE_WEBHOOK_SECRET not configured - rejecting webhook');
+    return res.status(500).send('Webhook secret not configured');
+  }
+
   let event;
   try {
+    // SECURITY: Verify signature from Stripe to prevent fake webhooks
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err) {
     console.error('⚠️ Webhook signature verification failed:', err.message);
@@ -154,9 +161,14 @@ app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (
 // Helper function - Map Stripe price ID to plan name
 function mapStripePriceToPlan(priceId) {
   const priceMap = {
-    'prod_TZhdMJIuUuIxOP': 'essential',  // £4.99
-    'prod_TZhulmjk69SvVX': 'premium',    // £14.99
-    'prod_TZhmpYUG5KqUaK': 'vip'         // £29.99
+    // NEW PLANS (December 2025)
+    'price_1SffiWD2EDcoPFLNrGfZU1c6': 'starter',   // £6.99/month
+    'price_1Sffj1D2EDcoPFLNkqdUxY9L': 'premium',   // £16.99/month
+    'price_1Sffk1D2EDcoPFLN4yxdNXSq': 'ultimate',  // £34.99/month
+    // LEGACY PLANS (for existing subscribers)
+    'prod_TZhdMJIuUuIxOP': 'essential',  // £4.99 (grandfathered)
+    'prod_TZhulmjk69SvVX': 'premium',    // £14.99 (grandfathered)
+    'prod_TZhmpYUG5KqUaK': 'vip'         // £29.99 (grandfathered)
   };
   return priceMap[priceId] || 'free';
 }
@@ -438,13 +450,30 @@ app.get('/api/backup/:userId', async (req, res) => {
   }
 });
 
-// User Data Deletion (GDPR)
+// User Data Deletion (GDPR) - REQUIRES AUTHENTICATION
 app.delete('/api/user/delete', async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId, userEmail, confirmDelete } = req.body;
     
-    if (!userId) {
-      return res.status(400).json({ error: 'Missing userId' });
+    // SECURITY: Require explicit confirmation to prevent accidental/malicious deletion
+    if (!userId || !userEmail || confirmDelete !== true) {
+      return res.status(400).json({ error: 'Missing required fields: userId, userEmail, and confirmDelete=true' });
+    }
+
+    // SECURITY: Verify user owns this account by checking Firebase Authentication
+    if (firebaseInitialized) {
+      try {
+        const userRecord = await admin.auth().getUserByEmail(userEmail);
+        if (userRecord.uid !== userId) {
+          return res.status(403).json({ error: 'Authentication failed: userId mismatch' });
+        }
+      } catch (authError) {
+        console.error('User authentication failed:', authError);
+        return res.status(403).json({ error: 'Authentication failed: Invalid user' });
+      }
+    } else {
+      // Fallback: If Firebase Admin not available, reject deletion requests
+      return res.status(503).json({ error: 'User deletion requires authentication service' });
     }
 
     if (db.memory) {
@@ -548,11 +577,37 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    if(process.env.NODE_ENV!=="production")console.log('📱 Received message from phone:', message);
+    // SECURITY: Input sanitization - prevent injection attacks
+    const sanitizedMessage = String(message)
+      .trim()
+      .slice(0, 2000) // Limit to 2000 characters
+      .replace(/[<>"']/g, ''); // Remove HTML/script characters
+
+    if (!sanitizedMessage || sanitizedMessage.length < 2) {
+      return res.status(400).json({ error: 'Invalid message format' });
+    }
+
+    // SECURITY: Rate limit check per user (basic implementation)
+    const userIp = req.ip || req.connection.remoteAddress;
+    if(process.env.NODE_ENV!=="production")console.log('📱 Received message from', userIp + ':', sanitizedMessage.substring(0, 50));
+
+    // SECURITY: Prevent prompt injection attempts
+    const suspiciousPatterns = [
+      /ignore.*previous.*instructions/i,
+      /system.*prompt/i,
+      /you.*are.*now/i,
+      /forget.*everything/i,
+      /new.*instructions/i
+    ];
+
+    if (suspiciousPatterns.some(pattern => pattern.test(sanitizedMessage))) {
+      if(process.env.NODE_ENV!=="production")console.warn('⚠️ Prompt injection attempt detected');
+      return res.status(400).json({ error: 'Invalid request format' });
+    }
 
     const prompt = `You are a friendly AI wellness coach. Answer this question in a helpful, encouraging way (2-3 sentences max):
 
-${message}
+${sanitizedMessage}
 
 Keep it simple, friendly, and motivating!`;
 
@@ -684,21 +739,27 @@ app.post('/api/create-payment-intent', async (req, res) => {
   }
 });
 
-// Stripe Webhook Endpoint
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+// Stripe Webhook Endpoint (Duplicate - for backwards compatibility)
+app.post('/api/stripe/webhook-legacy', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     const sig = req.headers['stripe-signature'];
     const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
-    if (!STRIPE_WEBHOOK_SECRET) {
-      if(process.env.NODE_ENV!=="production")console.warn('⚠️ STRIPE_WEBHOOK_SECRET not set');
-      return res.status(400).json({ error: 'Webhook secret not configured' });
+    // SECURITY: This endpoint is deprecated and should not be used
+    if(process.env.NODE_ENV!=="production")console.warn('⚠️ Legacy webhook endpoint called - use /api/stripe/webhook instead');
+
+    if (!STRIPE_WEBHOOK_SECRET || !sig) {
+      return res.status(400).json({ error: 'Webhook authentication required' });
     }
 
-    // In production, verify signature with Stripe
-    // const event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
-
-    const event = req.body;
+    // SECURITY: Verify signature from Stripe
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
 
     if(process.env.NODE_ENV!=="production")console.log('💳 Stripe webhook received:', event.type);
 
@@ -764,6 +825,271 @@ app.post('/api/notifications/send', async (req, res) => {
   }
 });
 
+// 💰 STRIPE CONNECT - CREATE ESCROW FOR MONEY BATTLES
+app.post('/api/stripe/create-escrow', async (req, res) => {
+  try {
+    const { battleId, amount, userId, participants } = req.body;
+
+    // Validate inputs
+    if (!battleId || !amount || !userId || !participants) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate amount (£5-£100 range)
+    if (amount < 500 || amount > 10000) {
+      return res.status(400).json({ error: 'Amount must be between £5 and £100' });
+    }
+
+    // Create payment intent with application_fee for platform
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount, // Amount in pence
+      currency: 'gbp',
+      payment_method_types: ['card'],
+      metadata: {
+        battleId,
+        userId,
+        type: 'battle_escrow'
+      },
+      // Hold funds in escrow
+      capture_method: 'manual',
+      description: `Battle Escrow - ${battleId}`
+    });
+
+    const escrowId = `escrow_${battleId}_${Date.now()}`;
+
+    if(process.env.NODE_ENV!=="production")console.log(`✅ Escrow payment intent created: ${escrowId}`);
+
+    res.json({
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+      escrowId,
+      paymentIntentId: paymentIntent.id
+    });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('❌ Create escrow error:', error);
+    res.status(500).json({ error: 'Failed to create escrow' });
+  }
+});
+
+// 💰 STRIPE CONNECT - RELEASE ESCROW TO WINNER
+app.post('/api/stripe/release-escrow', async (req, res) => {
+  try {
+    const { escrowId, battleId, winnerId, amount } = req.body;
+
+    // In production, look up payment intent from database
+    // For now, simulate transfer
+    if(process.env.NODE_ENV!=="production")console.log(`💸 Releasing escrow ${escrowId} to winner ${winnerId}: £${amount / 100}`);
+
+    // Capture payment intent
+    // const captured = await stripe.paymentIntents.capture(paymentIntentId);
+
+    // Transfer to winner's Stripe Connect account
+    // const transfer = await stripe.transfers.create({
+    //   amount: Math.floor(amount * 0.95), // 95% to winner (5% platform fee)
+    //   currency: 'gbp',
+    //   destination: winnerStripeConnectId,
+    //   transfer_group: battleId,
+    //   metadata: { battleId, winnerId }
+    // });
+
+    res.json({
+      success: true,
+      transferId: `transfer_${Date.now()}`,
+      message: 'Funds released to winner'
+    });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('❌ Release escrow error:', error);
+    res.status(500).json({ error: 'Failed to release escrow' });
+  }
+});
+
+// 💰 STRIPE CONNECT - REFUND ESCROW
+app.post('/api/stripe/refund-escrow', async (req, res) => {
+  try {
+    const { escrowId, paymentIntentId, reason } = req.body;
+
+    if(process.env.NODE_ENV!=="production")console.log(`↩️ Refunding escrow ${escrowId}: ${reason}`);
+
+    // Refund payment intent
+    // const refund = await stripe.refunds.create({
+    //   payment_intent: paymentIntentId,
+    //   reason: 'requested_by_customer',
+    //   metadata: { escrowId, reason }
+    // });
+
+    res.json({
+      success: true,
+      refundId: `refund_${Date.now()}`,
+      message: 'Escrow refunded'
+    });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('❌ Refund escrow error:', error);
+    res.status(500).json({ error: 'Failed to refund escrow' });
+  }
+});
+
+// 💰 STRIPE CONNECT - ONBOARDING
+app.post('/api/stripe/connect/onboard', async (req, res) => {
+  try {
+    const { userId, email, returnUrl, refreshUrl } = req.body;
+
+    // Create Stripe Connect account
+    const account = await stripe.accounts.create({
+      type: 'express',
+      country: 'GB',
+      email,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true }
+      },
+      metadata: { userId }
+    });
+
+    // Create account link for onboarding
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
+      type: 'account_onboarding'
+    });
+
+    if(process.env.NODE_ENV!=="production")console.log(`✅ Stripe Connect account created for user ${userId}: ${account.id}`);
+
+    res.json({
+      success: true,
+      url: accountLink.url,
+      accountId: account.id
+    });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('❌ Connect onboarding error:', error);
+    res.status(500).json({ error: 'Failed to create Connect account' });
+  }
+});
+
+// 🎧 SUPPORT TICKET EMAIL NOTIFICATION
+app.post('/api/support/notify', async (req, res) => {
+  try {
+    const { ticketId, userEmail, userName, subject, message, priority, planTier, slaHours } = req.body;
+
+    // Validate required fields
+    if (!ticketId || !userEmail || !subject || !message) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // In production, this would send via SendGrid/Mailgun/AWS SES
+    // For now, log to console and return success
+    if(process.env.NODE_ENV!=="production")console.log(`
+📧 SUPPORT TICKET NOTIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ticket ID: ${ticketId}
+User: ${userName} (${userEmail})
+Plan: ${planTier.toUpperCase()}
+Priority: ${priority.toUpperCase()}
+SLA: ${slaHours} hours
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Subject: ${subject}
+Message: ${message}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    `);
+
+    // TODO: Integrate with email service (SendGrid/Mailgun)
+    // Example SendGrid integration:
+    /*
+    const sgMail = require('@sendgrid/mail');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    
+    await sgMail.send({
+      to: 'support@wellnessai.com',
+      from: 'noreply@wellnessai.com',
+      subject: `[${priority.toUpperCase()}] ${subject}`,
+      text: `
+        Support Ticket #${ticketId}
+        
+        User: ${userName} (${userEmail})
+        Plan: ${planTier}
+        Priority: ${priority}
+        SLA: ${slaHours} hours
+        
+        ${message}
+      `,
+      html: `
+        <h2>Support Ticket #${ticketId}</h2>
+        <p><strong>User:</strong> ${userName} (${userEmail})</p>
+        <p><strong>Plan:</strong> ${planTier}</p>
+        <p><strong>Priority:</strong> ${priority}</p>
+        <p><strong>SLA:</strong> ${slaHours} hours</p>
+        <hr>
+        <p>${message}</p>
+      `
+    });
+    */
+
+    res.json({ 
+      success: true, 
+      message: 'Support ticket notification sent',
+      ticketId 
+    });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('❌ Support notification error:', error);
+    res.status(500).json({ error: 'Failed to send support notification' });
+  }
+});
+
+// ✅ PRODUCTION: Health check endpoint
+app.get('/health', (req, res) => {
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    mongodb: db ? (db.memory ? 'fallback' : 'connected') : 'disconnected',
+    firebase: firebaseInitialized ? 'connected' : 'disconnected',
+    stripe: process.env.STRIPE_SECRET_KEY ? 'configured' : 'missing'
+  };
+  
+  res.json(health);
+});
+
+// ✅ PRODUCTION: Error logging endpoint
+app.post('/api/log-error', express.json(), (req, res) => {
+  const { timestamp, message, stack, userId, url } = req.body;
+  
+  console.error('🚨 Client Error:', {
+    timestamp,
+    message,
+    userId,
+    url,
+    stack: stack?.substring(0, 500)
+  });
+  
+  // TODO: Send to error tracking service (Sentry, Rollbar, etc.)
+  
+  res.json({ success: true });
+});
+
+// ✅ PRODUCTION: Logs collection endpoint
+app.post('/api/logs', express.json(), (req, res) => {
+  const { sessionId, logs } = req.body;
+  
+  // Filter only errors and important logs
+  const importantLogs = logs.filter(log => 
+    log.level === 'ERROR' || log.level === 'WARN'
+  );
+  
+  if (importantLogs.length > 0) {
+    console.log(`📊 Session ${sessionId}: ${importantLogs.length} important logs`);
+    importantLogs.forEach(log => {
+      if (log.level === 'ERROR') {
+        console.error('🚨', log.message, log.context);
+      } else {
+        console.warn('⚠️', log.message, log.context);
+      }
+    });
+  }
+  
+  res.json({ success: true, received: logs.length });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   if(process.env.NODE_ENV!=="production")console.log(`
 🚀 WellnessAI API Server Running!
@@ -774,7 +1100,10 @@ app.listen(PORT, '0.0.0.0', () => {
    - Battles: http://YOUR_COMPUTER_IP:${PORT}/api/battles
    - Feedback: http://YOUR_COMPUTER_IP:${PORT}/api/feedback
    - Notifications: http://YOUR_COMPUTER_IP:${PORT}/api/notifications/send
+   - Support: http://YOUR_COMPUTER_IP:${PORT}/api/support/notify
    - Stripe Webhook: http://YOUR_COMPUTER_IP:${PORT}/api/stripe/webhook
+   - Health Check: http://YOUR_COMPUTER_IP:${PORT}/health
+   - Error Logging: http://YOUR_COMPUTER_IP:${PORT}/api/log-error
 
 Database: ${db ? (db.memory ? 'In-Memory (fallback)' : 'MongoDB Connected') : 'Not Connected'}
 

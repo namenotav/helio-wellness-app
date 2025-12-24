@@ -29,3 +29,12 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Firebase Admin SDK (NEVER commit)
+*firebase-adminsdk*.json
+
+# Firebase Admin SDK (NEVER commit)
+*firebase-adminsdk*.json
+
+# Firebase Admin SDK (NEVER commit)
+*firebase-adminsdk*.json

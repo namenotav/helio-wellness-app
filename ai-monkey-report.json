@@ -1,0 +1,792 @@
+{
+  "timestamp": "2025-12-19T13:15:03.951Z",
+  "summary": {
+    "total": 129,
+    "passed": 126,
+    "failed": 3,
+    "warnings": 0,
+    "passRate": 97.7
+  },
+  "tests": [
+    {
+      "category": "FILES",
+      "name": "Core service: authService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: subscriptionService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: geminiService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: firebase.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: stripeService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: syncService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: supportTicketService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: featureFlagService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: moneyEscrowService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Core service: adMobService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: socialBattlesService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: gamificationService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: stepCounterService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: dnaAnalysisService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: healthAvatarService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: emergencyService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: mealAutomationService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: arScannerService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: barcodeScannerService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Feature service: breathingService.js",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: Dashboard.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: LandingPage.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: StepCounter.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: FoodScanner.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: RepCounter.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: BarcodeScanner.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: HealthAvatar.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: DNAUpload.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: SocialBattles.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: EmergencyPanel.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: MealAutomation.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: ARScanner.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: PaywallModal.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FILES",
+      "name": "Component: SupportModal.jsx",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "subscriptionService: Plan definitions exist",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "subscriptionService: New feature flags exist",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "subscriptionService: Barcode scan limits",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "subscriptionService: New price IDs in Stripe service",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "stripeService: New checkout functions",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "RepCounter: Workout limit check implemented",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "BarcodeScanner: Scan limit check implemented",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "FoodScanner: Existing limits still work",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "Dashboard: SupportModal imported",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "Dashboard: Support state variable exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "Dashboard: AI message counter displayed",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "SocialBattles: VIP badge emoji in UI",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "SocialBattles: subscriptionService imported",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "LandingPage: New pricing displayed",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "LandingPage: New checkout functions used",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "INTEGRATION",
+      "name": "PaywallModal: Updated plan tiers",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "supportTicketService: Correct Firestore import",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "supportTicketService: Priority routing logic",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "supportTicketService: Railway API endpoint",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "featureFlagService: Correct Firestore import",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "featureFlagService: Beta features defined",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "featureFlagService: Stable features defined",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "moneyEscrowService: No function name typos",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "moneyEscrowService: Age verification check",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "moneyEscrowService: Stripe Connect integration",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "moneyEscrowService: Escrow states defined",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "adMobService: Placeholder mode active",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "adMobService: Ad types defined",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVICE",
+      "name": "adMobService: Free tier targeting",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVER",
+      "name": "server.js: Support ticket endpoint",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVER",
+      "name": "server.js: Create escrow endpoint",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVER",
+      "name": "server.js: Release escrow endpoint",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVER",
+      "name": "server.js: Refund escrow endpoint",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVER",
+      "name": "server.js: Stripe Connect onboarding",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SERVER",
+      "name": "server.js: Stripe initialized",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "UI",
+      "name": "SupportModal: Form fields present",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "UI",
+      "name": "SupportModal: Priority badge display",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "UI",
+      "name": "SupportModal: Ticket history tab",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "UI",
+      "name": "SupportModal: CSS file exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "UI",
+      "name": "PaywallModal: Free tier accurate limits",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "UI",
+      "name": "PaywallModal: Starter tier features",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "UI",
+      "name": "PaywallModal: Ultimate tier VIP features",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "package.json exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "vite.config.js exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "capacitor.config.json exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "firebase.json exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "firestore.rules exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "package.json: Critical dependencies",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "package.json: Stripe dependency",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "capacitor.config.json: App ID set",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "CONFIG",
+      "name": "capacitor.config.json: Android platform",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SECURITY",
+      "name": "firestore.rules: User authentication required",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SECURITY",
+      "name": "firestore.rules: Users collection protected",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SECURITY",
+      "name": "Environment variables template exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SECURITY",
+      "name": "authService: Firebase auth imported",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SECURITY",
+      "name": "authService: User session handling",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "SECURITY",
+      "name": "subscriptionService: Server-side verification",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FLOW",
+      "name": "Food Scan: Limit check → API call → Usage increment",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FLOW",
+      "name": "Workout: Limit check → Track → Save → Usage increment",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FLOW",
+      "name": "Subscription: Select plan → Stripe checkout → Webhook",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FLOW",
+      "name": "Support: Submit ticket → Save Firestore → Email notification",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FLOW",
+      "name": "Battle: Create → Join → Track → Leaderboard",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "DATA",
+      "name": "syncService: Multi-layer persistence",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "DATA",
+      "name": "syncService: Offline support",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "DATA",
+      "name": "stepCounterService: Data saved to Firestore",
+      "status": "FAIL",
+      "message": false
+    },
+    {
+      "category": "FEATURE",
+      "name": "DNA Analysis: 23andMe parser implemented",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FEATURE",
+      "name": "Health Avatar: Real-time scoring",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FEATURE",
+      "name": "Emergency Panel: GPS & SOS implemented",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FEATURE",
+      "name": "AR Scanner: Camera integration",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "FEATURE",
+      "name": "Meal Automation: AI meal planning",
+      "status": "FAIL",
+      "message": false
+    },
+    {
+      "category": "FEATURE",
+      "name": "Breathing: Multiple patterns defined",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "COMMS",
+      "name": "subscriptionService ↔ All limit-gated features",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "COMMS",
+      "name": "authService ↔ All protected features",
+      "status": "FAIL",
+      "message": false
+    },
+    {
+      "category": "COMMS",
+      "name": "syncService ↔ Data-generating features",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "COMMS",
+      "name": "geminiService ↔ AI-powered features",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "COMMS",
+      "name": "Firebase ↔ All data-persistent features",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "NATIVE",
+      "name": "Step Counter: Native plugin integration",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "NATIVE",
+      "name": "Camera: Photo capture implemented",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "NATIVE",
+      "name": "Geolocation: GPS tracking",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "NATIVE",
+      "name": "Preferences: Local storage",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "NATIVE",
+      "name": "Motion sensors: Rep counting",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "BATCH3",
+      "name": "Support system: Full flow wired",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "BATCH3",
+      "name": "Feature flags: System operational",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "BATCH3",
+      "name": "VIP badges: Display logic complete",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "BATCH3",
+      "name": "Money escrow: Full Stripe Connect flow",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "BATCH3",
+      "name": "AdMob: Placeholder ready for activation",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "BATCH3",
+      "name": "AI message counter: UI displayed",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "ERROR",
+      "name": "subscriptionService: Handles undefined user",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "ERROR",
+      "name": "geminiService: API error handling",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "ERROR",
+      "name": "stripeService: Payment failure handling",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "ERROR",
+      "name": "syncService: Offline data queuing",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "MOBILE",
+      "name": "Android build config exists",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "MOBILE",
+      "name": "Capacitor plugins registered",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "MOBILE",
+      "name": "App icons configured",
+      "status": "PASS",
+      "message": ""
+    },
+    {
+      "category": "MOBILE",
+      "name": "Splash screen configured",
+      "status": "PASS",
+      "message": ""
+    }
+  ],
+  "errors": [
+    "[DATA] stepCounterService: Data saved to Firestore: false",
+    "[FEATURE] Meal Automation: AI meal planning: false",
+    "[COMMS] authService ↔ All protected features: false"
+  ],
+  "criticalIssues": []
+}

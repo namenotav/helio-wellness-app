@@ -1,6 +1,7 @@
 // Gamification Service - Streaks, XP, Levels, Achievements
 import firestoreService from './firestoreService';
 import authService from './authService';
+import * as brain from 'brain.js';
 
 const GAMIFICATION_STORAGE_KEY = 'wellnessai_gamification'
 
@@ -105,7 +106,125 @@ const ACHIEVEMENTS = {
 class GamificationService {
   constructor() {
     this.syncService = null; // Will be injected
-    this.loadData()
+    this.neuralNetwork = null; // Brain.js neural network
+    this.trainingData = [];
+    this.loadData();
+    this.initializeAI();
+  }
+  
+  // Initialize Brain.js neural network for AI predictions
+  async initializeAI() {
+    try {
+      this.neuralNetwork = new brain.NeuralNetwork({
+        hiddenLayers: [4, 3],
+        activation: 'sigmoid'
+      });
+      
+      // Load training data from storage
+      const storedData = localStorage.getItem('ai_training_data');
+      if (storedData) {
+        this.trainingData = JSON.parse(storedData);
+        
+        // Train network if we have enough data
+        if (this.trainingData.length >= 10) {
+          await this.trainNetwork();
+        }
+      }
+      
+      if(import.meta.env.DEV)console.log('✅ Brain.js neural network initialized');
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to initialize Brain.js:', error);
+    }
+  }
+  
+  // Train neural network on user behavior
+  async trainNetwork() {
+    if (!this.neuralNetwork || this.trainingData.length < 10) {
+      return;
+    }
+    
+    try {
+      // Normalize training data
+      const normalizedData = this.trainingData.map(d => ({
+        input: {
+          dayOfWeek: d.dayOfWeek / 7,
+          hourOfDay: d.hourOfDay / 24,
+          currentStreak: d.currentStreak / 30,
+          avgDailySteps: d.avgDailySteps / 10000
+        },
+        output: {
+          willComplete: d.didComplete ? 1 : 0
+        }
+      }));
+      
+      // Train the network
+      this.neuralNetwork.train(normalizedData, {
+        iterations: 1000,
+        errorThresh: 0.005
+      });
+      
+      if(import.meta.env.DEV)console.log('🧠 Neural network trained on', this.trainingData.length, 'samples');
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to train neural network:', error);
+    }
+  }
+  
+  // Get AI prediction for user behavior
+  predictUserBehavior(context) {
+    if (!this.neuralNetwork) {
+      return { willComplete: 0.5, confidence: 0 };
+    }
+    
+    try {
+      const input = {
+        dayOfWeek: new Date().getDay() / 7,
+        hourOfDay: new Date().getHours() / 24,
+        currentStreak: this.data.streak / 30,
+        avgDailySteps: (this.data.stats.totalSteps / Math.max(this.data.stats.totalWorkouts, 1)) / 10000
+      };
+      
+      const output = this.neuralNetwork.run(input);
+      const prediction = output.willComplete || output;
+      
+      return {
+        willComplete: prediction,
+        confidence: Math.abs(prediction - 0.5) * 2,
+        recommendation: prediction > 0.7 ? 'High motivation - perfect time for a workout!' :
+                       prediction > 0.5 ? 'Good time to exercise' :
+                       prediction > 0.3 ? 'Try a light activity' :
+                       'Rest day recommended'
+      };
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Prediction error:', error);
+      return { willComplete: 0.5, confidence: 0 };
+    }
+  }
+  
+  // Record user behavior for training
+  recordBehavior(didComplete) {
+    const dataPoint = {
+      dayOfWeek: new Date().getDay(),
+      hourOfDay: new Date().getHours(),
+      currentStreak: this.data.streak,
+      avgDailySteps: this.data.stats.totalSteps / Math.max(this.data.stats.totalWorkouts, 1),
+      didComplete,
+      timestamp: Date.now()
+    };
+    
+    this.trainingData.push(dataPoint);
+    
+    // Keep only last 100 data points
+    if (this.trainingData.length > 100) {
+      this.trainingData.shift();
+    }
+    
+    // Save training data
+    localStorage.setItem('ai_training_data', JSON.stringify(this.trainingData));
+    
+    // Retrain network every 10 new data points
+    if (this.trainingData.length % 10 === 0) {
+      this.trainNetwork();
+    }
   }
 
   // Set sync service dependency
@@ -598,9 +717,22 @@ class GamificationService {
       }
     })
     
-    // Add rank
+    // Add rank and VIP badge flag
     leaderboardData.forEach((user, idx) => {
-      user.rank = idx + 1
+      user.rank = idx + 1;
+      
+      // Add VIP badge for Ultimate users (randomly for demo users, real check for current user)
+      if (user.isCurrentUser) {
+        try {
+          const { default: subscriptionService } = require('./subscriptionService');
+          user.isVIP = subscriptionService.hasAccess('vipBadge');
+        } catch (error) {
+          user.isVIP = false;
+        }
+      } else {
+        // Demo users - 20% chance of VIP badge for realism
+        user.isVIP = Math.random() < 0.2;
+      }
     })
     
     return leaderboardData.slice(0, limit)

@@ -4,6 +4,13 @@ import authService from './authService';
 class RecommendationService {
   constructor() {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    this.API_URL = import.meta.env.VITE_API_URL || 'https://helio-wellness-app-production.up.railway.app';
+    // Frontend rate limiting to prevent abuse
+    this.rateLimits = {
+      lastCall: {},
+      callCount: {},
+      resetTime: {}
+    };
   }
 
   // Generate personalized recipes
@@ -41,19 +48,22 @@ Return as JSON array:
 ]`;
 
     try {
+      // SECURITY: Route through server with rate limiting (50 per day)
+      if (!this.checkRateLimit('recipes', 50, 86400000)) {
+        return { success: false, error: 'Daily recipe limit reached. Try again tomorrow.' };
+      }
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+        `${this.API_URL}/api/chat`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+          body: JSON.stringify({ message: prompt })
         }
       );
 
       const data = await response.json();
-      const aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+      const aiResponse = data.response || '';
       const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
 
       if (jsonMatch) {
@@ -88,19 +98,22 @@ For each restaurant type/chain:
 Return as JSON array.`;
 
     try {
+      // SECURITY: Route through server (10 per day)
+      if (!this.checkRateLimit('restaurants', 10, 86400000)) {
+        return { success: false, error: 'Daily restaurant search limit reached.' };
+      }
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+        `${this.API_URL}/api/chat`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+          body: JSON.stringify({ message: prompt })
         }
       );
 
       const data = await response.json();
-      const aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+      const text = data.response;
       const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
 
       if (jsonMatch) {
@@ -136,19 +149,22 @@ For each alternative:
 Return as JSON array.`;
 
     try {
+      // SECURITY: Route through server (30 per day)
+      if (!this.checkRateLimit('alternatives', 30, 86400000)) {
+        return { success: false, error: 'Daily alternative search limit reached.' };
+      }
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+        `${this.API_URL}/api/chat`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+          body: JSON.stringify({ message: prompt })
         }
       );
 
       const data = await response.json();
-      const aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+      const aiResponse = data.response || '';
       const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
 
       if (jsonMatch) {
@@ -199,19 +215,22 @@ Return as JSON:
 }`;
 
     try {
+      // SECURITY: Route through server (5 per week)
+      if (!this.checkRateLimit('mealPlan', 5, 604800000)) {
+        return { success: false, error: 'Weekly meal plan limit reached.' };
+      }
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+        `${this.API_URL}/api/chat`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+          body: JSON.stringify({ message: prompt })
         }
       );
 
       const data = await response.json();
-      const aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+      const aiResponse = data.response || '';
       const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
 
       if (jsonMatch) {
@@ -254,19 +273,22 @@ Return as JSON:
 }`;
 
     try {
+      // SECURITY: Route through server (10 per day)
+      if (!this.checkRateLimit('nutrition', 10, 86400000)) {
+        return { success: false, error: 'Daily nutrition guidance limit reached.' };
+      }
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+        `${this.API_URL}/api/chat`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+          body: JSON.stringify({ message: prompt })
         }
       );
 
       const data = await response.json();
-      const aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+      const aiResponse = data.response || '';
       const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
 
       if (jsonMatch) {
@@ -296,19 +318,22 @@ Requirements:
 Return as JSON array of strings: ["snack1", "snack2", ...]`;
 
     try {
+      // SECURITY: Route through server (20 per day)
+      if (!this.checkRateLimit('snacks', 20, 86400000)) {
+        return { success: false, error: 'Daily snack suggestion limit reached.' };
+      }
+
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+        `${this.API_URL}/api/chat`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+          body: JSON.stringify({ message: prompt })
         }
       );
 
       const data = await response.json();
-      const aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+      const aiResponse = data.response || '';
       const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
 
       if (jsonMatch) {

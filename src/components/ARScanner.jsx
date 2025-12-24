@@ -41,7 +41,24 @@ export default function ARScanner({ onClose }) {
         ...result.overlayData,
         databaseMatches: result.databaseMatches || [] // Store database results
       });
+      
+      // Save scan result to storage
+      const scanResult = {
+        imageData: result.imageData,
+        overlayData: result.overlayData,
+        timestamp: Date.now(),
+        date: new Date().toISOString().split('T')[0]
+      };
+      
+      const existingScans = JSON.parse(localStorage.getItem('ar_scans') || '[]');
+      existingScans.push(scanResult);
+      localStorage.setItem('ar_scans', JSON.stringify(existingScans));
+      
+      const syncService = (await import('../services/syncService')).default;
+      await syncService.saveData('ar_scans', scanResult);
+      
       if(import.meta.env.DEV)console.log('✅ AR overlay set with database matches:', result.overlayData);
+      if(import.meta.env.DEV)console.log('📊 AR scan saved to storage');
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ AR scan error:', error);
       alert('Failed to start AR scan: ' + error.message);

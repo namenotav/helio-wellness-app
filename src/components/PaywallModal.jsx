@@ -1,5 +1,5 @@
 import React from 'react';
-import { checkoutEssential, checkoutPremium, checkoutVIP } from '../services/stripeService';
+import { checkoutStarter, checkoutPremium, checkoutUltimate } from '../services/stripeService';
 import './PaywallModal.css';
 
 const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) => {
@@ -7,12 +7,12 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
 
   const handleUpgrade = (plan) => {
     onClose();
-    if (plan === 'essential') {
-      checkoutEssential();
+    if (plan === 'starter') {
+      checkoutStarter();
     } else if (plan === 'premium') {
       checkoutPremium();
-    } else if (plan === 'vip') {
-      checkoutVIP();
+    } else if (plan === 'ultimate') {
+      checkoutUltimate();
     }
   };
 
@@ -38,45 +38,47 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
               <span className="period">/forever</span>
             </div>
             <ul className="tier-features">
-              <li>✅ Basic tracking</li>
-              <li>✅ 10 AI messages/day</li>
               <li>✅ 3 food scans/day</li>
-              <li>❌ No AR scanner</li>
+              <li>✅ 1 workout/day</li>
+              <li>❌ No barcode scanner</li>
               <li>❌ No DNA analysis</li>
-              <li>❌ Limited features</li>
+              <li>❌ No Health Avatar</li>
+              <li>❌ No AR scanner</li>
+              <li>❌ No social battles</li>
+              <li>❌ No meal automation</li>
             </ul>
             {currentPlan === 'free' && (
               <div className="current-badge">You are here</div>
             )}
           </div>
 
-          {/* ESSENTIAL PLAN */}
-          <div className={`pricing-tier ${currentPlan === 'essential' ? 'current-plan' : 'featured'}`}>
+          {/* STARTER PLAN */}
+          <div className={`pricing-tier ${currentPlan === 'starter' ? 'current-plan' : 'featured'}`}>
             <div className="tier-badge popular">⭐ Most Popular</div>
             <div className="tier-icon">💪</div>
-            <h3 className="tier-name">Essential</h3>
+            <h3 className="tier-name">Starter</h3>
             <div className="tier-price">
-              <span className="price">£4.99</span>
+              <span className="price">£6.99</span>
               <span className="period">/month</span>
             </div>
             <ul className="tier-features">
-              <li>✅ NO ADS</li>
-              <li>✅ 30 AI messages/day</li>
-              <li>✅ 1 AR scan/day</li>
-              <li>✅ Weekly avatar update</li>
-              <li>✅ Basic DNA insights</li>
-              <li>✅ Social battles</li>
-              <li>✅ Emergency contact</li>
-              <li>✅ Offline tracking</li>
+              <li>✅ 3 food scans/day</li>
+              <li>✅ 3 barcode scans/day</li>
+              <li>✅ Unlimited workouts</li>
+              <li>❌ No DNA analysis</li>
+              <li>❌ No Health Avatar</li>
+              <li>❌ No AR scanner</li>
+              <li>❌ No social battles</li>
+              <li>❌ No meal automation</li>
             </ul>
-            {currentPlan === 'essential' ? (
+            {currentPlan === 'starter' ? (
               <div className="current-badge">You are here</div>
             ) : (
               <button 
-                className="upgrade-btn essential"
-                onClick={() => handleUpgrade('essential')}
+                className="upgrade-btn starter"
+                onClick={() => handleUpgrade('starter')}
               >
-                💪 Get Essential
+                💪 Get Starter
               </button>
             )}
           </div>
@@ -86,17 +88,17 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
             <div className="tier-icon">⭐</div>
             <h3 className="tier-name">Premium</h3>
             <div className="tier-price">
-              <span className="price">£14.99</span>
+              <span className="price">£16.99</span>
               <span className="period">/month</span>
             </div>
             <ul className="tier-features">
-              <li>✅ Everything in Essential</li>
+              <li>✅ Everything in Starter</li>
               <li>✅ 50 AI messages/day</li>
-              <li>✅ 100 AR credits/month</li>
-              <li>✅ Full DNA analysis</li>
-              <li>✅ Unlimited avatar</li>
+              <li>✅ Full DNA analysis (23andMe)</li>
+              <li>✅ Health Avatar + predictions</li>
+              <li>✅ AR food scanner</li>
+              <li>✅ Social battles</li>
               <li>✅ Meal automation</li>
-              <li>✅ Family 3 members</li>
               <li>✅ Health data export (PDF)</li>
             </ul>
             {currentPlan === 'premium' ? (
@@ -111,31 +113,31 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
             )}
           </div>
 
-          {/* VIP PLAN */}
-          <div className={`pricing-tier ${currentPlan === 'vip' ? 'current-plan' : ''}`}>
+          {/* ULTIMATE PLAN */}
+          <div className={`pricing-tier ${currentPlan === 'ultimate' ? 'current-plan' : ''}`}>
             <div className="tier-badge vip">👑 VIP</div>
             <div className="tier-icon">👑</div>
             <h3 className="tier-name">Ultimate</h3>
             <div className="tier-price">
-              <span className="price">£29.99</span>
+              <span className="price">£34.99</span>
               <span className="period">/month</span>
             </div>
             <ul className="tier-features">
               <li>✅ <strong>UNLIMITED</strong> AI messages</li>
-              <li>✅ <strong>UNLIMITED</strong> AR scans</li>
               <li>✅ Everything in Premium</li>
-              <li>✅ 1-on-1 coaching (30 min/mo)</li>
+              <li>✅ 🎮 Priority Support (2hr SLA)</li>
+              <li>✅ 🔬 Early beta access</li>
+              <li>✅ 👑 VIP badge in leaderboards</li>
               <li>✅ White-label reports (PDF)</li>
               <li>✅ API access (1K calls/mo)</li>
               <li>✅ Phone support (9am-6pm)</li>
-              <li>✅ Family 5 members</li>
             </ul>
-            {currentPlan === 'vip' ? (
+            {currentPlan === 'ultimate' ? (
               <div className="current-badge">You are here</div>
             ) : (
               <button 
-                className="upgrade-btn vip"
-                onClick={() => handleUpgrade('vip')}
+                className="upgrade-btn ultimate"
+                onClick={() => handleUpgrade('ultimate')}
               >
                 👑 Get Ultimate
               </button>

@@ -1,10 +1,18 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
+import productionValidator from './services/productionValidator';
 
 // 🔥 AGGRESSIVE CACHE CLEARING - v1.0.8 Deployment
 const APP_VERSION = '1.0.8';
 const DEPLOYED_AT = '__BUILD_TIMESTAMP__';
+
+// ✅ PRODUCTION: Validate environment before starting app
+const isValid = productionValidator.validate();
+if (!isValid && import.meta.env.PROD) {
+  // Production validator will show error screen
+  throw new Error('Environment validation failed');
+}
 
 // 1. Force unregister ALL service workers
 if ('serviceWorker' in navigator) {

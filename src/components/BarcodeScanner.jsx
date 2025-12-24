@@ -14,6 +14,14 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
 
   const handleScan = async () => {
     try {
+      // Check barcode scan limit (starter users: 3/day)
+      const { default: subscriptionService } = await import('../services/subscriptionService');
+      const limitCheck = await subscriptionService.checkLimit('barcodeScans');
+      if (!limitCheck.allowed) {
+        setError(limitCheck.message);
+        return;
+      }
+
       setError(null);
       setScanning(true);
       setLoading(false);
@@ -52,6 +60,10 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
             totalResults: allResults.length
           });
           if(import.meta.env.DEV)console.log(`✅ Found ${allResults.length} matches across databases. Best: ${allResults[0].name}`);
+          
+          // Increment barcode scan usage (for starter user limits)
+          const { default: subscriptionService } = await import('../services/subscriptionService');
+          await subscriptionService.incrementUsage('barcodeScans');
         } else {
           setError('Product not found in any database (USDA, Restaurants, OpenFoodFacts)');
         }

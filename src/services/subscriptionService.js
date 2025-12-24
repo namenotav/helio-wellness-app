@@ -15,34 +15,34 @@ class SubscriptionService {
           meditation: false,
           aiVoiceCoach: 'limited',
           waterTracking: true,
+          breathing: true,
+          emergencyPanel: true,
           // LOCKED
           dnaAnalysis: false,
-          socialBattles: 'basic',
-          insuranceRewards: false,
-          mealAutomation: false,
-          healthAvatar: false,
-          arScanner: false,
-          emergencyPanel: false,
+          socialBattles: false,
           appleHealthSync: false,
           wearableSync: false,
           exportReports: false,
           heartRate: false,
           sleepTracking: false,
-          workouts: false,
-          breathing: false,
-          pdfExport: false
+          workouts: 'limited',
+          pdfExport: false,
+          prioritySupport: false,
+          betaAccess: false,
+          vipBadge: false
         },
         limits: {
-          aiMessages: 10,
+          aiMessages: 0,
           foodScans: 3,
+          barcodeScans: 0,
           arScans: 0,
-          workouts: 0
+          workouts: 1
         }
       },
-      essential: {
-        id: 'essential',
-        name: 'Essential',
-        price: 4.99,
+      starter: {
+        id: 'starter',
+        name: 'Starter',
+        price: 6.99,
         billing: 'monthly',
         features: {
           basicTracking: true,
@@ -50,34 +50,39 @@ class SubscriptionService {
           foodScanner: true,
           meditation: true,
           waterTracking: true,
-          aiVoiceCoach: true,
-          dnaAnalysis: 'basic',
+          aiVoiceCoach: 'limited',
+          breathing: true,
           socialBattles: true,
+          workouts: true,
+          // LOCKED
+          dnaAnalysis: false,
           insuranceRewards: false,
           mealAutomation: false,
-          healthAvatar: 'weekly',
-          arScanner: 'limited',
+          healthAvatar: false,
+          arScanner: false,
           emergencyPanel: true,
           appleHealthSync: false,
           wearableSync: false,
           exportReports: false,
           heartRate: true,
           sleepTracking: true,
-          workouts: true,
-          breathing: true,
-          pdfExport: false
+          pdfExport: false,
+          prioritySupport: false,
+          betaAccess: false,
+          vipBadge: false
         },
         limits: {
-          aiMessages: 30,
-          foodScans: 999999,
-          arScans: 1,
+          aiMessages: 0,
+          foodScans: 3,
+          barcodeScans: 3,
+          arScans: 0,
           workouts: 999999
         }
       },
       premium: {
         id: 'premium',
         name: 'Premium',
-        price: 14.99,
+        price: 16.99,
         billing: 'monthly',
         features: {
           basicTracking: true,
@@ -90,7 +95,7 @@ class SubscriptionService {
           socialBattles: true,
           insuranceRewards: false,
           mealAutomation: true,
-          healthAvatar: 'daily',
+          healthAvatar: true,
           arScanner: true,
           emergencyPanel: true,
           appleHealthSync: false,
@@ -100,19 +105,23 @@ class SubscriptionService {
           sleepTracking: true,
           workouts: true,
           breathing: true,
-          pdfExport: true
+          pdfExport: true,
+          prioritySupport: false,
+          betaAccess: false,
+          vipBadge: false
         },
         limits: {
           aiMessages: 50,
           foodScans: 999999,
-          arScans: 100,
+          barcodeScans: 999999,
+          arScans: 999999,
           workouts: 999999
         }
       },
-      vip: {
-        id: 'vip',
-        name: 'VIP',
-        price: 29.99,
+      ultimate: {
+        id: 'ultimate',
+        name: 'Ultimate',
+        price: 34.99,
         billing: 'monthly',
         features: {
           basicTracking: true,
@@ -125,7 +134,7 @@ class SubscriptionService {
           socialBattles: true,
           insuranceRewards: false,
           mealAutomation: true,
-          healthAvatar: 'realtime',
+          healthAvatar: true,
           arScanner: 'unlimited',
           emergencyPanel: true,
           appleHealthSync: false,
@@ -135,11 +144,15 @@ class SubscriptionService {
           sleepTracking: true,
           workouts: true,
           breathing: true,
-          pdfExport: true
+          pdfExport: true,
+          prioritySupport: true,
+          betaAccess: true,
+          vipBadge: true
         },
         limits: {
           aiMessages: 999999,
           foodScans: 999999,
+          barcodeScans: 999999,
           arScans: 999999,
           workouts: 999999
         }
@@ -231,6 +244,10 @@ class SubscriptionService {
     }
 
     const plan = this.getCurrentPlan();
+    if (!plan || !plan.features) {
+      console.warn('⚠️ Invalid plan data, defaulting to free');
+      return this.plans.free.features[featureName] === true;
+    }
     return plan.features[featureName] === true || plan.features[featureName] === 'unlimited';
   }
 
@@ -275,22 +292,34 @@ class SubscriptionService {
   // Get upgrade message for locked features
   getUpgradeMessage(featureName) {
     const messages = {
-      dnaAnalysis: '🧬 DNA Analysis requires Essential plan or higher',
-      socialBattles: '⚔️ Social Battles requires Essential plan or higher',
+      // Starter Plan - £6.99/mo
+      workouts: '💪 Unlimited workouts require Starter plan (£6.99/mo)',
+      barcodeScans: '📦 Barcode scanning (3/day) requires Starter plan (£6.99/mo)',
+      
+      // Premium Plan - £16.99/mo
+      dnaAnalysis: '🧬 DNA Analysis requires Premium plan (£16.99/mo)',
+      socialBattles: '⚔️ Social Battles requires Premium plan (£16.99/mo)',
+      mealAutomation: '🍽️ Meal Automation requires Premium plan (£16.99/mo)',
+      healthAvatar: '🧬 Health Avatar requires Premium plan (£16.99/mo)',
+      arScanner: '📸 AR Scanner requires Premium plan (£16.99/mo)',
+      emergencyPanel: '🚨 Emergency Panel requires Premium plan (£16.99/mo)',
+      exportReports: '📄 Export Reports requires Premium plan (£16.99/mo)',
+      meditation: '🧘 Meditation Library requires Premium plan (£16.99/mo)',
+      heartRate: '❤️ Heart Rate Tracking requires Premium plan (£16.99/mo)',
+      sleepTracking: '😴 Sleep Tracking requires Premium plan (£16.99/mo)',
+      breathing: '🌬️ Breathing Exercises requires Premium plan (£16.99/mo)',
+      pdfExport: '📄 PDF Export requires Premium plan (£16.99/mo)',
+      
+      // Ultimate Plan - £34.99/mo
+      prioritySupport: '🎧 Priority Support (2hr response) requires Ultimate plan (£34.99/mo)',
+      betaAccess: '🔬 Early access to beta features requires Ultimate plan (£34.99/mo)',
+      vipBadge: '👑 VIP Badge in leaderboards requires Ultimate plan (£34.99/mo)',
+      unlimitedAI: '🤖 Unlimited AI messages require Ultimate plan (£34.99/mo)',
+      
+      // Coming Soon
       insuranceRewards: '💰 Insurance Rewards - Coming Soon',
-      mealAutomation: '🍽️ Meal Automation requires Premium plan (£14.99/mo)',
-      healthAvatar: '🧬 Health Avatar requires Essential plan or higher',
-      arScanner: '📸 AR Scanner requires Essential plan or higher',
-      emergencyPanel: '🚨 Emergency Panel requires Essential plan (£4.99/mo)',
       appleHealthSync: '❤️ Apple Health Sync - Coming Soon',
-      wearableSync: '⌚ Wearable Integration - Coming Soon',
-      exportReports: '📄 Export Reports requires Premium plan (£14.99/mo)',
-      meditation: '🧘 Meditation Library requires Essential plan (£4.99/mo)',
-      heartRate: '❤️ Heart Rate Tracking requires Essential plan (£4.99/mo)',
-      sleepTracking: '😴 Sleep Tracking requires Essential plan (£4.99/mo)',
-      workouts: '💪 Workout Library requires Essential plan (£4.99/mo)',
-      breathing: '🌬️ Breathing Exercises requires Essential plan (£4.99/mo)',
-      pdfExport: '📄 PDF Export requires Premium plan (£14.99/mo)'
+      wearableSync: '⌚ Wearable Integration - Coming Soon'
     };
     return messages[featureName] || 'This feature requires a paid plan';
   }
@@ -300,9 +329,11 @@ class SubscriptionService {
     const plan = this.getCurrentPlan();
     const badges = {
       free: '🆓 Free',
-      essential: '💪 Essential',
+      starter: '💪 Starter',
       premium: '⭐ Premium',
-      vip: '👑 VIP'
+      ultimate: '👑 Ultimate',
+      essential: '💪 Essential (Legacy)',
+      vip: '👑 VIP (Legacy)'
     };
     return badges[plan.id] || badges.free;
   }
@@ -310,7 +341,7 @@ class SubscriptionService {
   // Check if user can upgrade
   canUpgradeTo(targetPlan) {
     const currentPlan = this.getCurrentPlan();
-    const planHierarchy = { free: 0, essential: 1, premium: 2, vip: 3 };
+    const planHierarchy = { free: 0, starter: 1, essential: 1, premium: 2, vip: 3, ultimate: 3 };
     return planHierarchy[targetPlan] > planHierarchy[currentPlan.id];
   }
 

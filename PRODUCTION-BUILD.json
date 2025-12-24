@@ -1,0 +1,84 @@
+{
+  "name": "Production Build & Deploy Script",
+  "version": "1.0.0",
+  "steps": [
+    {
+      "name": "Pre-build Validation",
+      "commands": [
+        "echo '🔍 Validating environment...'",
+        "node -e \"if(!process.env.VITE_FIREBASE_API_KEY){console.error('❌ Missing Firebase config');process.exit(1)}\"",
+        "node -e \"if(!process.env.VITE_GEMINI_API_KEY){console.error('❌ Missing Gemini API key');process.exit(1)}\"",
+        "node -e \"if(!process.env.VITE_STRIPE_PUBLISHABLE_KEY){console.error('❌ Missing Stripe key');process.exit(1)}\""
+      ]
+    },
+    {
+      "name": "Clean Build",
+      "commands": [
+        "echo '🧹 Cleaning old build...'",
+        "rm -rf dist",
+        "rm -rf android/app/build",
+        "rm -rf www"
+      ]
+    },
+    {
+      "name": "Install Dependencies",
+      "commands": [
+        "echo '📦 Installing dependencies...'",
+        "npm ci --production=false"
+      ]
+    },
+    {
+      "name": "Production Build",
+      "commands": [
+        "echo '🏗️ Building production app...'",
+        "NODE_ENV=production npm run build"
+      ]
+    },
+    {
+      "name": "Copy to Capacitor",
+      "commands": [
+        "echo '📱 Syncing to Capacitor...'",
+        "npx cap copy",
+        "npx cap sync android"
+      ]
+    },
+    {
+      "name": "Build Android APK",
+      "commands": [
+        "echo '🤖 Building Android APK...'",
+        "cd android",
+        "chmod +x gradlew",
+        "./gradlew assembleRelease",
+        "cd .."
+      ]
+    },
+    {
+      "name": "Deploy to Railway",
+      "commands": [
+        "echo '🚂 Deploying server to Railway...'",
+        "git add .",
+        "git commit -m 'Production deployment'",
+        "git push railway main"
+      ]
+    },
+    {
+      "name": "Deploy Firestore Rules",
+      "commands": [
+        "echo '🔥 Deploying Firestore rules...'",
+        "firebase deploy --only firestore:rules"
+      ]
+    }
+  ],
+  "postBuild": {
+    "artifacts": [
+      "dist/ - Web build",
+      "android/app/build/outputs/apk/release/app-release.apk - Android APK"
+    ],
+    "verification": [
+      "Check dist/ folder exists and has index.html",
+      "Verify APK file size (should be 30-50MB)",
+      "Test Railway health endpoint: curl https://YOUR_URL/health",
+      "Verify Firestore rules deployed"
+    ]
+  }
+}

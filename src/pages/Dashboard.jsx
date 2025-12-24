@@ -7,6 +7,8 @@ import { Capacitor } from '@capacitor/core'
 import devAuthService from '../services/devAuthService'
 import authService from '../services/authService'
 import subscriptionService from '../services/subscriptionService'
+import stepCounterService from '../services/stepCounterService'
+import gamificationService from '../services/gamificationService'
 import DevUnlock from '../components/DevUnlock'
 import StepCounter from '../components/StepCounter'
 import FoodScanner from '../components/FoodScanner'
@@ -19,6 +21,7 @@ import DNAUpload from '../components/DNAUpload'
 import SocialBattles from '../components/SocialBattles'
 import MealAutomation from '../components/MealAutomation'
 import PaywallModal from '../components/PaywallModal'
+import SupportModal from '../components/SupportModal'
 import '../styles/Dashboard.css'
 import '../styles/AdventureMap.css'
 
@@ -34,7 +37,15 @@ export default function Dashboard() {
     wellnessScore: 78,
     level: 3,
     xp: 450,
-    xpToNext: 600
+    xpToNext: 600,
+    steps: 0,
+    repCount: 0,
+    calories: 0,
+    recommendation: '',
+    progressChart: [],
+    recentActivity: [],
+    nutritionSummary: {},
+    workoutHistory: []
   })
   
   // Developer mode state
@@ -58,6 +69,7 @@ export default function Dashboard() {
   const [showMealAutomation, setShowMealAutomation] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
   const [paywallFeature, setPaywallFeature] = useState('')
+  const [showSupport, setShowSupport] = useState(false)
   
   // Check if user needs to complete profile
   useEffect(() => {
@@ -66,6 +78,70 @@ export default function Dashboard() {
       // New user - show profile setup
       setShowProfileSetup(true)
     }
+    
+    // Initialize services and load data
+    stepCounterService.initialize();
+    
+    // Get AI recommendation
+    const prediction = gamificationService.predictUserBehavior();
+    setUserData(prev => ({ ...prev, recommendation: prediction.recommendation }));
+    
+    // Load progress chart data
+    const loadProgressData = () => {
+      const dailySteps = localStorage.getItem('dailySteps');
+      const stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '{}');
+      const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      
+      if(import.meta.env.DEV)console.log('📊 Loading dashboard data:', { dailySteps, workoutHistory: workoutHistory.length, foodLog: foodLog.length });
+      
+      // Build progress chart data (last 7 days)
+      const chartData = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        chartData.push({
+          date: dateStr,
+          steps: stepHistory.steps || 0,
+          workouts: workoutHistory.filter(w => w.date === dateStr).length,
+          meals: foodLog.filter(m => m.date === dateStr).length
+        });
+      }
+      
+      // Recent activity
+      const recentActivity = [
+        ...workoutHistory.slice(-5).map(w => ({ type: 'workout', ...w })),
+        ...foodLog.slice(-5).map(f => ({ type: 'meal', ...f }))
+      ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+      
+      // Nutrition summary
+      const todayMeals = foodLog.filter(m => m.date === new Date().toISOString().split('T')[0]);
+      const nutritionSummary = {
+        totalCalories: todayMeals.reduce((sum, m) => sum + (m.calories || 0), 0),
+        meals: todayMeals.length,
+        protein: todayMeals.reduce((sum, m) => sum + (m.protein || 0), 0),
+        carbs: todayMeals.reduce((sum, m) => sum + (m.carbs || 0), 0)
+      };
+      
+      setUserData(prev => ({
+        ...prev,
+        progressChart: chartData,
+        recentActivity,
+        nutritionSummary,
+        workoutHistory
+      }));
+    };
+    
+    loadProgressData();
+    
+    // Update step count every second
+    const stepInterval = setInterval(async () => {
+      const steps = await stepCounterService.getStepCount();
+      setUserData(prev => ({ ...prev, steps }));
+    }, 1000);
+    
+    return () => clearInterval(stepInterval);
   }, [])
 
   // Theme configurations
@@ -183,6 +259,7 @@ export default function Dashboard() {
             onOpenDNA={() => setShowDNAUpload(true)}
             onOpenBattles={() => setShowSocialBattles(true)}
             onOpenMeals={() => setShowMealAutomation(true)}
+            onOpenSupport={() => setShowSupport(true)}
           />
         </>
       ) : (
@@ -240,12 +317,20 @@ export default function Dashboard() {
 
       {/* Paywall Modal */}
       {showPaywall && renderPaywall()}
+
+      {/* Support Modal */}
+      {showSupport && (
+        <SupportModal 
+          isOpen={showSupport}
+          onClose={() => setShowSupport(false)}
+        />
+      )}
     </div>
   )
 }
 
 // Adventure Map Component
-function AdventureMap({ userData, theme, currentTheme, themes, onThemeChange, onFeatureSelect, onNavigate, isDevMode, onLogoTap, onOpenFoodScanner, onOpenHealthAvatar, onOpenARScanner, onOpenEmergency, onOpenInsurance, onOpenDNA, onOpenBattles, onOpenMeals }) {
+function AdventureMap({ userData, theme, currentTheme, themes, onThemeChange, onFeatureSelect, onNavigate, isDevMode, onLogoTap, onOpenFoodScanner, onOpenHealthAvatar, onOpenARScanner, onOpenEmergency, onOpenInsurance, onOpenDNA, onOpenBattles, onOpenMeals, onOpenSupport }) {
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const [showKillerFeatures, setShowKillerFeatures] = useState(false)
 
@@ -393,6 +478,27 @@ function AdventureMap({ userData, theme, currentTheme, themes, onThemeChange, on
               <span className="killer-name">Meal Auto</span>
             </button>
           </div>
+          <button 
+            className="support-access-btn" 
+            onClick={() => { 
+              onOpenSupport();
+              setShowKillerFeatures(false);
+            }}
+            style={{ 
+              width: '100%',
+              marginTop: '15px',
+              padding: '12px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              border: 'none',
+              borderRadius: '10px',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            🎧 Support Center
+          </button>
         </div>
       )}
 
@@ -953,6 +1059,31 @@ function AICoachTab() {
             </div>
           )}
         </div>
+        
+        {/* AI Message Counter */}
+        <div style={{
+          padding: '12px 16px',
+          background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+          borderTop: '1px solid #d1d5db',
+          textAlign: 'center',
+          fontSize: '14px',
+          color: '#6b7280',
+          fontWeight: '600'
+        }}>
+          {(() => {
+            const plan = subscriptionService.getCurrentPlan();
+            if (plan.id === 'ultimate' || plan.id === 'vip') {
+              return '🤖 Unlimited AI messages';
+            } else if (plan.id === 'premium') {
+              const limit = subscriptionService.checkLimit('aiMessages');
+              const remaining = limit.remaining || 50;
+              return `💬 ${remaining}/50 messages remaining today`;
+            } else {
+              return '⚡ Upgrade to chat with AI';
+            }
+          })()}
+        </div>
+        
         <div className="chat-input">
           <button 
             onClick={startVoiceInput}

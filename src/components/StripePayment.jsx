@@ -25,63 +25,64 @@ const StripePayment = ({ isOpen, onClose }) => {
       ]
     },
     {
-      id: 'essential',
-      name: 'Essential',
-      price: 4.99,
+      id: 'starter',
+      name: 'Starter',
+      price: 6.99,
       billing: 'per month',
-      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_ESSENTIAL || 'https://buy.stripe.com/fZu14m12T9sycf67Yk6kg09',
+      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_STARTER || 'https://buy.stripe.com/9B6bJ03b1awCbb2emI6kg0a',
       features: [
         '✅ NO ADS',
-        '✅ 30 AI messages/day',
-        '✅ 1 AR scan/day',
-        '✅ Weekly avatar update',
-        '✅ Basic DNA insights',
-        '✅ Social battles',
-        '✅ Emergency contact',
-        '✅ Offline tracking',
+        '✅ Unlimited workouts',
+        '✅ Barcode scans (3/day)',
+        '✅ Step counter',
+        '✅ Basic tracking',
+        '✅ Rep counter',
+        '✅ Food scanner',
+        '✅ Calorie tracking',
         '✅ Email support (24hr)',
-        '✅ Heart rate tracking',
-        '✅ Sleep analysis',
-        '✅ Workout library',
-        '✅ Meditation & breathing',
-        '❌ No meal automation'
+        '❌ No DNA Analysis',
+        '❌ No AR Scanner',
+        '❌ No Social Battles',
+        '❌ No Meal Automation'
       ],
       popular: true
     },
     {
       id: 'premium',
       name: 'Premium',
-      price: 14.99,
+      price: 16.99,
       billing: 'per month',
-      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_PREMIUM || 'https://buy.stripe.com/7sY8wOcLBfQW3IA92o6kg07',
+      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_PREMIUM || 'https://buy.stripe.com/7sYfZg4f5fQWdja1zW6kg0d',
       features: [
-        '✅ Everything in Essential',
-        '✅ 50 AI messages/day',
-        '✅ 100 AR credits/month',
-        '✅ Full DNA analysis',
-        '✅ Unlimited avatar',
-        '✅ Meal automation',
-        '✅ Family 3 members',
-        '✅ Priority chat (2hr response)',
-        '✅ Health data export (PDF)',
-        '❌ No API access'
+        '✅ Everything in Starter',
+        '✅ DNA Analysis',
+        '✅ Social Battles',
+        '✅ Meal Automation',
+        '✅ Health Avatar',
+        '✅ AR Scanner',
+        '✅ Emergency Panel',
+        '✅ Meditation Library',
+        '✅ Heart Rate Tracking',
+        '✅ Sleep Tracking',
+        '✅ Breathing Exercises',
+        '✅ PDF Export'
       ]
     },
     {
       id: 'ultimate',
       name: 'Ultimate',
-      price: 29.99,
+      price: 34.99,
       billing: 'per month',
-      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_VIP || 'https://buy.stripe.com/5kQ9ASeTJfQW7YQ6Ug6kg08',
+      stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_ULTIMATE || 'https://buy.stripe.com/6oUbJ026X48egvmfqM6kg0e',
       features: [
-        '✅ UNLIMITED AI messages',
-        '✅ UNLIMITED AR scans',
         '✅ Everything in Premium',
-        '✅ 1-on-1 coaching (30 min/mo)',
-        '✅ White-label reports (PDF)',
+        '✅ UNLIMITED AI messages',
+        '✅ Priority Support (2hr response)',
+        '✅ Beta access',
+        '✅ VIP Badge in leaderboards',
         '✅ API access (1K calls/mo)',
         '✅ Phone support (9am-6pm)',
-        '✅ Family 5 members',
+        '✅ Family plan (5 members)',
         '✅ Priority onboarding'
       ]
     }
@@ -102,9 +103,9 @@ const StripePayment = ({ isOpen, onClose }) => {
     
     // Map plan IDs to subscription tier names for storage
     const planMapping = {
-      'essential': 'essential',
+      'starter': 'starter',
       'premium': 'premium',
-      'ultimate': 'vip'
+      'ultimate': 'ultimate'
     };
 
     // Get the plan

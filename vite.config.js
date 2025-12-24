@@ -40,6 +40,7 @@ export default defineConfig({
     // 🔥 AGGRESSIVE CACHE BUSTING: Remove hashes entirely, use timestamp-only naming
     assetsInlineLimit: 0,
     rollupOptions: {
+      external: ['@mediapipe/pose', '@tensorflow/tfjs-backend-webgpu', '@tensorflow/tfjs-backend-wasm'],
       output: {
         // Generate unique filename using timestamp + counter
         entryFileNames: () => `assets/entry-${Date.now()}-[name].js`,

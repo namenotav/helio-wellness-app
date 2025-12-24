@@ -271,6 +271,77 @@ class SyncService {
   }
 
   // ========================================
+  // SPECIFIC SYNC METHODS (NEW)
+  // ========================================
+  
+  // Sync step counter data
+  async syncSteps(stepData) {
+    try {
+      await this.saveData('stepHistory', stepData);
+      await this.saveData('todaySteps', stepData.steps);
+      console.log('✅ Step data synced');
+    } catch (error) {
+      console.error('Failed to sync steps:', error);
+    }
+  }
+  
+  // Sync nutrition/calorie data
+  async syncNutrition(nutritionData) {
+    try {
+      await this.saveData('foodLog', nutritionData);
+      await this.saveData('dailyCalories', nutritionData.calories);
+      console.log('✅ Nutrition data synced');
+    } catch (error) {
+      console.error('Failed to sync nutrition:', error);
+    }
+  }
+  
+  // Sync workout data
+  async syncWorkout(workoutData) {
+    try {
+      await this.saveData('workoutHistory', workoutData);
+      console.log('✅ Workout data synced');
+    } catch (error) {
+      console.error('Failed to sync workout:', error);
+    }
+  }
+  
+  // Sync achievement data
+  async syncAchievements(achievements) {
+    try {
+      await this.saveData('achievements', achievements);
+      await this.saveData('gamification_data', achievements);
+      console.log('✅ Achievement data synced');
+    } catch (error) {
+      console.error('Failed to sync achievements:', error);
+    }
+  }
+  
+  // Sync user profile
+  async syncUserProfile(profileData) {
+    try {
+      // Save profile to all storage locations
+      localStorage.setItem('user_profile', JSON.stringify(profileData));
+      await this.saveData('user_profile', profileData);
+      await this.saveData('profile_data', profileData);
+      console.log('✅ Profile data synced');
+    } catch (error) {
+      console.error('Failed to sync profile:', error);
+    }
+  }
+  
+  // Sync user preferences
+  async syncUserPreferences(preferences) {
+    try {
+      localStorage.setItem('user_preferences', JSON.stringify(preferences));
+      await this.saveData('user_preferences', preferences);
+      console.log('✅ User preferences synced');
+    } catch (error) {
+      console.error('Failed to sync preferences:', error);
+    }
+  }
+
+  // ========================================
   // HYBRID STORAGE METHODS (localStorage + Firebase)
   // ========================================
 

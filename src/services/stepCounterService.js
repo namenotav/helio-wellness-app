@@ -106,6 +106,62 @@ class StepCounterService {
       return 0;
     }
   }
+  
+  async updateSteps(steps) {
+    this.stepCount = steps;
+    
+    try {
+      // Save to localStorage
+      localStorage.setItem('dailySteps', JSON.stringify(steps));
+      localStorage.setItem('stepHistory', JSON.stringify({
+        steps,
+        date: new Date().toISOString().split('T')[0],
+        timestamp: Date.now()
+      }));
+      
+      // Save to Preferences
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({ key: 'dailySteps', value: JSON.stringify(steps) });
+      
+      // Save to Firestore
+      await this.saveStepHistory();
+      
+      if(import.meta.env.DEV)console.log('✅ Steps updated:', steps);
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to update steps:', error);
+    }
+  }
+  
+  async saveStepHistory() {
+    try {
+      // Save to Firestore
+      const { Preferences } = await import('@capacitor/preferences');
+      const firestoreService = (await import('./firestoreService')).default;
+      const authService = (await import('./authService')).default;
+      
+      const stepData = {
+        steps: this.stepCount,
+        date: new Date().toISOString().split('T')[0],
+        timestamp: Date.now()
+      };
+      
+      // Save to Preferences
+      const { value } = await Preferences.get({ key: 'stepHistory' });
+      const history = value ? JSON.parse(value) : [];
+      history.push(stepData);
+      await Preferences.set({ key: 'stepHistory', value: JSON.stringify(history) });
+      
+      // Save to Firestore
+      const user = authService.getCurrentUser();
+      if (user) {
+        await firestoreService.save('steps', stepData, user.uid);
+      }
+      
+      if(import.meta.env.DEV)console.log('✅ Step history saved to Firestore');
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to save step history:', error);
+    }
+  }
 
   addListener(callback) {
     this.listeners.push(callback);

@@ -35,6 +35,32 @@ export default function MealAutomation({ onClose }) {
       return;
     }
 
+    // Load meal data from storage on mount
+    const loadMealData = async () => {
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        const { value: plansValue } = await Preferences.get({ key: 'meal_plans' });
+        const { value: prefsValue } = await Preferences.get({ key: 'meal_preferences' });
+        const localPlans = localStorage.getItem('meal_plans');
+        const localPrefs = localStorage.getItem('meal_preferences');
+        
+        if (plansValue) {
+          if(import.meta.env.DEV)console.log('📊 Loaded meal plans from Preferences');
+        } else if (localPlans) {
+          if(import.meta.env.DEV)console.log('📊 Loaded meal plans from localStorage');
+        }
+        
+        if (prefsValue) {
+          if(import.meta.env.DEV)console.log('📊 Loaded meal preferences from Preferences');
+        } else if (localPrefs) {
+          if(import.meta.env.DEV)console.log('📊 Loaded meal preferences from localStorage');
+        }
+      } catch (error) {
+        console.error('Failed to load meal data:', error);
+      }
+    };
+    
+    loadMealData();
     loadSavedMealPlan();
     loadTodayOverride();
     loadTodaysMeals();

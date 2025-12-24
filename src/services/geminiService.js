@@ -1,6 +1,8 @@
 // Gemini AI Service Configuration
 // SECURITY: All API calls now go through server - NO client-side API key
 import aiMemoryService from './aiMemoryService';
+import rateLimiterService from './rateLimiterService';
+import productionLogger from './productionLogger';
 
 // Server endpoints
 const SERVER_URL = process.env.NODE_ENV === 'production' 
@@ -12,8 +14,19 @@ const SERVER_URL = process.env.NODE_ENV === 'production'
 
 // AI Wellness Coach - Chat with personalized advice (NOW WITH ALLERGEN + MEMORY SUPPORT)
 export const chatWithAI = async (userMessage, userContext = {}) => {
+  const startTime = Date.now();
+  const userId = localStorage.getItem('user_id') || 'anonymous';
+  
   try {
+    // ✅ PRODUCTION: Rate limit check
+    const limitCheck = rateLimiterService.checkLimit('gemini_chat', userId);
+    if (!limitCheck.allowed) {
+      productionLogger.warn('Rate limit exceeded for gemini_chat', { userId, remaining: 0 });
+      throw new Error(limitCheck.message);
+    }
+    
     if(import.meta.env.DEV)console.log('🚀 Calling Railway server with message:', userMessage);
+    productionLogger.action('gemini_chat_request', { messageLength: userMessage.length });
     
     // Build contextual prompt with AI memory
     const contextualPrompt = aiMemoryService.buildContextualPrompt(userMessage);
@@ -29,24 +42,31 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
       mode: 'cors'
     });
 
-    if(import.meta.env.DEV)console.log('📡 Response status:', response.status);
+    const duration = Date.now() - startTime;
+    productionLogger.apiCall('/api/chat', 'POST', duration, response.ok, response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      if(import.meta.env.DEV)console.error('❌ API error:', errorText);
+      productionLogger.error('Gemini API failed', new Error(errorText), { status: response.status });
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const data = await response.json();
     if(import.meta.env.DEV)console.log('✅ AI response received:', data.response?.substring(0, 50));
     
+    // ✅ PRODUCTION: Record successful API call
+    rateLimiterService.recordAction('gemini_chat', userId);
+    productionLogger.performance('gemini_chat_success', duration);
+    
     // Save conversation to AI memory
     await aiMemoryService.addConversation(userMessage, data.response, userContext.topic || 'general');
     
     return data.response;
   } catch (error) {
+    const duration = Date.now() - startTime;
+    productionLogger.error('Gemini chat error', error, { duration, userId });
     if(import.meta.env.DEV)console.error('💥 AI Error:', error.message, error);
-    throw error; // Re-throw to see the real error
+    throw error;
   }
 };
 

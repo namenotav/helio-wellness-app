@@ -354,14 +354,30 @@ class SocialBattlesService {
     const battle = this.activeBattles.find(b => b.id === battleId);
     if (!battle) return null;
 
+    // Add VIP badge flag to leaderboard participants
+    const leaderboardWithVIP = battle.leaderboard.map(participant => ({
+      ...participant,
+      isVIP: this.checkUserVIPStatus(participant.userId)
+    }));
+
     return {
       battleId: battle.id,
       status: battle.status,
       daysRemaining: this.calculateDaysRemaining(battle.endDate),
-      leaderboard: battle.leaderboard,
+      leaderboard: leaderboardWithVIP,
       stakes: battle.config.stakes,
       stakeAmount: battle.config.stakeAmount
     };
+  }
+
+  // Check if user has VIP badge (Ultimate plan)
+  checkUserVIPStatus(userId) {
+    try {
+      const { default: subscriptionService } = require('./subscriptionService');
+      return subscriptionService.hasAccess('vipBadge');
+    } catch (error) {
+      return false;
+    }
   }
 
   // Calculate days remaining

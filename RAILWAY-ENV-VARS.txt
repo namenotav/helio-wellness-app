@@ -1,0 +1,18 @@
+# Add these 6 variables to Railway:
+# https://railway.app/dashboard -> helio-wellness-app -> Variables
+
+VITE_STRIPE_PRICE_STARTER=price_1SffiWD2EDcoPFLNrGfZU1c6
+VITE_STRIPE_PRICE_PREMIUM=price_1Sffj1D2EDcoPFLNkqdUxY9L
+VITE_STRIPE_PRICE_ULTIMATE=price_1Sffk1D2EDcoPFLN4yxdNXSq
+VITE_STRIPE_PAYMENT_LINK_STARTER=https://buy.stripe.com/9B6bJ03b1awCbb2emI6kg0a
+VITE_STRIPE_PAYMENT_LINK_PREMIUM=https://buy.stripe.com/7sYfZg4f5fQWdja1zW6kg0d
+VITE_STRIPE_PAYMENT_LINK_ULTIMATE=https://buy.stripe.com/6oUbJ026X48egvmfqM6kg0e
+
+# OR run these Railway CLI commands:
+
+railway variables set VITE_STRIPE_PRICE_STARTER=price_1SffiWD2EDcoPFLNrGfZU1c6
+railway variables set VITE_STRIPE_PRICE_PREMIUM=price_1Sffj1D2EDcoPFLNkqdUxY9L
+railway variables set VITE_STRIPE_PRICE_ULTIMATE=price_1Sffk1D2EDcoPFLN4yxdNXSq
+railway variables set VITE_STRIPE_PAYMENT_LINK_STARTER=https://buy.stripe.com/9B6bJ03b1awCbb2emI6kg0a
+railway variables set VITE_STRIPE_PAYMENT_LINK_PREMIUM=https://buy.stripe.com/7sYfZg4f5fQWdja1zW6kg0d
+railway variables set VITE_STRIPE_PAYMENT_LINK_ULTIMATE=https://buy.stripe.com/6oUbJ026X48egvmfqM6kg0e

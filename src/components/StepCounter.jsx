@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { Haptics } from '@capacitor/haptics';
 import nativeHealthService from '../services/nativeHealthService';
+import stepCounterService from '../services/stepCounterService';
+import syncService from '../services/syncService';
 import './StepCounter.css';
 
 export default function StepCounter() {
@@ -20,6 +22,16 @@ export default function StepCounter() {
     // Initialize health service
     nativeHealthService.initialize();
     
+    // Initialize step counter service
+    stepCounterService.initialize();
+    
+    // Read dailySteps from storage
+    const savedSteps = localStorage.getItem('dailySteps');
+    if (savedSteps) {
+      const steps = JSON.parse(savedSteps);
+      if(import.meta.env.DEV)console.log('📊 Loaded saved steps:', steps);
+    }
+    
     // Load initial data immediately
     updateHealthData();
     
@@ -28,9 +40,15 @@ export default function StepCounter() {
       updateHealthData();
     }, 1000);
     
-    // Listen for step updates
+    // Listen for step updates from both services
     const unwatch = nativeHealthService.watchStepCount(() => {
       updateHealthData();
+    });
+    
+    stepCounterService.addListener(async (steps) => {
+      updateHealthData();
+      // Sync to cloud
+      await syncService.syncSteps({ steps, timestamp: Date.now() });
     });
     
     // Listen for custom events

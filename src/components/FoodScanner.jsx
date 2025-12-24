@@ -20,6 +20,13 @@ export default function FoodScanner({ onClose, initialMode = null, lockMode = fa
     if(import.meta.env.DEV)console.log('📋 Loaded Allergen Profile:', profile);
     // Ensure profile has default values even if null
     setAllergenProfile(profile || { allergens: [], intolerances: [], dietaryPreferences: [], allergenSeverity: {} });
+    
+    // Read scan history from localStorage for consistency
+    const scanHistory = localStorage.getItem('foodScans');
+    if (scanHistory) {
+      const scans = JSON.parse(scanHistory);
+      if(import.meta.env.DEV)console.log('📊 Loaded food scan history:', scans.length, 'scans');
+    }
   }, []);
 
   const handleScanFood = async () => {
@@ -94,6 +101,15 @@ export default function FoodScanner({ onClose, initialMode = null, lockMode = fa
         imageData: photoResult.imageData,
         databaseMatches: databaseMatches, // All database results
         bestMatch: databaseMatches.length > 0 ? databaseMatches[0] : null // Best nutrition data
+      });
+
+      // Trigger sync after successful scan
+      const syncService = (await import('../services/syncService')).default;
+      await syncService.syncNutrition({
+        foodName: analysisResult.analysis.foodName,
+        calories: analysisResult.analysis.nutrition?.calories || 0,
+        timestamp: Date.now(),
+        date: new Date().toISOString().split('T')[0]
       });
 
       if(import.meta.env.DEV)console.log(`✅ AI detected: ${foodName}. Found ${databaseMatches.length} database matches.`);

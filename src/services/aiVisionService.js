@@ -133,6 +133,9 @@ class AIVisionService {
         confidence: analysis.confidence
       });
 
+      // Save to storage and sync
+      await this.saveScanResult(analysis);
+
       // Trigger haptic feedback based on safety level
       await this.triggerSafetyHaptic(analysis.safetyLevel);
 
@@ -643,6 +646,32 @@ Return as JSON with same format as food analysis.`;
       detectedAllergens: detected,
       safetyLevel: detected.length === 0 ? 'safe' : 'caution'
     };
+  }
+
+  // Save scan result to storage and sync
+  async saveScanResult(analysis) {
+    try {
+      const scanData = {
+        foodName: analysis.foodName,
+        calories: analysis.nutrition?.calories || 0,
+        safetyLevel: analysis.safetyLevel,
+        timestamp: Date.now(),
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      // Save to localStorage
+      const existing = JSON.parse(localStorage.getItem('foodScans') || '[]');
+      existing.push(scanData);
+      localStorage.setItem('foodScans', JSON.stringify(existing));
+
+      // Sync to cloud
+      const syncService = (await import('./syncService')).default;
+      await syncService.syncNutrition(scanData);
+
+      if(import.meta.env.DEV)console.log('✅ Scan result saved and synced');
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to save scan result:', error);
+    }
   }
 }
 

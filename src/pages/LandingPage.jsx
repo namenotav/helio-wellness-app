@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { checkoutEssential, checkoutPremium, checkoutVIP } from '../services/stripeService'
+import { checkoutStarter, checkoutPremium, checkoutUltimate } from '../services/stripeService'
 import { Capacitor } from '@capacitor/core'
 import AuthModal from '../components/AuthModal'
 import authService from '../services/authService'
@@ -51,12 +51,12 @@ export default function LandingPage() {
 
   const handleCheckout = async (plan) => {
     setSelectedPlan(plan)
-    if (plan === 'essential') {
-      checkoutEssential()
+    if (plan === 'starter') {
+      checkoutStarter()
     } else if (plan === 'premium') {
       checkoutPremium()
     } else if (plan === 'ultimate') {
-      checkoutVIP()
+      checkoutUltimate()
     }
   }
 
@@ -199,7 +199,7 @@ export default function LandingPage() {
                   minWidth: '200px'
                 }}
               >
-                💪 Essential - £4.99/month
+                💪 Starter - £6.99/month
                 <span className="price-note" style={{display: 'block', fontSize: '14px', marginTop: '5px', opacity: '0.9'}}>Most Popular!</span>
               </button>
               <button 
@@ -220,7 +220,27 @@ export default function LandingPage() {
                   minWidth: '200px'
                 }}
               >
-                🚀 Premium - £14.99/month
+                🚀 Premium - £16.99/month
+              </button>
+              <button 
+                onClick={() => handleCheckout('ultimate')} 
+                className="btn-primary" 
+                style={{
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', 
+                  padding: '18px 40px', 
+                  fontSize: '20px', 
+                  fontWeight: 'bold', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  color: 'white', 
+                  cursor: 'pointer', 
+                  boxShadow: '0 4px 15px rgba(139,92,246,0.4)', 
+                  transition: 'transform 0.2s',
+                  flex: '1',
+                  minWidth: '200px'
+                }}
+              >
+                👑 Ultimate - £34.99/month
               </button>
             </div>
           </div>
@@ -531,7 +551,7 @@ export default function LandingPage() {
         <div style={{maxWidth: '800px', margin: '0 auto', textAlign: 'center'}}>
           <div style={{fontSize: '48px', marginBottom: '15px'}}>⚡</div>
           <h2 style={{fontSize: '36px', marginBottom: '15px', color: 'white', fontWeight: 'bold'}}>
-            First Month £3.99 (Not £4.99)
+            First Month £4.99 (Not £6.99)
           </h2>
           <p style={{fontSize: '20px', color: 'rgba(255,255,255,0.95)', marginBottom: '25px'}}>
             New users only. Limited time. <strong>Save £12/year</strong> if you sign up in the next 24 hours.
@@ -569,10 +589,10 @@ export default function LandingPage() {
             onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
             onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
           >
-            🔥 Claim £3.99 Offer Now
+            � Claim £3.99 Offer Now
           </button>
           <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '15px'}}>
-            Then £4.99/month • Cancel anytime • No tricks
+            Then £6.99/month • Cancel anytime • No tricks
           </div>
         </div>
       </section>
@@ -616,7 +636,7 @@ export default function LandingPage() {
               <div className="badge" style={{position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)', background: '#3b82f6', padding: '8px 20px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold', color: 'white'}}>🔥 MOST POPULAR</div>
               <h3 style={{fontSize: '28px', marginBottom: '15px', marginTop: '10px', color: 'rgba(255,255,255,0.98)'}}>Essential</h3>
               <div style={{marginBottom: '15px'}}>
-                <div className="price" style={{fontSize: '48px', fontWeight: 'bold', display: 'inline'}}>£4.99</div>
+                <div className="price" style={{fontSize: '48px', fontWeight: 'bold', display: 'inline'}}>£6.99</div>
                 <span className="per-month" style={{fontSize: '18px', opacity: '0.7'}}>/mo</span>
               </div>
               <div style={{background: 'rgba(59,130,246,0.3)', padding: '10px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold', border: '1px solid rgba(59,130,246,0.5)'}}>
@@ -635,7 +655,7 @@ export default function LandingPage() {
                 <li style={{padding: '10px 0', color: 'rgba(255,255,255,0.92)'}}>❌ No meal automation</li>
               </ul>
               <button onClick={() => handleCheckout('essential')} className="btn-primary" disabled={selectedPlan === 'essential'} style={{width: '100%', padding: '18px', fontSize: '18px', fontWeight: 'bold', borderRadius: '12px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', cursor: selectedPlan === 'essential' ? 'not-allowed' : 'pointer'}}>
-                {selectedPlan === 'essential' ? '⏳ Processing...' : '💪 Get Essential - £4.99/mo'}
+                {selectedPlan === 'starter' ? '⏳ Processing...' : '💪 Get Starter - £6.99/mo'}
               </button>
               <div style={{textAlign: 'center', marginTop: '15px', fontSize: '13px', color: '#4CAF50', fontWeight: 'bold'}}>
                 🔒 Cancel anytime • No hidden fees
@@ -762,7 +782,7 @@ export default function LandingPage() {
                 From MyFitnessPal
               </h3>
               <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.6'}}>
-                "Was paying £19.99/mo for JUST calorie counting. Helio has AI coach, AR scanner, DNA analysis for £4.99. Switched instantly."
+                "Was paying £19.99/mo for JUST calorie counting. Helio has AI coach, AR scanner, DNA analysis for £16.99. Switched instantly."
               </p>
               <div style={{marginTop: '12px', fontSize: '14px', color: '#10b981', fontWeight: 'bold'}}>
                 Saved £180/year
@@ -831,7 +851,7 @@ export default function LandingPage() {
               fontWeight: 'bold',
               color: '#ef4444'
             }}>
-              🔒 Sign up now → Pay £4.99 forever
+              🔒 Sign up now → Pay £6.99 forever
             </div>
           </div>
         </div>
@@ -850,7 +870,7 @@ export default function LandingPage() {
           
           <div style={{display: 'flex', gap: '20px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap'}}>
             <button onClick={() => handleCheckout('essential')} className="btn-primary btn-large" style={{padding: '20px 50px', fontSize: '20px', fontWeight: 'bold', borderRadius: '15px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', boxShadow: '0 10px 30px rgba(59,130,246,0.4)', transition: 'transform 0.2s', cursor: 'pointer'}}>
-              💪 Get Essential - £4.99/mo
+              💪 Get Starter - £6.99/mo
             </button>
             <button onClick={() => setShowAuthModal(true)} className="btn-outline" style={{padding: '20px 50px', fontSize: '20px', fontWeight: 'bold', borderRadius: '15px', border: '2px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', cursor: 'pointer'}}>
               Try Free First

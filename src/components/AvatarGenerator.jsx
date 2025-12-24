@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import './AvatarGenerator.css';
 
+// SECURITY NOTE: Uses direct Gemini API for instant avatar generation
+// Protected by monthly key rotation strategy
+
 const AvatarGenerator = ({ user, userData, planType }) => {
   const [currentAvatar, setCurrentAvatar] = useState('');
   const [futureAvatars, setFutureAvatars] = useState({

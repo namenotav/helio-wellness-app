@@ -1,0 +1,254 @@
+// Priority Support Ticket Service
+// Handles support ticket creation, tracking, and priority routing
+import { db } from './firebase';
+import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import authService from './authService';
+import subscriptionService from './subscriptionService';
+
+class SupportTicketService {
+  constructor() {
+    this.ticketsCollection = collection(db, 'support_tickets');
+  }
+
+  /**
+   * Create a new support ticket
+   * @param {Object} ticketData - { subject, message, category, priority }
+   * @returns {Promise<Object>} Created ticket with ID
+   */
+  async createTicket({ subject, message, category = 'general', attachments = [] }) {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user) {
+        throw new Error('User must be logged in to create support ticket');
+      }
+
+      // Get user's subscription plan for priority routing
+      const currentPlan = subscriptionService.getCurrentPlan();
+      const isUltimate = currentPlan.id === 'ultimate' || currentPlan.id === 'vip';
+      const isPremium = currentPlan.id === 'premium';
+
+      // Determine priority and SLA
+      let priority = 'standard';
+      let slaHours = 72; // 3 days for free/starter
+      
+      if (isUltimate) {
+        priority = 'urgent';
+        slaHours = 2; // 2 hours for Ultimate
+      } else if (isPremium) {
+        priority = 'high';
+        slaHours = 24; // 24 hours for Premium
+      }
+
+      const ticket = {
+        userId: user.uid,
+        userEmail: user.email,
+        userName: user.displayName || 'User',
+        subject,
+        message,
+        category, // 'general', 'technical', 'billing', 'feature_request'
+        priority, // 'urgent', 'high', 'standard'
+        status: 'open', // 'open', 'in_progress', 'resolved', 'closed'
+        planTier: currentPlan.id,
+        slaHours,
+        attachments,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        resolvedAt: null,
+        assignedTo: null,
+        responses: []
+      };
+
+      // Add ticket to Firestore
+      const docRef = await addDoc(this.ticketsCollection, ticket);
+      
+      if(import.meta.env.DEV)console.log('✅ Support ticket created:', docRef.id);
+
+      // Send email notification via Railway API
+      await this.sendTicketNotification({
+        ticketId: docRef.id,
+        ...ticket
+      });
+
+      return {
+        success: true,
+        ticketId: docRef.id,
+        ticket: { ...ticket, id: docRef.id }
+      };
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('❌ Failed to create support ticket:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send ticket notification email via Railway backend
+   */
+  async sendTicketNotification(ticket) {
+    try {
+      const apiUrl = import.meta.env.VITE_RAILWAY_API_URL || 'https://helio-wellness-app-production.up.railway.app';
+      
+      const response = await fetch(`${apiUrl}/api/support/notify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_RAILWAY_API_KEY || ''
+        },
+        body: JSON.stringify({
+          ticketId: ticket.ticketId,
+          userEmail: ticket.userEmail,
+          userName: ticket.userName,
+          subject: ticket.subject,
+          message: ticket.message,
+          priority: ticket.priority,
+          planTier: ticket.planTier,
+          slaHours: ticket.slaHours
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send notification email');
+      }
+
+      if(import.meta.env.DEV)console.log('📧 Support ticket email sent');
+    } catch (error) {
+      // Don't fail ticket creation if email fails
+      if(import.meta.env.DEV)console.error('⚠️ Failed to send ticket notification:', error);
+    }
+  }
+
+  /**
+   * Get all tickets for current user
+   */
+  async getUserTickets() {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user) return [];
+
+      const q = query(
+        this.ticketsCollection,
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+
+      const snapshot = await getDocs(q);
+      const tickets = [];
+      
+      snapshot.forEach(doc => {
+        tickets.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      return tickets;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to fetch user tickets:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get ticket by ID
+   */
+  async getTicket(ticketId) {
+    try {
+      const docRef = doc(db, 'support_tickets', ticketId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() };
+      }
+      return null;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to fetch ticket:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Update ticket status
+   */
+  async updateTicketStatus(ticketId, status) {
+    try {
+      const docRef = doc(db, 'support_tickets', ticketId);
+      
+      const updates = {
+        status,
+        updatedAt: serverTimestamp()
+      };
+
+      if (status === 'resolved' || status === 'closed') {
+        updates.resolvedAt = serverTimestamp();
+      }
+
+      await updateDoc(docRef, updates);
+      
+      if(import.meta.env.DEV)console.log('✅ Ticket status updated:', ticketId, status);
+      return true;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to update ticket status:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Add response to ticket
+   */
+  async addTicketResponse(ticketId, response, isStaff = false) {
+    try {
+      const docRef = doc(db, 'support_tickets', ticketId);
+      const user = authService.getCurrentUser();
+      
+      const newResponse = {
+        message: response,
+        author: isStaff ? 'Support Team' : user?.displayName || 'User',
+        authorId: user?.uid || 'system',
+        isStaff,
+        timestamp: serverTimestamp()
+      };
+
+      // Get current ticket
+      const ticket = await this.getTicket(ticketId);
+      const responses = ticket?.responses || [];
+      
+      responses.push(newResponse);
+
+      await updateDoc(docRef, {
+        responses,
+        updatedAt: serverTimestamp(),
+        status: isStaff ? 'in_progress' : ticket.status
+      });
+
+      if(import.meta.env.DEV)console.log('✅ Response added to ticket:', ticketId);
+      return true;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to add ticket response:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if user has priority support access
+   */
+  hasPrioritySupport() {
+    return subscriptionService.hasAccess('prioritySupport');
+  }
+
+  /**
+   * Get estimated response time based on user's plan
+   */
+  getEstimatedResponseTime() {
+    const plan = subscriptionService.getCurrentPlan();
+    
+    if (plan.id === 'ultimate' || plan.id === 'vip') {
+      return '2 hours';
+    } else if (plan.id === 'premium') {
+      return '24 hours';
+    } else {
+      return '3 days';
+    }
+  }
+}
+
+const supportTicketService = new SupportTicketService();
+export default supportTicketService;
