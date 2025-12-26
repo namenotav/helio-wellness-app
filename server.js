@@ -1244,7 +1244,7 @@ app.post('/api/logs', express.json(), (req, res) => {
 });
 
 // Serve React app for all non-API routes (must be last)
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
