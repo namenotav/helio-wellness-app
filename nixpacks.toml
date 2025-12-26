@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs"]
 
 [phases.install]
-cmds = ["cp package-server.json package.json", "npm install --omit=dev"]
+cmds = ["npm install"]
 
 [phases.build]
-cmds = ["echo 'Server only - no build step'"]
+cmds = ["npm run build"]
 
 [start]
 cmd = "node server.js"
