@@ -2,9 +2,12 @@
   "providers": {
     "node": "16"
   },
-  "build": {
-    "env": {
-      "NPM_FLAGS": "--legacy-peer-deps"
+  "phases": {
+    "install": {
+      "cmds": ["npm install --legacy-peer-deps"]
+    },
+    "build": {
+      "cmds": ["npm run build"]
     }
   }
 }
