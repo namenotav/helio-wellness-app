@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs"]
 
 [phases.install]
-cmds = ["npm install --legacy-peer-deps"]
+cmds = ["cp package-server.json package.json", "npm install --legacy-peer-deps"]
 
 [phases.build]
 cmds = ["npm run build"]
