@@ -1,0 +1,162 @@
+/* Beta Feature Wrapper Styling */
+
+.beta-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #888;
+}
+
+.beta-spinner {
+  font-size: 32px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.beta-locked {
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(138, 116, 249, 0.1), rgba(255, 107, 107, 0.1));
+  border-radius: 16px;
+  border: 2px solid rgba(138, 116, 249, 0.3);
+}
+
+.beta-locked-content {
+  text-align: center;
+}
+
+.beta-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.beta-locked-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.beta-feature-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #667eea;
+  margin: 0 0 12px 0;
+}
+
+.beta-description {
+  color: #666;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.beta-upgrade-box {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.beta-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+}
+
+.beta-upgrade-text {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.beta-upgrade-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.beta-upgrade-btn:active {
+  transform: scale(0.95);
+}
+
+/* Beta Feature Container (for users with access) */
+.beta-feature-container {
+  position: relative;
+}
+
+.beta-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(138, 116, 249, 0.15), rgba(255, 215, 0, 0.15));
+  border-radius: 12px;
+  border-left: 4px solid #FFD700;
+}
+
+.beta-tag {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.beta-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .beta-locked {
+    background: linear-gradient(135deg, rgba(138, 116, 249, 0.2), rgba(255, 107, 107, 0.2));
+  }
+  
+  .beta-locked-content h3 {
+    color: #fff;
+  }
+  
+  .beta-description {
+    color: #ccc;
+  }
+  
+  .beta-upgrade-box {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .beta-upgrade-text {
+    color: #ddd;
+  }
+  
+  .beta-header {
+    background: linear-gradient(135deg, rgba(138, 116, 249, 0.25), rgba(255, 215, 0, 0.25));
+  }
+  
+  .beta-label {
+    color: #ddd;
+  }
+}

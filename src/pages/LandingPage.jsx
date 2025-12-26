@@ -182,7 +182,7 @@ export default function LandingPage() {
                 <span className="price-note" style={{display: 'block', fontSize: '14px', marginTop: '5px', opacity: '0.9'}}>No credit card needed</span>
               </button>
               <button 
-                onClick={() => handleCheckout('essential')} 
+                onClick={() => handleCheckout('starter')} 
                 className="btn-primary" 
                 style={{
                   background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)', 

@@ -22,6 +22,7 @@ import SocialBattles from '../components/SocialBattles'
 import MealAutomation from '../components/MealAutomation'
 import PaywallModal from '../components/PaywallModal'
 import SupportModal from '../components/SupportModal'
+import AIWorkoutGenerator from '../components/AIWorkoutGenerator'
 import '../styles/Dashboard.css'
 import '../styles/AdventureMap.css'
 
@@ -1359,6 +1360,7 @@ function NutritionTab() {
 function WorkoutTab() {
   const [aiWorkoutPlan, setAiWorkoutPlan] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [showAIGenerator, setShowAIGenerator] = useState(false)
 
   const generatePlan = async (type) => {
     setIsGenerating(true)
@@ -1377,10 +1379,76 @@ function WorkoutTab() {
     }
   }
 
+  if (showAIGenerator) {
+    return (
+      <>
+        <button 
+          onClick={() => setShowAIGenerator(false)} 
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            zIndex: 100,
+            background: 'rgba(0,0,0,0.1)',
+            border: '2px solid rgba(102,126,234,0.3)',
+            borderRadius: '12px',
+            padding: '10px 20px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          ← Back to Workouts
+        </button>
+        <AIWorkoutGenerator />
+      </>
+    )
+  }
+
   return (
     <div className="tab-content">
       <h2>💪 Workout Programs</h2>
       <p className="subtitle">Personalized exercise routines that evolve with your fitness level</p>
+      
+      {/* Beta Feature Highlight */}
+      <div 
+        className="beta-feature-banner"
+        onClick={() => setShowAIGenerator(true)}
+        style={{
+          background: 'linear-gradient(135deg, rgba(138, 116, 249, 0.2), rgba(255, 215, 0, 0.2))',
+          border: '2px solid #FFD700',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '24px',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+        onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '32px' }}>🔬</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{
+                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                color: 'white',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 'bold'
+              }}>
+                BETA
+              </span>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>AI Workout Generator</h3>
+            </div>
+            <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+              Generate custom workout plans with AI • Ultimate plan exclusive
+            </p>
+          </div>
+          <span style={{ fontSize: '24px' }}>→</span>
+        </div>
+      </div>
       
       {aiWorkoutPlan && (
         <div className="ai-workout-plan">

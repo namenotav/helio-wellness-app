@@ -1,14 +1,28 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow ALL authenticated users (including anonymous) to read/write their own data
+    // Allow authenticated users to read/write ONLY their own data
     match /users/{userId}/data/{dataKey} {
-      allow read, write: if request.auth != null || userId.matches('device_.*');
+      allow read, write: if (request.auth != null && request.auth.uid == userId) || userId.matches('device_.*');
     }
     
     // Fallback: Allow device-based IDs for offline-first functionality (no auth required)
+    // NOTE: This intentionally remains permissive for userId starting with "device_"
     match /users/{userId}/{document=**} {
       allow read, write: if userId.matches('device_.*');
+    }
+    
+    // Support Tickets - users can create and read their own tickets
+    match /support_tickets/{ticketId} {
+      // Allow anyone to create a ticket (authenticated or device-based users)
+      allow create: if true;
+      // Allow users to read their own tickets
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid
+                  || resource.data.userId.matches('device_.*')
+                  || resource.data.userId is string;
+      // Allow users to update their own tickets
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid
+                   || resource.data.userId.matches('device_.*');
     }
     
     // Deny all other access

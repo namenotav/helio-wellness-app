@@ -4,6 +4,7 @@ import './SocialBattles.css';
 import socialBattlesService from '../services/socialBattlesService';
 import gamificationService from '../services/gamificationService';
 import subscriptionService from '../services/subscriptionService';
+import authService from '../services/authService';
 
 export default function SocialBattles({ onClose }) {
   const [view, setView] = useState('list'); // list, create, leaderboard, global, teams, history, rewards
@@ -94,7 +95,7 @@ export default function SocialBattles({ onClose }) {
       const history = (completed || [])
         .filter(battle => battle && battle.config) // Skip null/undefined battles
         .map(battle => {
-          const user = { id: 'current-user' }; // Would get from auth
+          const user = authService.getCurrentUser() || { id: 'current-user' };
           const isWinner = battle.results?.winner?.userId === user.id;
           const opponent = isWinner 
             ? battle.results?.loser?.userName || 'Opponent'

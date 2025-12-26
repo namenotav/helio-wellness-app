@@ -65,10 +65,10 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
               <li>✅ 3 food scans/day</li>
               <li>✅ 3 barcode scans/day</li>
               <li>✅ Unlimited workouts</li>
+              <li>✅ Social battles</li>
               <li>❌ No DNA analysis</li>
               <li>❌ No Health Avatar</li>
               <li>❌ No AR scanner</li>
-              <li>❌ No social battles</li>
               <li>❌ No meal automation</li>
             </ul>
             {currentPlan === 'starter' ? (
@@ -125,12 +125,12 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
             <ul className="tier-features">
               <li>✅ <strong>UNLIMITED</strong> AI messages</li>
               <li>✅ Everything in Premium</li>
-              <li>✅ 🎮 Priority Support (2hr SLA)</li>
-              <li>✅ 🔬 Early beta access</li>
-              <li>✅ 👑 VIP badge in leaderboards</li>
+              <li>✅ � Priority Support (2hr SLA)</li>
+              <li>✅ 🔬 Beta: AI Workout Generator</li>
+              <li>✅ 👑 VIP badge & exclusive perks</li>
               <li>✅ White-label reports (PDF)</li>
-              <li>✅ API access (1K calls/mo)</li>
-              <li>✅ Phone support (9am-6pm)</li>
+              <li>✅ Advanced analytics dashboard</li>
+              <li>✅ Custom health insights</li>
             </ul>
             {currentPlan === 'ultimate' ? (
               <div className="current-badge">You are here</div>

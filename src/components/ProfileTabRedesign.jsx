@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './ProfileTabRedesign.css'
 import gamificationService from '../services/gamificationService'
+import subscriptionService from '../services/subscriptionService'
 
 export default function ProfileTabRedesign({ 
   user, 
@@ -18,6 +19,7 @@ export default function ProfileTabRedesign({
   const [achievements, setAchievements] = useState([])
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(true)
+  const [hasVIPBadge, setHasVIPBadge] = useState(false)
 
   useEffect(() => {
     loadUserData()
@@ -26,6 +28,9 @@ export default function ProfileTabRedesign({
   const loadUserData = async () => {
     try {
       setLoading(true)
+      
+      // ✅ Check VIP badge access
+      setHasVIPBadge(subscriptionService.hasAccess('vipBadge'))
       
       // ✅ Ensure gamification data is loaded
       await gamificationService.loadData()
@@ -103,7 +108,27 @@ export default function ProfileTabRedesign({
                 <span className="level-text">LVL {level}</span>
               </div>
             </div>
-            <h2 className="profile-name">{user?.name || user?.profile?.name || 'Wellness Warrior'}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <h2 className="profile-name">{user?.name || user?.profile?.name || 'Wellness Warrior'}</h2>
+              {hasVIPBadge && (
+                <span 
+                  className="vip-badge"
+                  title="Ultimate Plan VIP Member"
+                  style={{
+                    background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+                    color: '#000',
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 8px rgba(255, 215, 0, 0.4)',
+                    animation: 'vipPulse 2s ease-in-out infinite'
+                  }}
+                >
+                  👑 VIP
+                </span>
+              )}
+            </div>
             <p className="profile-subtitle">{xp} XP • {achievements.filter(a => !a.locked).length} Achievements</p>
           </div>
 

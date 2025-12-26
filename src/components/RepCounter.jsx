@@ -1,12 +1,14 @@
 // Rep Counter Component - AI-Powered Exercise Rep Counting
 import React, { useState, useEffect, useRef } from 'react';
 import * as tf from '@tensorflow/tfjs';
-import * as poseDetection from '@tensorflow-models/pose-detection';
+// LAZY LOAD pose-detection to avoid @mediapipe/pose import error
+// import * as poseDetection from '@tensorflow-models/pose-detection';
 import { Motion } from '@capacitor/motion';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
 import syncService from '../services/syncService';
 import gamificationService from '../services/gamificationService';
+import subscriptionService from '../services/subscriptionService';
 import './RepCounter.css';
 
 const RepCounter = ({ onClose, onWorkoutComplete }) => {
@@ -23,6 +25,7 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
   const intervalRef = useRef(null);
   const motionDataBuffer = useRef([]);
   const lastRepTime = useRef(0);
+  const repCountRef = useRef(0);
 
   const exercises = [
     { id: 'pushups', name: 'Push-ups', icon: '💪', caloriesPerRep: 0.5 },
@@ -41,36 +44,31 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
   const detectRepFromMotion = (buffer, exerciseType) => {
     const now = Date.now();
     
-    // Prevent duplicate counting (minimum 500ms between reps)
-    if (now - lastRepTime.current < 500) {
+    // Prevent duplicate counting (minimum 800ms between reps)
+    if (now - lastRepTime.current < 800) {
       return false;
     }
     
-    // Calculate motion magnitude
-    const recentData = buffer.slice(-20);
+    // Calculate motion magnitude (acceleration changes, not absolute)
+    const recentData = buffer.slice(-30);
     const magnitudes = recentData.map(d => 
       Math.sqrt(d.x * d.x + d.y * d.y + d.z * d.z)
     );
     
-    // Detect peak (rep completion)
-    const currentMag = magnitudes[magnitudes.length - 1];
+    // Calculate variance (motion intensity)
     const avgMag = magnitudes.reduce((a, b) => a + b, 0) / magnitudes.length;
-    const maxMag = Math.max(...magnitudes);
+    const variance = magnitudes.reduce((sum, mag) => sum + Math.pow(mag - avgMag, 2), 0) / magnitudes.length;
     
-    // Different threshold for different exercises
-    let threshold = 2.0;
+    // Different threshold for different exercises (increased to prevent false positives)
+    let varianceThreshold = 4.0;
     if (exerciseType === 'burpees' || exerciseType === 'jumping_jacks') {
-      threshold = 3.0;
-    } else if (exerciseType === 'planks') {
-      threshold = 0.5; // Low motion for planks
+      varianceThreshold = 6.0;
+    } else if (exerciseType === 'planks' || exerciseType === 'mountain_climbers') {
+      varianceThreshold = 2.0;
     }
     
-    // Detect rep: current magnitude drops after a peak
-    const isPeak = currentMag > avgMag + threshold && currentMag > 11;
-    const isValley = magnitudes.length > 5 && 
-                     currentMag < magnitudes[magnitudes.length - 5] - threshold;
-    
-    if (isPeak || (exerciseType === 'planks' && currentMag < 10.5)) {
+    // Detect rep: significant motion variance indicates a rep
+    if (variance > varianceThreshold) {
       lastRepTime.current = now;
       return true;
     }
@@ -83,9 +81,21 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
     const initTensorFlow = async () => {
       try {
         setIsModelLoading(true);
-        await tf.ready();
         
-        // Create pose detector
+        // Check TensorFlow backend availability
+        await tf.ready();
+        const backend = tf.getBackend();
+        console.log('TensorFlow backend:', backend);
+        
+        // Only try pose detection if we have proper backend (not CPU)
+        if (backend === 'cpu') {
+          throw new Error('No GPU backend available - using motion sensors');
+        }
+        
+        // Dynamically import pose-detection
+        const poseDetection = await import('@tensorflow-models/pose-detection');
+        
+        // Create pose detector with MoveNet
         const detectorConfig = {
           runtime: 'tfjs',
           modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
@@ -97,11 +107,11 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
         
         setDetector(poseDetector);
         setIsModelLoading(false);
-        if(import.meta.env.DEV)console.log('✅ TensorFlow.js pose detection model loaded');
+        console.log('✅ TensorFlow.js pose detection loaded with', backend);
       } catch (error) {
-        if(import.meta.env.DEV)console.error('Failed to load TensorFlow model:', error);
+        console.error('TensorFlow failed:', error.message);
         setIsModelLoading(false);
-        setActivityStatus('Model loading failed - using motion sensors only');
+        setActivityStatus('Ready'); // Continue with motion sensors only
       }
     };
     
@@ -126,16 +136,21 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
       }
 
       // Check workout limit (free users: 1/day)
-      const { subscriptionService } = await import('../services/subscriptionService');
-      const limitCheck = await subscriptionService.checkLimit('workouts');
-      if (!limitCheck.allowed) {
-        alert(limitCheck.message);
-        return;
+      try {
+        const limitCheck = subscriptionService.checkLimit('workouts');
+        if (!limitCheck || !limitCheck.allowed) {
+          alert(limitCheck?.message || 'Workout limit reached for today');
+          return;
+        }
+      } catch (error) {
+        console.error('Subscription check failed:', error);
+        // Continue anyway if check fails - don't block user
       }
 
-      // Reset motion buffer
+      // Reset motion buffer and counters
       motionDataBuffer.current = [];
       lastRepTime.current = 0;
+      repCountRef.current = 0;
 
       // Start motion sensor listening
       const listener = await Motion.addListener('accel', async (event) => {
@@ -157,15 +172,15 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
           motionDataBuffer.current.shift();
         }
 
-        // Use TensorFlow.js pose detection if available
-        if (detector && motionDataBuffer.current.length >= 20) {
+        // Detect reps from motion data (works with or without TensorFlow)
+        if (motionDataBuffer.current.length >= 20) {
           try {
-            // In production, you'd pass video frames to estimatePoses
-            // For motion sensors, we use the motion analysis fallback
+            // Use motion analysis to detect reps
             const repDetected = detectRepFromMotion(motionDataBuffer.current, exercise);
             
             if (repDetected) {
-              const newCount = repCount + 1;
+              repCountRef.current += 1;
+              const newCount = repCountRef.current;
               setRepCount(newCount);
               
               // Calculate calories
@@ -181,7 +196,7 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
               await gamificationService.addPoints(5, 'workout_rep');
             }
           } catch (error) {
-            if(import.meta.env.DEV)console.error('Pose detection error:', error);
+            if(import.meta.env.DEV)console.error('Rep detection error:', error);
           }
         }
       });

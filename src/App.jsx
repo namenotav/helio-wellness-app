@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
 import LandingPage from './pages/LandingPage'
 import NewDashboard from './pages/NewDashboard'
+import AdminSupportDashboard from './pages/AdminSupportDashboard'
 import PaymentSuccess from './pages/PaymentSuccess'
 import PaymentCanceled from './pages/PaymentCanceled'
 import Toast from './components/Toast'
@@ -35,6 +36,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<NewDashboard />} />
+          <Route path="/admin-support" element={<AdminSupportDashboard />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-canceled" element={<PaymentCanceled />} />
         </Routes>

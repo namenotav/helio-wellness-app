@@ -13,7 +13,7 @@ class SubscriptionService {
           stepCounter: true,
           foodScanner: 'limited',
           meditation: false,
-          aiVoiceCoach: 'limited',
+          aiVoiceCoach: false,
           waterTracking: true,
           breathing: true,
           emergencyPanel: true,
@@ -343,6 +343,41 @@ class SubscriptionService {
     const currentPlan = this.getCurrentPlan();
     const planHierarchy = { free: 0, starter: 1, essential: 1, premium: 2, vip: 3, ultimate: 3 };
     return planHierarchy[targetPlan] > planHierarchy[currentPlan.id];
+  }
+
+  // Check if user has VIP badge (Ultimate or VIP legacy plans)
+  hasVIPBadge() {
+    const plan = this.getCurrentPlan();
+    return plan.features?.vipBadge === true;
+  }
+
+  // Check if user has priority support access
+  hasPrioritySupport() {
+    const plan = this.getCurrentPlan();
+    return plan.features?.prioritySupport === true;
+  }
+
+  // Check if user has beta feature access
+  hasBetaAccess() {
+    const plan = this.getCurrentPlan();
+    return plan.features?.betaAccess === true;
+  }
+
+  // Get support priority level
+  getSupportPriority() {
+    const plan = this.getCurrentPlan();
+    if (plan.features?.prioritySupport) {
+      return plan.id === 'ultimate' || plan.id === 'vip' ? 'urgent' : 'high';
+    }
+    return 'normal';
+  }
+
+  // Get support SLA hours
+  getSupportSLA() {
+    const plan = this.getCurrentPlan();
+    if (plan.id === 'ultimate' || plan.id === 'vip') return 2; // 2 hours
+    if (plan.id === 'premium') return 24; // 24 hours
+    return 72; // 3 days for free/starter
   }
 
   // Show paywall modal

@@ -292,3 +292,21 @@
   font-size: 24px;
   color: white;
 }
+
+/* VIP Badge Animation */
+@keyframes vipPulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.6);
+    transform: scale(1.05);
+  }
+}
+
+.vip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

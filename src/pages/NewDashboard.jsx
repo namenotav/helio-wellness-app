@@ -94,6 +94,7 @@ const DataManagementModal = lazy(() => import('../components/DataManagementModal
 const SocialFeaturesModal = lazy(() => import('../components/SocialFeaturesModal'))
 const SettingsHubModal = lazy(() => import('../components/SettingsHubModal'))
 const QuickLogModal = lazy(() => import('../components/QuickLogModal'))
+const SupportModal = lazy(() => import('../components/SupportModal'))
 
 export default function NewDashboard() {
   const navigate = useNavigate()
@@ -159,6 +160,7 @@ export default function NewDashboard() {
   const [showSocialFeaturesModal, setShowSocialFeaturesModal] = useState(false)
   const [showSettingsHubModal, setShowSettingsHubModal] = useState(false)
   const [showQuickLogModal, setShowQuickLogModal] = useState(false)
+  const [showSupportModal, setShowSupportModal] = useState(false)
 
   // Listen for level up events
   useEffect(() => {
@@ -1526,7 +1528,8 @@ export default function NewDashboard() {
               onOpenStripePayment: () => setShowStripePayment(true),
               onOpenAppleHealth: () => setShowAppleHealth(true),
               onOpenWearables: () => setShowWearables(true),
-              onOpenDataRecovery: () => setShowDataRecovery(true)
+              onOpenDataRecovery: () => setShowDataRecovery(true),
+              onOpenSupport: () => setShowSupportModal(true)
             }}
           />
         </Suspense>
@@ -1537,6 +1540,15 @@ export default function NewDashboard() {
           <QuickLogModal 
             isOpen={showQuickLogModal}
             onClose={() => setShowQuickLogModal(false)}
+          />
+        </Suspense>
+      )}
+      
+      {showSupportModal && (
+        <Suspense fallback={null}>
+          <SupportModal 
+            isOpen={showSupportModal}
+            onClose={() => setShowSupportModal(false)}
           />
         </Suspense>
       )}
@@ -1562,9 +1574,12 @@ export default function NewDashboard() {
               <LevelProgressBar />
             </Suspense>
             <Suspense fallback={<div>Loading...</div>}>
-              <DailyChallenges onChallengeComplete={(xp) => {
-                // Show points popup
-              }} />
+              <DailyChallenges 
+                todaySteps={stats.todaySteps}
+                onChallengeComplete={(xp) => {
+                  // Show points popup
+                }} 
+              />
             </Suspense>
             <HomeTab 
               stats={stats} 
@@ -1656,7 +1671,12 @@ export default function NewDashboard() {
             <ProfileTabRedesign 
               user={user}
               onOpenSettings={(section) => {
-                // Open settings
+                if (section === 'support') {
+                  setShowSupportModal(true)
+                } else {
+                  // Open other settings sections
+                  setShowSettingsHubModal(true)
+                }
               }}
               onOpenPremium={() => setShowStripePayment(true)}
               onOpenHealthTools={() => setShowHealthToolsModal(true)}

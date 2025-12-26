@@ -32,7 +32,7 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
     const contextualPrompt = aiMemoryService.buildContextualPrompt(userMessage);
     
     // Call Railway cloud server (works everywhere!)
-    const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/chat', {
+    const response = await fetch(`${SERVER_URL}/api/chat`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -122,8 +122,8 @@ Classify as one of: stationary, walking, running, cycling, driving, at_gym, at_r
 
 Return just the activity name.`;
 
-    const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
-    return text.trim().toLowerCase();
+  const text = await chatWithAI(prompt, { topic: 'activity_detection' });
+  return text.trim().toLowerCase();
   } catch (error) {
     if(import.meta.env.DEV)console.error('Error detecting activity:', error);
     return 'stationary';
@@ -158,9 +158,8 @@ Return JSON:
   "recommendation": "specific action to take"
 }`;
 
-    const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
-    
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+  const text = await chatWithAI(prompt, { topic: 'behavior_prediction' });
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
     }
@@ -191,9 +190,8 @@ Return JSON:
   "overallScore": 0-100
 }`;
 
-    const model = getGeminiModel(); const result = await model.generateContent(prompt); const response = await result.response; const text = response.text();
-    
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+  const text = await chatWithAI(prompt, { topic: 'habit_classification' });
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
     }
@@ -207,22 +205,10 @@ Return JSON:
 // Analyze Progress Photos - AI body composition analysis
 export const analyzeProgressPhoto = async (imageFile) => {
   try {
-    const model = getGeminiVisionModel();
-    
-    // Convert image to base64
-    const imageData = await fileToGenerativePart(imageFile);
-    
-    const prompt = `Analyze this progress photo for fitness tracking. Provide:
-1. Observable physical changes or current state
-2. Areas of visible progress (if comparing to baseline)
-3. Encouraging feedback
-4. One specific tip for improvement
-
-Keep it positive and motivating!`;
-
-    const result = await model.generateContent([prompt, imageData]);
-    const response = await result.response;
-    return response.text();
+    // Vision-specific Gemini access is server-only now.
+    // For safety, return a friendly fallback message instead of calling an undefined client model.
+    console.warn('analyzeProgressPhoto: Vision AI not available on client, returning fallback message');
+    return "Photo uploaded! I'll analyze your progress. Keep taking regular photos to track changes!";
   } catch (error) {
     if(import.meta.env.DEV)console.error('Photo Analysis Error:', error);
     return "Photo uploaded! I'll analyze your progress. Keep taking regular photos to track changes!";
@@ -232,26 +218,10 @@ Keep it positive and motivating!`;
 // Food Photo Recognition - Identify food and estimate nutrition
 export const analyzeFoodPhoto = async (imageFile) => {
   try {
-    const model = getGeminiVisionModel();
-    
-    const imageData = await fileToGenerativePart(imageFile);
-    
-    const prompt = `Analyze this food photo. Provide:
-1. Food items identified
-2. Estimated portion sizes
-3. Total calories (estimate)
-4. Protein, carbs, and fat breakdown (in grams)
-5. Brief nutritional assessment
-
-Format response as:
-🍽️ MEAL: [meal name]
-📊 CALORIES: [number] kcal
-🥩 PROTEIN: [number]g | CARBS: [number]g | FAT: [number]g
-💡 TIP: [one healthy tip]`;
-
-    const result = await model.generateContent([prompt, imageData]);
-    const response = await result.response;
-    return response.text();
+    // Vision-specific Gemini access is server-only now.
+    // For safety, return a friendly fallback message instead of calling an undefined client model.
+    console.warn('analyzeFoodPhoto: Vision AI not available on client, returning fallback message');
+    return "Meal logged! For accurate tracking, try to include variety and watch portion sizes.";
   } catch (error) {
     if(import.meta.env.DEV)console.error('Food Analysis Error:', error);
     return "Meal logged! For accurate tracking, try to include variety and watch portion sizes.";
@@ -274,9 +244,8 @@ Provide:
 
 Make it practical and achievable!`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+  const text = await chatWithAI(prompt, { topic: 'workout_plan' });
+  return text;
   } catch (error) {
     if(import.meta.env.DEV)console.error('Workout Generation Error:', error);
     return "Start with: 10 squats, 10 push-ups (or knee push-ups), 30 sec plank, 20 jumping jacks. Repeat 3 times!";
@@ -300,9 +269,8 @@ For each meal provide:
 
 Keep meals simple and realistic!`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+  const text = await chatWithAI(prompt, { topic: 'meal_plan' });
+  return text;
   } catch (error) {
     if(import.meta.env.DEV)console.error('Meal Plan Error:', error);
     return "Focus on: Lean protein, whole grains, lots of vegetables, healthy fats, and stay hydrated!";
@@ -328,9 +296,8 @@ Provide:
 
 Keep it brief and actionable!`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+  const text = await chatWithAI(prompt, { topic: 'habit_insights' });
+  return text;
   } catch (error) {
     if(import.meta.env.DEV)console.error('Habit Insights Error:', error);
     return "You're building great habits! Consistency is key. Try setting a specific time each day for your wellness routine.";
@@ -347,9 +314,8 @@ export const getMotivationalMessage = async (userContext) => {
 
 Create a short, encouraging message (2-3 sentences). Be specific to their situation and inspiring!`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+  const text = await chatWithAI(prompt, { topic: 'motivation' });
+  return text;
   } catch (error) {
     return "You're doing amazing! Every small step counts toward your bigger goal. Keep showing up! 💪";
   }

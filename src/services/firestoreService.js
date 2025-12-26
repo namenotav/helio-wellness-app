@@ -152,6 +152,14 @@ class FirestoreService {
         console.error('❌ localStorage fallback failed:', e);
       }
 
+      // Queue save for retry when back online
+      try {
+        this.saveQueue.push({ key, value, userId });
+        console.log(`📥 Queued Firestore save for retry: ${key}`);
+      } catch (e) {
+        console.error('❌ Failed to queue Firestore save:', e);
+      }
+
       return { success: false, error: error.message };
     }
   }

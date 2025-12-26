@@ -1,20 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import subscriptionService from '../services/subscriptionService';
 import './PaymentSuccess.css';
 
 function PaymentSuccess() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState('verifying');
-  const sessionId = searchParams.get('session_id');
-
-  useEffect(() => {
-    verifyPayment();
-  }, []);
-
-  const verifyPayment = async () => {
+  
+  const verifyPayment = useCallback(async () => {
     try {
       const user = auth.currentUser;
       if (!user) {
@@ -38,7 +32,12 @@ function PaymentSuccess() {
       console.error('Error verifying payment:', error);
       setStatus('error');
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    verifyPayment();
+  }, [verifyPayment]);
 
   return (
     <div className="payment-success-container">

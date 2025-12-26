@@ -13,6 +13,7 @@ const SupportModal = ({ isOpen, onClose }) => {
   const [error, setError] = useState(null);
   const [tickets, setTickets] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [selectedTicketDetail, setSelectedTicketDetail] = useState(null);
   const [hasPrioritySupport, setHasPrioritySupport] = useState(false);
   const [estimatedResponse, setEstimatedResponse] = useState('3 days');
 
@@ -228,9 +229,64 @@ const SupportModal = ({ isOpen, onClose }) => {
               <div className="no-tickets">
                 📭 No support tickets yet
               </div>
+            ) : selectedTicketDetail ? (
+              <div className="ticket-detail-view">
+                <button 
+                  className="back-button"
+                  onClick={() => setSelectedTicketDetail(null)}
+                >
+                  ← Back to Tickets
+                </button>
+                
+                <div className="ticket-detail-header">
+                  <h3>{selectedTicketDetail.subject}</h3>
+                  <div className="ticket-badges">
+                    {getPriorityBadge(selectedTicketDetail.priority)}
+                    {getStatusBadge(selectedTicketDetail.status)}
+                  </div>
+                </div>
+
+                <div className="ticket-detail-meta">
+                  <span>📁 {selectedTicketDetail.category}</span>
+                  <span>🕒 {new Date(selectedTicketDetail.createdAt?.seconds * 1000 || selectedTicketDetail.createdAt).toLocaleString()}</span>
+                  <span>Ticket #{selectedTicketDetail.id.substring(0, 8)}</span>
+                </div>
+
+                <div className="ticket-conversation">
+                  <div className="message-item user-message">
+                    <div className="message-header">
+                      <strong>👤 You</strong>
+                      <span>{new Date(selectedTicketDetail.createdAt?.seconds * 1000 || selectedTicketDetail.createdAt).toLocaleString()}</span>
+                    </div>
+                    <p>{selectedTicketDetail.message}</p>
+                  </div>
+
+                  {selectedTicketDetail.responses && selectedTicketDetail.responses.map((response, index) => (
+                    <div key={index} className={`message-item ${response.isAdmin ? 'admin-message' : 'user-message'}`}>
+                      <div className="message-header">
+                        <strong>
+                          {response.isAdmin ? '👨‍💼' : '👤'} {response.isAdmin ? response.adminName : 'You'}
+                        </strong>
+                        <span>{new Date(response.timestamp?.seconds * 1000 || response.timestamp).toLocaleString()}</span>
+                      </div>
+                      <p>{response.message}</p>
+                    </div>
+                  ))}
+
+                  {selectedTicketDetail.status === 'resolved' && (
+                    <div className="ticket-resolved-notice">
+                      ✅ <strong>This ticket has been resolved!</strong> If you need further assistance, please create a new ticket.
+                    </div>
+                  )}
+                </div>
+              </div>
             ) : (
               tickets.map((ticket) => (
-                <div key={ticket.id} className="ticket-item">
+                <div 
+                  key={ticket.id} 
+                  className="ticket-item"
+                  onClick={() => setSelectedTicketDetail(ticket)}
+                >
                   <div className="ticket-header">
                     <h3>{ticket.subject}</h3>
                     <div className="ticket-badges">
@@ -241,11 +297,14 @@ const SupportModal = ({ isOpen, onClose }) => {
                   <p className="ticket-message">{ticket.message}</p>
                   <div className="ticket-meta">
                     <span>📁 {ticket.category}</span>
-                    <span>🕒 {new Date(ticket.createdAt?.seconds * 1000).toLocaleDateString()}</span>
+                    <span>🕒 {new Date(ticket.createdAt?.seconds * 1000 || ticket.createdAt).toLocaleDateString()}</span>
                     {ticket.responses?.length > 0 && (
-                      <span>💬 {ticket.responses.length} responses</span>
+                      <span>💬 {ticket.responses.length} {ticket.responses.length === 1 ? 'response' : 'responses'}</span>
                     )}
                   </div>
+                  {ticket.responses?.length > 0 && ticket.responses.some(r => r.isAdmin) && (
+                    <div className="new-response-indicator">✨ New response from support!</div>
+                  )}
                 </div>
               ))
             )}

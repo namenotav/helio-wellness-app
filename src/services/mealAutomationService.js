@@ -373,6 +373,11 @@ IMPORTANT: Generate ALL ${days} days. Each day needs breakfast, lunch, and dinne
     }
   }
 
+  // Backwards-compatible alias used by automated tests
+  async generateMealPlan(days = 7, preferences = {}) {
+    return this.generateSmartMealPlan(days, preferences);
+  }
+
   // Auto-order groceries
   async orderGroceries(storePreference = 'any') {
     if (this.shoppingList.length === 0) {

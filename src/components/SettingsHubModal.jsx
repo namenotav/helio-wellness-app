@@ -76,6 +76,15 @@ const SettingsHubModal = ({ onClose, onOpenNotifications, onOpenTheme, onOpenDev
             <p>Connect devices</p>
           </button>
 
+          <button className="settings-card" onClick={() => {
+            onClose();
+            user?.onOpenSupport();
+          }}>
+            <div className="settings-icon">❓</div>
+            <h3>Help & Support</h3>
+            <p>Get assistance</p>
+          </button>
+
           {showDevButton && !isDevMode && (
             <button className="settings-card premium" onClick={() => {
               onClose();

@@ -44,7 +44,7 @@ try {
     // Force reload on version change
     if (oldVersion && oldVersion !== 'null') {
       console.log('🔄 Forcing hard reload for version update...');
-      window.location.reload(true);
+        window.location.reload();
     }
   }
 } catch (e) {

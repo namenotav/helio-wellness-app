@@ -48,7 +48,8 @@ const colors = {
 
 // Test configuration
 const CONFIG = {
-  TOTAL_USERS: 10000,
+  // Allow override via environment variable for larger tests
+  TOTAL_USERS: Number(process.env.STRESS_TOTAL_USERS) || 10000,
   CONCURRENT_BATCHES: 100, // Process 100 users at a time
   ACTIONS_PER_USER: 50, // Each user performs 50 random actions
   BATTLE_DURATION: 30000, // 30 seconds per battle

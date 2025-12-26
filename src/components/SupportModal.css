@@ -140,6 +140,15 @@
   font-size: 16px;
   font-family: inherit;
   transition: all 0.2s;
+  color: #000000 !important;
+  background: #ffffff !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+.support-input::placeholder,
+.support-textarea::placeholder {
+  color: #9ca3af !important;
+  opacity: 0.7;
 }
 
 .support-input:focus,
@@ -276,6 +285,135 @@
   flex-wrap: wrap;
   font-size: 13px;
   color: #6b7280;
+}
+
+/* Ticket Detail View */
+.ticket-detail-view {
+  padding: 20px 0;
+}
+
+.back-button {
+  background: transparent;
+  border: none;
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 8px 0;
+}
+
+.back-button:hover {
+  color: #2563eb;
+}
+
+.ticket-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 12px;
+}
+
+.ticket-detail-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #1f2937;
+  flex: 1;
+}
+
+.ticket-detail-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.ticket-conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message-item {
+  padding: 16px;
+  border-radius: 12px;
+  border-left: 4px solid;
+}
+
+.message-item.user-message {
+  background: #f9fafb;
+  border-left-color: #6b7280;
+}
+
+.message-item.admin-message {
+  background: #eff6ff;
+  border-left-color: #3b82f6;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.message-header strong {
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.message-header span {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.message-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ticket-resolved-notice {
+  padding: 16px;
+  background: #d1fae5;
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  color: #065f46;
+  font-size: 14px;
+  text-align: center;
+}
+
+.new-response-indicator {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+  color: white;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.ticket-item {
+  cursor: pointer;
+}
+
+.ticket-item:hover {
+  background: #f9fafb;
 }
 
 /* Mobile Responsive */

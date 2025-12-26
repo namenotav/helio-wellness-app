@@ -1,12 +1,15 @@
 // Priority Support Ticket Service
 // Handles support ticket creation, tracking, and priority routing
+import { Preferences } from '@capacitor/preferences';
 import { db } from './firebase';
-import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from 'firebase/firestore';
 import authService from './authService';
 import subscriptionService from './subscriptionService';
 
 class SupportTicketService {
   constructor() {
+    this.useFirestore = true; // Enable Firestore (manual rules deployment required)
+    this.localStorageKey = 'support_tickets';
     this.ticketsCollection = collection(db, 'support_tickets');
   }
 
@@ -18,8 +21,18 @@ class SupportTicketService {
   async createTicket({ subject, message, category = 'general', attachments = [] }) {
     try {
       const user = authService.getCurrentUser();
+      if(import.meta.env.DEV)console.log('🔍 Current user object:', JSON.stringify(user, null, 2));
+      
       if (!user) {
         throw new Error('User must be logged in to create support ticket');
+      }
+      
+      // Extract user ID - support multiple formats
+      const userId = user.id || user.uid || user.userId;
+      if(import.meta.env.DEV)console.log('🆔 Using userId:', userId);
+      
+      if (!userId) {
+        throw new Error('User ID not found. Please try logging out and back in.');
       }
 
       // Get user's subscription plan for priority routing
@@ -40,9 +53,10 @@ class SupportTicketService {
       }
 
       const ticket = {
-        userId: user.uid,
-        userEmail: user.email,
-        userName: user.displayName || 'User',
+        id: `ticket_${Date.now()}`,
+        userId: userId,
+        userEmail: user.email || 'unknown@email.com',
+        userName: user.name || user.displayName || user.profile?.name || 'User',
         subject,
         message,
         category, // 'general', 'technical', 'billing', 'feature_request'
@@ -58,21 +72,27 @@ class SupportTicketService {
         responses: []
       };
 
-      // Add ticket to Firestore
-      const docRef = await addDoc(this.ticketsCollection, ticket);
-      
-      if(import.meta.env.DEV)console.log('✅ Support ticket created:', docRef.id);
+      try {
+        // Try Firestore first
+        const docRef = await addDoc(this.ticketsCollection, ticket);
+        ticket.id = docRef.id;
+        if(import.meta.env.DEV)console.log('✅ Support ticket created in Firestore:', docRef.id);
+      } catch (firestoreError) {
+        // Fallback to local storage if Firestore fails
+        if(import.meta.env.DEV)console.warn('⚠️ Firestore failed, saving to local storage:', firestoreError);
+        await this.saveTicketLocally(ticket);
+      }
 
       // Send email notification via Railway API
       await this.sendTicketNotification({
-        ticketId: docRef.id,
+        ticketId: ticket.id,
         ...ticket
       });
 
       return {
         success: true,
-        ticketId: docRef.id,
-        ticket: { ...ticket, id: docRef.id }
+        ticketId: ticket.id,
+        ticket: ticket
       };
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Failed to create support ticket:', error);
@@ -117,30 +137,49 @@ class SupportTicketService {
   }
 
   /**
-   * Get all tickets for current user
+   * Get all tickets for current user (Firestore with local fallback)
    */
   async getUserTickets() {
     try {
       const user = authService.getCurrentUser();
       if (!user) return [];
 
-      const q = query(
-        this.ticketsCollection,
-        where('userId', '==', user.uid),
-        orderBy('createdAt', 'desc')
-      );
+      const userId = user.id || user.uid || user.userId;
 
-      const snapshot = await getDocs(q);
-      const tickets = [];
-      
-      snapshot.forEach(doc => {
-        tickets.push({
-          id: doc.id,
-          ...doc.data()
+      try {
+        // Try Firestore first
+        const q = query(
+          this.ticketsCollection,
+          where('userId', '==', userId),
+          orderBy('createdAt', 'desc')
+        );
+
+        const snapshot = await getDocs(q);
+        const tickets = [];
+        
+        snapshot.forEach(doc => {
+          tickets.push({
+            id: doc.id,
+            ...doc.data()
+          });
         });
-      });
 
-      return tickets;
+        if(import.meta.env.DEV)console.log('✅ Loaded tickets from Firestore:', tickets.length);
+        return tickets;
+      } catch (firestoreError) {
+        // Fallback to local storage
+        if(import.meta.env.DEV)console.warn('⚠️ Firestore failed, loading from local storage:', firestoreError);
+        
+        const { value } = await Preferences.get({ key: this.localStorageKey });
+        if (!value) return [];
+
+        const allTickets = JSON.parse(value);
+        const userTickets = allTickets.filter(t => t.userId === userId);
+        
+        return userTickets.sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+      }
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to fetch user tickets:', error);
       return [];
@@ -228,10 +267,21 @@ class SupportTicketService {
   }
 
   /**
-   * Check if user has priority support access
+   * Save ticket to local storage (fallback)
    */
-  hasPrioritySupport() {
-    return subscriptionService.hasAccess('prioritySupport');
+  async saveTicketLocally(ticket) {
+    try {
+      const { value } = await Preferences.get({ key: this.localStorageKey });
+      const tickets = value ? JSON.parse(value) : [];
+      tickets.push(ticket);
+      await Preferences.set({ 
+        key: this.localStorageKey, 
+        value: JSON.stringify(tickets) 
+      });
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to save ticket locally:', error);
+      throw error;
+    }
   }
 
   /**
@@ -247,6 +297,27 @@ class SupportTicketService {
     } else {
       return '3 days';
     }
+  }
+
+  /**
+   * Check if user has priority support access
+   */
+  hasPrioritySupport() {
+    return subscriptionService.hasPrioritySupport();
+  }
+
+  /**
+   * Check if user has VIP badge
+   */
+  hasVIPBadge() {
+    return subscriptionService.hasVIPBadge();
+  }
+
+  /**
+   * Check if user has beta access
+   */
+  hasBetaAccess() {
+    return subscriptionService.hasBetaAccess();
   }
 }
 

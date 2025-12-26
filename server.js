@@ -112,6 +112,13 @@ setInterval(() => {
 // Enable CORS for all origins (allows your phone to connect)
 app.use(cors());
 
+// Serve static files from React build
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, 'dist')));
+
 // Stripe webhook needs raw body
 app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -176,13 +183,17 @@ function mapStripePriceToPlan(priceId) {
 // Webhook handler - Subscription updated or created
 async function handleSubscriptionUpdate(subscription) {
   try {
+    if (!db_firebase) {
+      console.error('Firebase Admin not initialized - cannot update subscription in Firestore');
+      return;
+    }
     const userId = subscription.metadata?.firebaseUserId;
     if (!userId) {
       console.error('No firebaseUserId in subscription metadata');
       return;
     }
 
-    const priceId = subscription.items.data[0]?.price?.product;
+    const priceId = subscription.items.data[0]?.price?.id;
     const plan = mapStripePriceToPlan(priceId);
     
     await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').set({
@@ -205,6 +216,10 @@ async function handleSubscriptionUpdate(subscription) {
 // Webhook handler - Subscription deleted/canceled
 async function handleSubscriptionDeleted(subscription) {
   try {
+    if (!db_firebase) {
+      console.error('Firebase Admin not initialized - cannot mark subscription as canceled');
+      return;
+    }
     const userId = subscription.metadata?.firebaseUserId;
     if (!userId) return;
 
@@ -245,6 +260,11 @@ async function handlePaymentFailed(invoice) {
     const subscriptionObj = await stripe.subscriptions.retrieve(subscription);
     const userId = subscriptionObj.metadata?.firebaseUserId;
     if (!userId) return;
+
+    if (!db_firebase) {
+      console.error('Firebase Admin not initialized - cannot mark payment as failed in Firestore');
+      return;
+    }
 
     await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').set({
       status: 'past_due',
@@ -300,7 +320,11 @@ app.post('/api/stripe/create-checkout', async (req, res) => {
 app.get('/api/subscription/status/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+    if (!db_firebase) {
+      console.error('Firebase Admin not initialized - cannot read subscription status from Firestore');
+      return res.status(503).json({ error: 'Subscription service temporarily unavailable' });
+    }
+
     const subDoc = await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').get();
     
     if (!subDoc.exists) {
@@ -332,6 +356,11 @@ app.post('/api/subscription/cancel', async (req, res) => {
     
     if (!userId) {
       return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    if (!db_firebase) {
+      console.error('Firebase Admin not initialized - cannot cancel subscription in Firestore');
+      return res.status(503).json({ error: 'Subscription service temporarily unavailable' });
     }
 
     const subDoc = await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').get();
@@ -976,8 +1005,7 @@ app.post('/api/support/notify', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // In production, this would send via SendGrid/Mailgun/AWS SES
-    // For now, log to console and return success
+    // Log ticket creation (always)
     if(process.env.NODE_ENV!=="production")console.log(`
 📧 SUPPORT TICKET NOTIFICATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -992,37 +1020,75 @@ Message: ${message}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     `);
 
-    // TODO: Integrate with email service (SendGrid/Mailgun)
-    // Example SendGrid integration:
-    /*
-    const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    
-    await sgMail.send({
-      to: 'support@wellnessai.com',
-      from: 'noreply@wellnessai.com',
-      subject: `[${priority.toUpperCase()}] ${subject}`,
-      text: `
-        Support Ticket #${ticketId}
+    // Send email via SendGrid (if configured)
+    if (process.env.SENDGRID_API_KEY) {
+      try {
+        const sgMail = await import('@sendgrid/mail');
+        sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
         
-        User: ${userName} (${userEmail})
-        Plan: ${planTier}
-        Priority: ${priority}
-        SLA: ${slaHours} hours
+        const priorityEmoji = priority === 'urgent' ? '🚨' : priority === 'high' ? '⚡' : '📧';
+        const supportEmail = process.env.SUPPORT_EMAIL || 'support@wellnessai.com';
+        const fromEmail = process.env.FROM_EMAIL || 'noreply@wellnessai.com';
         
-        ${message}
-      `,
-      html: `
-        <h2>Support Ticket #${ticketId}</h2>
-        <p><strong>User:</strong> ${userName} (${userEmail})</p>
-        <p><strong>Plan:</strong> ${planTier}</p>
-        <p><strong>Priority:</strong> ${priority}</p>
-        <p><strong>SLA:</strong> ${slaHours} hours</p>
-        <hr>
-        <p>${message}</p>
-      `
-    });
-    */
+        await sgMail.default.send({
+          to: supportEmail,
+          from: fromEmail,
+          replyTo: userEmail,
+          subject: `${priorityEmoji} [${priority.toUpperCase()}] Ticket #${ticketId}: ${subject}`,
+          text: `
+Support Ticket #${ticketId}
+
+User: ${userName} (${userEmail})
+Plan: ${planTier.toUpperCase()}
+Priority: ${priority.toUpperCase()}
+SLA: ${slaHours} hours
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${message}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reply directly to this email to respond to the user.
+          `,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
+              <div style="background: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h2 style="color: #333; margin-top: 0;">${priorityEmoji} Support Ticket #${ticketId}</h2>
+                
+                <div style="background: ${priority === 'urgent' ? '#fee' : priority === 'high' ? '#ffeaa7' : '#e3f2fd'}; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 5px 0;"><strong>Priority:</strong> <span style="color: ${priority === 'urgent' ? '#c0392b' : priority === 'high' ? '#e67e22' : '#3498db'};">${priority.toUpperCase()}</span></p>
+                  <p style="margin: 5px 0;"><strong>SLA:</strong> ${slaHours} hours response time</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                  <p style="margin: 5px 0;"><strong>User:</strong> ${userName}</p>
+                  <p style="margin: 5px 0;"><strong>Email:</strong> <a href="mailto:${userEmail}">${userEmail}</a></p>
+                  <p style="margin: 5px 0;"><strong>Plan:</strong> <span style="background: #3498db; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px;">${planTier.toUpperCase()}</span></p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #555;">Subject</h3>
+                  <p style="color: #333; font-size: 16px; font-weight: bold;">${subject}</p>
+                  
+                  <h3 style="margin-top: 20px; color: #555;">Message</h3>
+                  <p style="color: #333; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
+                  <p style="color: #888; font-size: 14px;">Reply directly to this email to respond to the user.</p>
+                </div>
+              </div>
+            </div>
+          `
+        });
+        
+        if(process.env.NODE_ENV!=="production")console.log('✅ Support ticket email sent via SendGrid');
+      } catch (emailError) {
+        // Don't fail the request if email fails - ticket is already saved in Firestore
+        if(process.env.NODE_ENV!=="production")console.error('⚠️ SendGrid email failed (ticket still created):', emailError.message);
+      }
+    } else {
+      if(process.env.NODE_ENV!=="production")console.log('⚠️ SENDGRID_API_KEY not configured - email notification skipped');
+    }
 
     res.json({ 
       success: true, 
@@ -1032,6 +1098,93 @@ Message: ${message}
   } catch (error) {
     if(process.env.NODE_ENV!=="production")console.error('❌ Support notification error:', error);
     res.status(500).json({ error: 'Failed to send support notification' });
+  }
+});
+
+// 📧 Support Ticket Reply Notification (Admin → User)
+app.post('/api/support/reply', async (req, res) => {
+  try {
+    const { ticketId, userEmail, userName, subject, replyMessage, adminName } = req.body;
+
+    if (!ticketId || !userEmail || !replyMessage) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const sgMail = await import('@sendgrid/mail');
+    sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f4f6; margin: 0; padding: 20px; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 32px; text-align: center; }
+          .header h1 { margin: 0 0 8px 0; font-size: 28px; }
+          .header p { margin: 0; opacity: 0.9; font-size: 16px; }
+          .content { padding: 32px; }
+          .reply-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin: 24px 0; }
+          .reply-box h3 { margin: 0 0 12px 0; color: #1f2937; font-size: 16px; }
+          .reply-box p { margin: 0; color: #4b5563; line-height: 1.6; white-space: pre-wrap; }
+          .ticket-info { background: #f9fafb; padding: 16px; border-radius: 8px; margin: 20px 0; }
+          .ticket-info p { margin: 8px 0; color: #6b7280; font-size: 14px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+          .footer { padding: 24px 32px; background: #f9fafb; text-align: center; color: #6b7280; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>💬 Support Reply Received!</h1>
+            <p>We've responded to your support ticket</p>
+          </div>
+          <div class="content">
+            <p>Hi ${userName || 'there'},</p>
+            <p>${adminName || 'Our support team'} has responded to your ticket:</p>
+            
+            <div class="ticket-info">
+              <p><strong>Ticket Subject:</strong> ${subject}</p>
+              <p><strong>Ticket ID:</strong> #${ticketId.substring(0, 8)}</p>
+            </div>
+
+            <div class="reply-box">
+              <h3>👨‍💼 ${adminName || 'Support Team'}</h3>
+              <p>${replyMessage}</p>
+            </div>
+
+            <p>You can view the full conversation and reply directly in the app:</p>
+            
+            <center>
+              <a href="#" class="button">📱 Open in App</a>
+            </center>
+
+            <p style="margin-top: 24px; color: #6b7280; font-size: 14px;">
+              If you have additional questions, simply reply in your app or respond to your ticket.
+            </p>
+          </div>
+          <div class="footer">
+            <p><strong>WellnessAI Support Team</strong></p>
+            <p>We're here to help! 💙</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await sgMail.default.send({
+      to: userEmail,
+      from: process.env.SENDGRID_FROM_EMAIL || 'support@wellnessai.app',
+      subject: `Re: ${subject} - Support Reply [#${ticketId.substring(0, 8)}]`,
+      html: htmlContent,
+      text: `Hi ${userName},\n\n${adminName || 'Our support team'} has responded to your ticket:\n\n${replyMessage}\n\nTicket ID: #${ticketId.substring(0, 8)}\nSubject: ${subject}\n\nPlease open the WellnessAI app to view the full conversation.\n\nBest regards,\nWellnessAI Support Team`
+    });
+
+    if(process.env.NODE_ENV!=="production")console.log('✅ Support reply email sent to:', userEmail);
+    res.json({ success: true, message: 'Reply notification sent' });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('❌ Support reply notification error:', error);
+    res.status(500).json({ error: 'Failed to send reply notification' });
   }
 });
 
@@ -1090,6 +1243,11 @@ app.post('/api/logs', express.json(), (req, res) => {
   res.json({ success: true, received: logs.length });
 });
 
+// Serve React app for all non-API routes (must be last)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   if(process.env.NODE_ENV!=="production")console.log(`
 🚀 WellnessAI API Server Running!
@@ -1104,6 +1262,9 @@ app.listen(PORT, '0.0.0.0', () => {
    - Stripe Webhook: http://YOUR_COMPUTER_IP:${PORT}/api/stripe/webhook
    - Health Check: http://YOUR_COMPUTER_IP:${PORT}/health
    - Error Logging: http://YOUR_COMPUTER_IP:${PORT}/api/log-error
+
+Frontend: http://YOUR_COMPUTER_IP:${PORT}/
+Admin Dashboard: http://YOUR_COMPUTER_IP:${PORT}/admin-support
 
 Database: ${db ? (db.memory ? 'In-Memory (fallback)' : 'MongoDB Connected') : 'Not Connected'}
 

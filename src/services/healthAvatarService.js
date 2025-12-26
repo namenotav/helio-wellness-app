@@ -325,7 +325,7 @@ class HealthAvatarService {
       }
     }
 
-    // 7. Sleep quality (REAL sleep tracking only - no profile defaults)
+    // 7. Sleep quality (REAL sleep tracking only - TREAT MISSING DATA AS NEUTRAL)
     let sleepLog = [];
     try {
       // Check Firestore first, then localStorage
@@ -353,18 +353,24 @@ class HealthAvatarService {
     if(import.meta.env.DEV)console.log('😴 REAL Sleep Data:', { avgHours: avgSleepHours, logsCount: recentSleep.length });
     
     if (avgSleepHours === null) {
-      // No sleep tracking - penalize for missing data
-      score -= 10;
-      factors.push('⚠️ No sleep data tracked');
+      // 🔥 FIX: No sleep tracking - NEUTRAL (0 points, not -10)
+      // Only show suggestion, don't penalize missing data
+      factors.push('💡 Add sleep tracking for more accuracy');
+      scoreBreakdown.push({ factor: 'Sleep Tracking', points: 0, icon: '💡' });
     } else if (avgSleepHours < 6) {
       score -= 15;
       factors.push('🚨 Severe sleep deprivation');
+      scoreBreakdown.push({ factor: 'Sleep Quality', points: -15, icon: '🚨' });
     } else if (avgSleepHours < 7) {
       score -= 8;
       factors.push('⚠️ Insufficient sleep');
+      scoreBreakdown.push({ factor: 'Sleep Quality', points: -8, icon: '⚠️' });
     } else if (avgSleepHours >= 7 && avgSleepHours <= 9) {
       score += 5;
       factors.push('✅ Good sleep duration');
+      scoreBreakdown.push({ factor: 'Sleep Quality', points: +5, icon: '✅' });
+    } else {
+      scoreBreakdown.push({ factor: 'Sleep Quality', points: 0, icon: '😴' });
     }
 
     // 8. Medical conditions (REAL profile data)

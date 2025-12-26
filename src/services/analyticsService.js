@@ -156,8 +156,8 @@ class AnalyticsService {
     this.saveEvents();
 
     // Log in development
-    if (process.env.NODE_ENV === 'development') {
-      if(import.meta.env.DEV)console.log('📊 Analytics:', eventType, data);
+    if (import.meta.env.DEV) {
+      console.log('📊 Analytics:', eventType, data);
     }
   }
 
