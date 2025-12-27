@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { db, auth } from '../services/firebase';
+import { db } from '../services/firebase';
+import { auth } from '../config/firebase';
 import './AdminSupportDashboard.css';
 
 const AdminSupportDashboard = () => {
