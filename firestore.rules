@@ -16,13 +16,15 @@ service cloud.firestore {
     match /support_tickets/{ticketId} {
       // Allow anyone to create a ticket (authenticated or device-based users)
       allow create: if true;
-      // Allow users to read their own tickets
+      // Allow users to read their own tickets OR authenticated admins to read all tickets
       allow read: if request.auth != null && resource.data.userId == request.auth.uid
                   || resource.data.userId.matches('device_.*')
-                  || resource.data.userId is string;
-      // Allow users to update their own tickets
+                  || resource.data.userId is string
+                  || request.auth != null; // Admins (any authenticated user) can read all tickets
+      // Allow users to update their own tickets OR authenticated admins to update any ticket
       allow update: if request.auth != null && resource.data.userId == request.auth.uid
-                   || resource.data.userId.matches('device_.*');
+                   || resource.data.userId.matches('device_.*')
+                   || request.auth != null; // Admins can update any ticket
     }
     
     // Deny all other access

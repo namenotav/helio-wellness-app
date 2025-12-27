@@ -1,7 +1,8 @@
 // Admin Support Dashboard - Manage and respond to support tickets
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, serverTimestamp } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { db, auth } from '../services/firebase';
 import './AdminSupportDashboard.css';
 
 const AdminSupportDashboard = () => {
@@ -13,6 +14,68 @@ const AdminSupportDashboard = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [adminName, setAdminName] = useState('Support Team');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Admin authentication
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setIsAuthenticated(true);
+        setAdminName(user.email.split('@')[0]);
+      } else {
+        setIsAuthenticated(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Handle admin login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Login error:', error);
+      setLoginError('Invalid email or password');
+    }
+  };
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="admin-login-container">
+        <div className="admin-login-card">
+          <h1>🔒 Admin Login</h1>
+          <p>Please sign in to access the support dashboard</p>
+          <form onSubmit={handleLogin} className="admin-login-form">
+            <input
+              type="email"
+              placeholder="Admin Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            {loginError && <p className="login-error">{loginError}</p>}
+            <button type="submit">Sign In</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   // Real-time ticket updates from Firestore
   useEffect(() => {
