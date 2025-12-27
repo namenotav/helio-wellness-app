@@ -24,6 +24,10 @@ const AdminSupportDashboard = () => {
 
   // Check if user is already authenticated
   useEffect(() => {
+    if (!auth) {
+      console.error('Firebase Auth not initialized');
+      return;
+    }
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setIsAuthenticated(true);
