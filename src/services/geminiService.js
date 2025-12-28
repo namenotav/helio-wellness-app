@@ -1,5 +1,4 @@
 // Gemini AI Service Configuration
-// SECURITY: All API calls now go through server - NO client-side API key
 import aiMemoryService from './aiMemoryService';
 import rateLimiterService from './rateLimiterService';
 import productionLogger from './productionLogger';
@@ -9,9 +8,6 @@ import monitoringService from './monitoringService';
 const SERVER_URL = process.env.NODE_ENV === 'production' 
   ? 'https://helio-wellness-app-production.up.railway.app'
   : 'http://localhost:3001';
-
-// REMOVED: Client-side API key (security risk)
-// All Gemini requests now proxy through our secure server
 
 // AI Wellness Coach - Chat with personalized advice (NOW WITH ALLERGEN + MEMORY SUPPORT)
 export const chatWithAI = async (userMessage, userContext = {}) => {
@@ -26,21 +22,22 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
       throw new Error(limitCheck.message);
     }
     
-    if(import.meta.env.DEV)console.log('🚀 Calling Railway server with message:', userMessage);
+    if(import.meta.env.DEV)console.log('🚀 Calling Railway server API v1');
     productionLogger.action('gemini_chat_request', { messageLength: userMessage.length });
     
     // Build contextual prompt with AI memory
     const contextualPrompt = aiMemoryService.buildContextualPrompt(userMessage);
     
-    // Call Railway cloud server (works everywhere!)
+    // Call Railway server (API v1 endpoint)
     const response = await fetch(`${SERVER_URL}/api/v1/chat`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
       },
-      body: JSON.stringify({ message: contextualPrompt }),
-      mode: 'cors'
+      body: JSON.stringify({
+        message: contextualPrompt,
+        userContext
+      })
     });
 
     const duration = Date.now() - startTime;
@@ -49,21 +46,22 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      productionLogger.error('Gemini API failed', new Error(errorText), { status: response.status });
+      productionLogger.error('Railway server API failed', new Error(errorText), { status: response.status });
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    if(import.meta.env.DEV)console.log('✅ AI response received:', data.response?.substring(0, 50));
+    const aiResponse = data.response || 'Sorry, I could not generate a response.';
+    if(import.meta.env.DEV)console.log('✅ AI response received:', aiResponse?.substring(0, 50));
     
     // ✅ PRODUCTION: Record successful API call
     rateLimiterService.recordAction('gemini_chat', userId);
     productionLogger.performance('gemini_chat_success', duration);
     
     // Save conversation to AI memory
-    await aiMemoryService.addConversation(userMessage, data.response, userContext.topic || 'general');
+    await aiMemoryService.addConversation(userMessage, aiResponse, userContext.topic || 'general');
     
-    return data.response;
+    return aiResponse;
   } catch (error) {
     const duration = Date.now() - startTime;
     productionLogger.error('Gemini chat error', error, { duration, userId });

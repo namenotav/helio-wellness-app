@@ -1106,11 +1106,44 @@ export default function NewDashboard() {
     
     // Initialize auth service to load user from Preferences
     const initAuth = async () => {
+      console.log('🚀 [NewDashboard] initAuth() starting...');
       await authService.initialize();
       await syncService.initialize();
       const currentUser = authService.getCurrentUser();
+      console.log('👤 [NewDashboard] Current user:', currentUser?.email || 'none');
       if (currentUser) {
         setUser(currentUser);
+        
+        // Check if user needs to re-login to sync Firebase Auth
+        if (currentUser.needsReLogin) {
+          console.log('⚠️ User needs re-login to sync Firebase Auth');
+          // TODO: Show re-login prompt (auth modal not available in this component)
+        }
+        
+        // Check if tickets need migration (run once after first successful login)
+        console.log('🔍 Checking if migration needed...');
+        try {
+          const supportTicketService = (await import('../services/supportTicketService')).default;
+          const needsMigration = await supportTicketService.needsMigration();
+          console.log('🔍 needsMigration:', needsMigration);
+          console.log('🔍 currentUser.needsReLogin:', currentUser.needsReLogin);
+          
+          if (needsMigration && !currentUser.needsReLogin) {
+            console.log('🔄 Running one-time ticket migration...');
+            const result = await supportTicketService.migrateTicketsToCurrentUser();
+            console.log('🔄 Migration result:', result);
+            if (result.success) {
+              console.log(`✅ Migration complete: ${result.migratedCount} tickets migrated`);
+            } else {
+              console.error('❌ Migration failed:', result.error);
+            }
+          } else {
+            console.log('⏭️ Skipping migration - needsMigration:', needsMigration, 'needsReLogin:', currentUser.needsReLogin);
+          }
+        } catch (migrationError) {
+          console.error('⚠️ Ticket migration error:', migrationError);
+        }
+        
         if (!currentUser.profile?.allergens && !currentUser.profile?.age) {
           setShowProfileSetup(true);
         }
