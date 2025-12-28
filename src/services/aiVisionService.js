@@ -58,7 +58,7 @@ class AIVisionService {
         if(import.meta.env.DEV)console.log('📡 Trying Railway server for vision analysis...');
         
         const response = await fetch(
-          'https://helio-wellness-app-production.up.railway.app/api/vision',
+          'https://helio-wellness-app-production.up.railway.app/api/v1/vision',
           {
             method: 'POST',
             headers: { 
@@ -84,38 +84,8 @@ class AIVisionService {
         if(import.meta.env.DEV)console.log('✅ Railway server success');
         
       } catch (serverError) {
-        // Fallback to direct Gemini API call
-        if(import.meta.env.DEV)console.warn('⚠️ Railway server failed, using direct API:', serverError.message);
-        
-        const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-        if (!API_KEY) {
-          throw new Error('API key not configured');
-        }
-        
-        const directResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: prompt },
-                  { inline_data: { mime_type: 'image/jpeg', data: imageBase64 }}
-                ]
-              }]
-            })
-          }
-        );
-
-        if (!directResponse.ok) {
-          const errorData = await directResponse.json().catch(() => ({}));
-          throw new Error(errorData.error?.message || `API Error: ${directResponse.status}`);
-        }
-
-        const directData = await directResponse.json();
-        aiResponse = directData.candidates?.[0]?.content?.parts?.[0]?.text;
-        if(import.meta.env.DEV)console.log('✅ Direct API success');
+        if(import.meta.env.DEV)console.error('❌ Railway server failed:', serverError.message);
+        throw new Error('AI analysis service temporarily unavailable. Please check your Railway server.');
       }
       if(import.meta.env.DEV)console.log('🤖 AI Response Text:', aiResponse?.substring(0, 300) + '...');
       
@@ -439,34 +409,46 @@ Look for Halal logos: JAKIM, MUI, HFA, IFANCA, Islamic symbols
 
 ⚠️ DO NOT return foodName, safetyLevel, or detectedAllergens. ONLY return halalStatus data.`;
 
-      // BYPASS RAILWAY - Go directly to Gemini API for Halal analysis
-      if(import.meta.env.DEV)console.log('🕌 Using direct Gemini API for Halal analysis (bypassing Railway)...');
+      // SECURITY: Use Railway server for Halal analysis (no client-side API key exposure)
+      if(import.meta.env.DEV)console.log('🕌 Using Railway server for Halal analysis...');
       
-      // Create Gemini model directly using API key
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error('Gemini API key not found. Please check your .env file.');
-      }
-      
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-      
-      const imagePart = {
-        inlineData: {
-          data: imageBase64.split(',')[1] || imageBase64,
-          mimeType: 'image/jpeg'
+      try {
+        const response = await fetch(
+          'https://helio-wellness-app-production.up.railway.app/api/v1/vision',
+          {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              prompt: prompt,
+              imageData: imageBase64,
+              model: 'gemini-2.0-flash-exp' // Request specific model for Halal
+            }),
+            mode: 'cors'
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
         }
-      };
-      
-      const result = await model.generateContent([prompt, imagePart]);
-      const aiResponse = result.response.text();
-      if(import.meta.env.DEV)console.log('✅ Direct Gemini Halal analysis successful');
+
+        const data = await response.json();
+        const aiResponse = data.response;
+        if(import.meta.env.DEV)console.log('✅ Railway Halal analysis successful');
 
       // Parse AI response
       const cleanResponse = aiResponse.replace(/```json\n?|```\n?/g, '').trim();
       if(import.meta.env.DEV)console.log('🔍 Raw AI response for Halal:', cleanResponse.substring(0, 300));
       
       const halalData = JSON.parse(cleanResponse);
+      
+      } catch (error) {
+        // SECURITY: No client-side fallback - Railway server required
+        if(import.meta.env.DEV)console.error('❌ Halal analysis failed:', error.message);
+        throw new Error('Halal analysis service temporarily unavailable. Please check your internet connection and try again.');
+      }
       
       // CRITICAL VALIDATION: Detect if AI returned wrong data format
       if (!halalData.halalStatus) {
@@ -531,7 +513,7 @@ Return as JSON with same format as food analysis.`;
         if(import.meta.env.DEV)console.log('📡 Trying Railway server for Halal analysis...');
         
         const response = await fetch(
-          'https://helio-wellness-app-production.up.railway.app/api/vision',
+          'https://helio-wellness-app-production.up.railway.app/api/v1/vision',
           {
             method: 'POST',
             headers: { 
@@ -553,40 +535,10 @@ Return as JSON with same format as food analysis.`;
         const data = await response.json();
         aiResponse = data.response;
         if(import.meta.env.DEV)console.log('✅ Railway server success');
-        
       } catch (serverError) {
-        // Fallback to direct Gemini API call
-        if(import.meta.env.DEV)console.warn('⚠️ Railway server failed, using direct API:', serverError.message);
-        
-        const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-        if (!API_KEY) {
-          throw new Error('API key not configured');
-        }
-        
-        const directResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: prompt },
-                  { inline_data: { mime_type: 'image/jpeg', data: imageBase64 }}
-                ]
-              }]
-            })
-          }
-        );
-
-        if (!directResponse.ok) {
-          const errorData = await directResponse.json().catch(() => ({}));
-          throw new Error(errorData.error?.message || `API Error: ${directResponse.status}`);
-        }
-
-        const directData = await directResponse.json();
-        aiResponse = directData.candidates?.[0]?.content?.parts?.[0]?.text;
-        if(import.meta.env.DEV)console.log('✅ Direct API success');
+        // SECURITY: No client-side fallback - Railway server required
+        if(import.meta.env.DEV)console.error('❌ Railway server unavailable:', serverError.message);
+        throw new Error('AI analysis service temporarily unavailable. Please check your internet connection and try again.');
       }
       
       if (!aiResponse) {
