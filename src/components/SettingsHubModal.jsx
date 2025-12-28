@@ -26,6 +26,26 @@ const SettingsHubModal = ({ onClose, onOpenNotifications, onOpenTheme, onOpenDev
               }} className="dev-action-btn disable">
                 🔒 Disable Developer Mode
               </button>
+              {user?.email === 'miphoma@gmail.com' && (
+                <>
+                  <button onClick={() => {
+                    onClose();
+                    setTimeout(() => {
+                      window.location.href = '/admin-support';
+                    }, 100);
+                  }} className="dev-action-btn admin">
+                    🎫 Support Tickets
+                  </button>
+                  <button onClick={() => {
+                    onClose();
+                    setTimeout(() => {
+                      window.location.href = '/admin';
+                    }, 100);
+                  }} className="dev-action-btn admin">
+                    ⚡ Monitoring Dashboard
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

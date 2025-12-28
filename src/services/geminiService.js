@@ -3,6 +3,7 @@
 import aiMemoryService from './aiMemoryService';
 import rateLimiterService from './rateLimiterService';
 import productionLogger from './productionLogger';
+import monitoringService from './monitoringService';
 
 // Server endpoints
 const SERVER_URL = process.env.NODE_ENV === 'production' 
@@ -32,7 +33,7 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
     const contextualPrompt = aiMemoryService.buildContextualPrompt(userMessage);
     
     // Call Railway cloud server (works everywhere!)
-    const response = await fetch(`${SERVER_URL}/api/chat`, {
+    const response = await fetch(`${SERVER_URL}/api/v1/chat`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -43,7 +44,8 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
     });
 
     const duration = Date.now() - startTime;
-    productionLogger.apiCall('/api/chat', 'POST', duration, response.ok, response.status);
+    productionLogger.apiCall('/api/v1/chat', 'POST', duration, response.ok, response.status);
+    monitoringService.trackAPICall('/api/v1/chat', 'POST', duration, response.ok, response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -65,6 +67,7 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
   } catch (error) {
     const duration = Date.now() - startTime;
     productionLogger.error('Gemini chat error', error, { duration, userId });
+    monitoringService.trackError(error, { service: 'gemini_chat', userId, duration });
     if(import.meta.env.DEV)console.error('💥 AI Error:', error.message, error);
     throw error;
   }

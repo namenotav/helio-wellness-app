@@ -7,6 +7,9 @@ import fetch from 'node-fetch';
 import { MongoClient } from 'mongodb';
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import Joi from 'joi';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -111,6 +114,15 @@ setInterval(() => {
 
 // Enable CORS for all origins (allows your phone to connect)
 app.use(cors());
+
+// Security: Add HTTP security headers with Helmet.js
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for now (can be configured later)
+  crossOriginEmbedderPolicy: false // Allow embedding for Stripe/payment iframes
+}));
+
+// Parse cookies for CSRF tokens
+app.use(cookieParser());
 
 // Serve static files from React build
 import path from 'path';
@@ -597,14 +609,33 @@ app.post('/api/feedback', async (req, res) => {
   }
 });
 
-// Chat endpoint
-app.post('/api/chat', async (req, res) => {
+// Joi validation schemas
+const chatSchema = Joi.object({
+  message: Joi.string().min(1).max(2000).required()
+});
+
+const visionSchema = Joi.object({
+  prompt: Joi.string().min(1).max(1000).required(),
+  imageData: Joi.string().required()
+});
+
+const battleSchema = Joi.object({
+  opponentId: Joi.string().required(),
+  goal: Joi.string().valid('steps', 'weight-loss', 'health-score').required(),
+  stake: Joi.number().min(5).max(100).required(),
+  duration: Joi.number().valid(7, 14, 30).required()
+});
+
+// API v1 - Chat endpoint
+app.post('/api/v1/chat', async (req, res) => {
   try {
-    const { message } = req.body;
-    
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
+    // Validate input with Joi
+    const { error, value } = chatSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
     }
+    
+    const { message } = value;
 
     // SECURITY: Input sanitization - prevent injection attacks
     const sanitizedMessage = String(message)
@@ -670,14 +701,22 @@ Keep it simple, friendly, and motivating!`;
   }
 });
 
-// Vision endpoint for food scanning
-app.post('/api/vision', async (req, res) => {
+// Backward compatibility: Redirect old /api/chat to /api/v1/chat
+app.post('/api/chat', (req, res) => {
+  req.url = '/api/v1/chat';
+  app._router.handle(req, res);
+});
+
+// API v1 - Vision endpoint for food scanning
+app.post('/api/v1/vision', async (req, res) => {
   try {
-    const { prompt, imageData } = req.body;
-    
-    if (!prompt || !imageData) {
-      return res.status(400).json({ error: 'Prompt and imageData are required' });
+    // Validate input with Joi
+    const { error, value } = visionSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
     }
+    
+    const { prompt, imageData } = value;
 
     if(process.env.NODE_ENV!=="production")console.log('📸 Received vision request');
     if(process.env.NODE_ENV!=="production")console.log('🖼️ Image data length:', imageData.length);
