@@ -611,7 +611,8 @@ app.post('/api/feedback', async (req, res) => {
 
 // Joi validation schemas
 const chatSchema = Joi.object({
-  message: Joi.string().min(1).max(2000).required()
+  message: Joi.string().min(1).max(2000).required(),
+  userContext: Joi.object().optional()
 });
 
 const visionSchema = Joi.object({
