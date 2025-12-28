@@ -616,7 +616,7 @@ const chatSchema = Joi.object({
 });
 
 const visionSchema = Joi.object({
-  prompt: Joi.string().min(1).max(1000).required(),
+  prompt: Joi.string().min(1).max(10000).required(),  // Increased for Halal analysis (long prompt)
   imageData: Joi.string().required()
 });
 
