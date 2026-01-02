@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cp package-server.json package.json && npm install"
+buildCommand = "npm install && npm run build && cp package-server.json package.json && npm install"
 
 [deploy]
 startCommand = "node server.js"
