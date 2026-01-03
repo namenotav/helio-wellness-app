@@ -2,7 +2,7 @@
 // Handles support ticket creation, tracking, and priority routing
 import { Preferences } from '@capacitor/preferences';
 import { db } from './firebase';
-import { collection, addDoc, query, where, orderBy, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, getDocs, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
 import authService from './authService';
 import subscriptionService from './subscriptionService';
 
@@ -21,19 +21,23 @@ class SupportTicketService {
   async createTicket({ subject, message, category = 'general', attachments = [] }) {
     try {
       const user = authService.getCurrentUser();
-      if(import.meta.env.DEV)console.log('🔍 Current user object:', JSON.stringify(user, null, 2));
+      console.log('🔍 Support Ticket: Current user object:', user);
+      console.log('🔍 Support Ticket: User keys:', user ? Object.keys(user) : 'null');
       
       if (!user) {
+        console.error('❌ Support Ticket: No user found');
         throw new Error('User must be logged in to create support ticket');
       }
       
       // Extract user ID - support multiple formats
-      const userId = user.id || user.uid || user.userId;
-      if(import.meta.env.DEV)console.log('🆔 Using userId:', userId);
+      const userId = user.uid || user.id || user.userId || (user.profile && user.profile.userId);
+      console.log('🆔 Support Ticket: Extracted userId:', userId, 'from user object with keys:', Object.keys(user));
       
       if (!userId) {
-        throw new Error('User ID not found. Please try logging out and back in.');
+        console.error('❌ Support Ticket: Could not extract userId from:', JSON.stringify(user));
+        throw new Error('User ID not found in user object: ' + JSON.stringify(Object.keys(user)));
       }
+      console.log('✅ Support Ticket: Using userId:', userId);
 
       // Get user's subscription plan for priority routing
       const currentPlan = subscriptionService.getCurrentPlan();
@@ -53,7 +57,7 @@ class SupportTicketService {
       }
 
       const ticket = {
-        id: `ticket_${Date.now()}`,
+        // Don't set id here - let Firestore generate it
         userId: userId,
         userEmail: user.email || 'unknown@email.com',
         userName: user.name || user.displayName || user.profile?.name || 'User',
@@ -72,27 +76,30 @@ class SupportTicketService {
         responses: []
       };
 
+      let ticketId;
       try {
-        // Try Firestore first
+        // Try Firestore first - Firestore will generate the ID
         const docRef = await addDoc(this.ticketsCollection, ticket);
-        ticket.id = docRef.id;
+        ticketId = docRef.id; // Use Firestore-generated ID
         if(import.meta.env.DEV)console.log('✅ Support ticket created in Firestore:', docRef.id);
       } catch (firestoreError) {
         // Fallback to local storage if Firestore fails
         if(import.meta.env.DEV)console.warn('⚠️ Firestore failed, saving to local storage:', firestoreError);
+        ticketId = `ticket_${Date.now()}`; // Generate temporary ID for local storage
+        ticket.id = ticketId;
         await this.saveTicketLocally(ticket);
       }
 
       // Send email notification via Railway API
       await this.sendTicketNotification({
-        ticketId: ticket.id,
+        ticketId: ticketId,
         ...ticket
       });
 
       return {
         success: true,
-        ticketId: ticket.id,
-        ticket: ticket
+        ticketId: ticketId,
+        ticket: { id: ticketId, ...ticket }
       };
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Failed to create support ticket:', error);
@@ -142,9 +149,14 @@ class SupportTicketService {
   async getUserTickets() {
     try {
       const user = authService.getCurrentUser();
-      if (!user) return [];
+      console.log('📋 Support Ticket: Getting tickets for user:', user);
+      if (!user) {
+        console.warn('⚠️ Support Ticket: No user logged in');
+        return [];
+      }
 
-      const userId = user.id || user.uid || user.userId;
+      const userId = user.uid || user.id || user.userId || (user.profile && user.profile.userId);
+      console.log('📋 Support Ticket: Using userId for query:', userId);
 
       try {
         // Try Firestore first
@@ -318,6 +330,83 @@ class SupportTicketService {
    */
   hasBetaAccess() {
     return subscriptionService.hasBetaAccess();
+  }
+
+  /**
+   * Check if tickets need migration to current user
+   */
+  async needsMigration() {
+    try {
+      const { value } = await Preferences.get({ key: this.localStorageKey });
+      if (!value) return false;
+
+      const allTickets = JSON.parse(value);
+      const user = authService.getCurrentUser();
+      if (!user) return false;
+
+      const userId = user.id || user.uid || user.userId;
+      if (!userId) return false;
+
+      // Check if there are any tickets NOT belonging to current user
+      const ticketsNeedMigration = allTickets.some(t => t.userId !== userId);
+      return ticketsNeedMigration;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to check migration status:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Migrate tickets from device storage to current user
+   */
+  async migrateTicketsToCurrentUser() {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user) {
+        return { success: false, error: 'No user logged in' };
+      }
+
+      const userId = user.id || user.uid || user.userId;
+      if (!userId) {
+        return { success: false, error: 'User ID not found' };
+      }
+
+      const { value } = await Preferences.get({ key: this.localStorageKey });
+      if (!value) {
+        return { success: true, migratedCount: 0 };
+      }
+
+      const allTickets = JSON.parse(value);
+      const ticketsNeedMigration = allTickets.filter(t => t.userId !== userId);
+
+      if (ticketsNeedMigration.length === 0) {
+        return { success: true, migratedCount: 0 };
+      }
+
+      // Update each ticket with current user ID
+      const migratedTickets = ticketsNeedMigration.map(ticket => ({
+        ...ticket,
+        userId: userId,
+        userEmail: user.email || ticket.userEmail,
+        userName: user.name || user.displayName || user.profile?.name || ticket.userName
+      }));
+
+      // Merge with existing tickets from current user
+      const currentUserTickets = allTickets.filter(t => t.userId === userId);
+      const mergedTickets = [...currentUserTickets, ...migratedTickets];
+
+      // Save back to Preferences
+      await Preferences.set({
+        key: this.localStorageKey,
+        value: JSON.stringify(mergedTickets)
+      });
+
+      if(import.meta.env.DEV)console.log(`✅ Migrated ${migratedTickets.length} tickets to user ${userId}`);
+      return { success: true, migratedCount: migratedTickets.length };
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to migrate tickets:', error);
+      return { success: false, error: error.message };
+    }
   }
 }
 

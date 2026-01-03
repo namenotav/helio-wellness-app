@@ -10,7 +10,9 @@
       "googleapis.com",
       "api.stripe.com",
       "generativelanguage.googleapis.com"
-    ]
+    ],
+    "overrideUserAgent": "Helio-Android",
+    "clearWebViewCache": true
   },
   "plugins": {
     "BackgroundRunner": {

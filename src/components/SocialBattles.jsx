@@ -30,6 +30,12 @@ export default function SocialBattles({ onClose }) {
   });
 
   useEffect(() => {
+    // Check if user has access to social battles (Premium+ required)
+    if (!subscriptionService.hasAccess('socialBattles')) {
+      // Don't load battles, show upgrade prompt instead
+      return;
+    }
+
     try {
       loadBattles();
       loadStats();
@@ -381,6 +387,42 @@ export default function SocialBattles({ onClose }) {
 
         <h2 className="battles-title">⚔️ Social Health Battles</h2>
 
+        {/* Show paywall if no access */}
+        {!subscriptionService.hasAccess('socialBattles') ? (
+          <div className="paywall-notice" style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '80px', marginBottom: '20px' }}>🔒</div>
+            <h3 style={{ fontSize: '24px', marginBottom: '10px' }}>Unlock Social Battles</h3>
+            <p style={{ color: '#888', marginBottom: '30px' }}>Compete with friends and climb the leaderboards!</p>
+            <ul style={{ listStyle: 'none', padding: 0, marginBottom: '30px', textAlign: 'left', maxWidth: '400px', margin: '0 auto 30px' }}>
+              <li style={{ padding: '8px 0' }}>✅ Challenge friends to health battles</li>
+              <li style={{ padding: '8px 0' }}>✅ Join global leaderboards</li>
+              <li style={{ padding: '8px 0' }}>✅ Earn rewards and badges</li>
+              <li style={{ padding: '8px 0' }}>✅ Track your battle history</li>
+            </ul>
+            <p style={{ fontSize: '18px', marginBottom: '10px' }}>Starting at <strong>£16.99/month</strong></p>
+            <p style={{ fontSize: '20px', color: '#10b981', fontWeight: 'bold', marginBottom: '20px' }}>🎉 30 DAYS FREE - Cancel anytime</p>
+            <button 
+              style={{ 
+                padding: '15px 40px',
+                fontSize: '18px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+              onClick={() => {
+                import('../services/stripeService').then(({ checkoutPremium }) => {
+                  checkoutPremium();
+                });
+              }}
+            >
+              ⭐ Start Free Trial
+            </button>
+          </div>
+        ) : (
+          <>
         {/* View Navigation */}
         <div className="battles-nav">
           <button 
@@ -768,6 +810,8 @@ export default function SocialBattles({ onClose }) {
               ))}
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

@@ -37,6 +37,8 @@ export default defineConfig({
     })
   ],
   build: {
+    // 🔥 DISABLE MINIFICATION for debugging React #310
+    minify: false,
     // 🔥 AGGRESSIVE CACHE BUSTING: Remove hashes entirely, use timestamp-only naming
     assetsInlineLimit: 0,
     rollupOptions: {

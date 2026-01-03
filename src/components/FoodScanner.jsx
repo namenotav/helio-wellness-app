@@ -30,6 +30,12 @@ export default function FoodScanner({ onClose, initialMode = null, lockMode = fa
   }, []);
 
   const handleScanFood = async () => {
+    // Check if user has access to food scanner (Starter+ required for camera)
+    if (!subscriptionService.hasAccess('foodScanner')) {
+      setShowPaywall(true);
+      return;
+    }
+
     // Check food scan limit
     const limit = subscriptionService.checkLimit('foodScans');
     if (!limit.allowed) {

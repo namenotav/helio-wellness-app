@@ -412,7 +412,12 @@ Look for Halal logos: JAKIM, MUI, HFA, IFANCA, Islamic symbols
       // SECURITY: Use Railway server for Halal analysis (no client-side API key exposure)
       if(import.meta.env.DEV)console.log('🕌 Using Railway server for Halal analysis...');
       
+      let halalData;
       try {
+        console.log('🕌 Halal analysis starting...');
+        console.log('📏 Prompt length:', prompt.length);
+        console.log('🖼️ Image data length:', imageBase64.length);
+        
         const response = await fetch(
           'https://helio-wellness-app-production.up.railway.app/api/v1/vision',
           {
@@ -429,24 +434,29 @@ Look for Halal logos: JAKIM, MUI, HFA, IFANCA, Islamic symbols
           }
         );
 
+        console.log('📥 Railway Response Status:', response.status);
+        
         if (!response.ok) {
-          throw new Error(`Server returned ${response.status}`);
+          const errorText = await response.text();
+          console.error('❌ Server error response:', errorText);
+          throw new Error(`Server returned ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
         const aiResponse = data.response;
-        if(import.meta.env.DEV)console.log('✅ Railway Halal analysis successful');
+        console.log('✅ Railway Halal analysis successful');
 
-      // Parse AI response
-      const cleanResponse = aiResponse.replace(/```json\n?|```\n?/g, '').trim();
-      if(import.meta.env.DEV)console.log('🔍 Raw AI response for Halal:', cleanResponse.substring(0, 300));
-      
-      const halalData = JSON.parse(cleanResponse);
+        // Parse AI response
+        const cleanResponse = aiResponse.replace(/```json\n?|```\n?/g, '').trim();
+        console.log('🔍 Raw AI response for Halal:', cleanResponse.substring(0, 300));
+        
+        halalData = JSON.parse(cleanResponse);
       
       } catch (error) {
         // SECURITY: No client-side fallback - Railway server required
-        if(import.meta.env.DEV)console.error('❌ Halal analysis failed:', error.message);
-        throw new Error('Halal analysis service temporarily unavailable. Please check your internet connection and try again.');
+        console.error('❌ Halal analysis failed:', error);
+        console.error('Error details:', error.message);
+        throw new Error('Halal analysis failed: ' + error.message);
       }
       
       // CRITICAL VALIDATION: Detect if AI returned wrong data format

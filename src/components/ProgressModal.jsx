@@ -19,47 +19,17 @@ export default function ProgressModal({ isOpen, onClose, todaySteps = 0 }) {
 
   const loadProgressData = async () => {
     try {
-      const workoutLog = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+      // 🎯 SINGLE SOURCE OF TRUTH: Use Firestore only
+      const { default: firestoreService } = await import('../services/firestoreService.js');
+      const { default: authService } = await import('../services/authService.js');
+      const userId = authService.getCurrentUser()?.uid;
       
-      // 🔥 REAL-TIME DATA: Read from Android CapacitorStorage (same as Health Avatar)
-      let stepHistoryRaw = null;
+      // 🔥 WORKOUTS: Read from Firestore
+      const workoutLog = await firestoreService.get('workoutHistory', userId) || [];
       
-      // PRIORITY 1: Try Android's CapacitorStorage (wellnessai_ prefix) - REAL-TIME DATA
-      try {
-        const { value: androidData } = await Preferences.get({ key: 'wellnessai_stepHistory' });
-        if (androidData) {
-          stepHistoryRaw = JSON.parse(androidData);
-          console.log('📈 Progress Modal loaded from Android CapacitorStorage:', stepHistoryRaw?.length, 'entries');
-        }
-      } catch (e) {
-        console.warn('⚠️ Could not read from Android CapacitorStorage:', e);
-      }
-      
-      // PRIORITY 2: Try Firestore (cloud backup)
-      if (!stepHistoryRaw) {
-        try {
-          const { default: firestoreService } = await import('../services/firestoreService.js');
-          const cloudData = await firestoreService.get('stepHistory');
-          if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
-            stepHistoryRaw = cloudData;
-            console.log('📈 Progress Modal loaded from Firestore cloud:', stepHistoryRaw?.length, 'entries');
-            // Restore to local storage for next time
-            localStorage.setItem('stepHistory', JSON.stringify(cloudData));
-            await Preferences.set({ key: 'wellnessai_stepHistory', value: JSON.stringify(cloudData) });
-          }
-        } catch (e) {
-          console.warn('⚠️ Could not load from Firestore:', e);
-        }
-      }
-      
-      // PRIORITY 3: Fallback to localStorage (cache)
-      if (!stepHistoryRaw) {
-        const localData = localStorage.getItem('stepHistory');
-        if (localData) {
-          stepHistoryRaw = JSON.parse(localData);
-          console.log('📈 Progress Modal fallback to localStorage:', stepHistoryRaw?.length, 'entries');
-        }
-      }
+      // 🔥 STEP HISTORY: Read from Firestore (single source)
+      const stepHistoryRaw = await firestoreService.get('stepHistory', userId) || [];
+      console.log('📈 Progress Modal loaded from Firestore:', stepHistoryRaw?.length, 'entries');
       
       // Parse step history array
       const stepHistory = Array.isArray(stepHistoryRaw) ? stepHistoryRaw : [];

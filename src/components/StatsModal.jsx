@@ -29,25 +29,43 @@ export default function StatsModal({ isOpen, onClose, todaySteps = 0 }) {
 
   const loadStats = async () => {
     try {
-      // Fix: Use correct gamificationService methods
+      // 🎯 SINGLE SOURCE OF TRUTH: Use Firestore + Preferences (same as Dashboard)
+      const { default: firestoreService } = await import('../services/firestoreService');
+      const userId = authService.getCurrentUser()?.uid;
+      
       const levelInfo = gamificationService.getLevelInfo();
       const streakInfo = gamificationService.getStreakInfo();
-      const healthData = JSON.parse(localStorage.getItem('health_data') || '{}');
-      const workoutLog = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
-      const mealLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
-
-      // 🔥 Use live step data from parent (already handles negative sensors)
-      let liveSteps = todaySteps; // Parent (NewDashboard) already calculated correctly
       
-      // Calculate TOTAL STEPS from stepHistory array (same as HealthAvatar)
-      const stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '[]');
+      // 🔥 STEPS: Read from notification service (Preferences)
+      let liveSteps = 0;
+      try {
+        const storedSteps = await Preferences.get({ key: 'wellnessai_todaySteps' });
+        const rawValue = storedSteps.value || '0';
+        try {
+          liveSteps = parseInt(JSON.parse(rawValue));
+        } catch {
+          liveSteps = parseInt(rawValue);
+        }
+      } catch (err) {
+        liveSteps = todaySteps; // Fallback to prop
+      }
+      
+      // 🔥 WORKOUTS: Read from Firestore
+      const workoutLog = await firestoreService.get('workoutHistory', userId) || [];
+      
+      // 🔥 MEALS: Read from user profile
+      const currentUser = authService.getCurrentUser();
+      const mealLog = currentUser?.profile?.foodLog || [];
+      
+      // Calculate TOTAL STEPS from Firestore stepHistory
+      const stepHistory = await firestoreService.get('stepHistory', userId) || [];
       const totalSteps = Array.isArray(stepHistory) 
         ? stepHistory.reduce((sum, day) => sum + (Number(day?.steps) || 0), 0) 
         : 0;
 
       // Calculate ALL TIME CALORIES from ALL steps + ALL workouts
       const today = new Date().toISOString().split('T')[0];
-      const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+      const workoutHistory = workoutLog;
       
       // ALL TIME STEP CALORIES
       const allTimeStepCalories = Math.round(totalSteps * 0.04);
@@ -67,8 +85,8 @@ export default function StatsModal({ isOpen, onClose, todaySteps = 0 }) {
       
       const totalCalories = allTimeStepCalories + allTimeWorkoutCalories;
 
-      // Calculate AVG SLEEP from sleepLog array
-      const sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]');
+      // 🔥 SLEEP: Read from Firestore
+      const sleepLog = await firestoreService.get('sleepLog', userId) || [];
       const totalSleep = Array.isArray(sleepLog) 
         ? sleepLog.reduce((sum, night) => sum + (Number(night?.hours) || Number(night?.duration) || 0), 0) 
         : 0;

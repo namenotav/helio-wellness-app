@@ -295,7 +295,7 @@ function AIAssistantModal({ userName, initialPrompt, onClose }) {
           { type: 'user', text: userText },
           { 
             type: 'ai', 
-            text: `🔒 You've reached your daily limit of ${limit.limit} AI messages.\n\nUpgrade for more:\n💪 Essential £4.99/mo - 30 messages/day\n⭐ Premium £14.99/mo - 50 messages/day\n👑 Ultimate £29.99/mo - UNLIMITED messages` 
+            text: `🔒 You've reached your daily limit of ${limit.limit} AI messages.\n\nUpgrade for more:\n💪 Starter £6.99/mo - Unlimited AI messages\n⭐ Premium £16.99/mo - Everything + DNA + Avatar\n👑 Ultimate £34.99/mo - UNLIMITED + Priority Support` 
           }
         ])
         return

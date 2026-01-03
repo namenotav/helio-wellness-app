@@ -34,10 +34,13 @@ const SupportModal = ({ isOpen, onClose }) => {
 
   const loadTickets = async () => {
     try {
+      console.log('📋 SupportModal: Loading tickets...');
       const userTickets = await supportTicketService.getUserTickets();
+      console.log('✅ SupportModal: Loaded tickets:', userTickets);
       setTickets(userTickets);
     } catch (err) {
-      if(import.meta.env.DEV)console.error('Failed to load tickets:', err);
+      console.error('❌ SupportModal: Failed to load tickets:', err);
+      setError('Failed to load tickets: ' + err.message);
     }
   };
 
@@ -53,13 +56,16 @@ const SupportModal = ({ isOpen, onClose }) => {
     setError(null);
 
     try {
+      console.log('📝 SupportModal: Submitting ticket...');
       const result = await supportTicketService.createTicket({
         subject: subject.trim(),
         message: message.trim(),
         category
       });
+      console.log('📝 SupportModal: Ticket result:', result);
 
-      if (result.success) {
+      if (result && result.success) {
+        console.log('✅ SupportModal: Ticket created successfully');
         setSubmitSuccess(true);
         setSubject('');
         setMessage('');
@@ -72,8 +78,12 @@ const SupportModal = ({ isOpen, onClose }) => {
         setTimeout(() => {
           setSubmitSuccess(false);
         }, 3000);
+      } else {
+        console.error('❌ SupportModal: No success flag in result:', result);
+        setError('Failed to submit ticket. Please try again.');
       }
     } catch (err) {
+      console.error('❌ SupportModal: Exception:', err);
       setError(err.message || 'Failed to submit ticket. Please try again.');
     } finally {
       setIsSubmitting(false);

@@ -33,7 +33,12 @@ export default function QuickLogModal({ isOpen, onClose }) {
     // ⭐ GAMIFICATION: Log water activity
     try {
       const { default: gamificationService } = await import('../services/gamificationService');
-      const waterLog = JSON.parse(localStorage.getItem('waterLog') || '[]');
+      const { default: firestoreService } = await import('../services/firestoreService');
+      const { default: authService } = await import('../services/authService');
+      const userId = authService.getCurrentUser()?.uid;
+      
+      // 🎯 SINGLE SOURCE: Read from Firestore (not localStorage)
+      const waterLog = await firestoreService.get('waterLog', userId) || [];
       const today = new Date().toISOString().split('T')[0];
       const waterToday = waterLog.filter(w => w.date === today);
       const dailyTotal = waterToday.reduce((sum, w) => sum + (w.cups || 1), 0);

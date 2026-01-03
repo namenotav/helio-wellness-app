@@ -134,24 +134,16 @@ const LimitedTimeOffer = ({ onAccept, onDecline }) => {
           marginBottom: '25px',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '20px', marginBottom: '15px', color: 'white' }}>
-            Get your <strong>first month</strong> for only
+          <div style={{ fontSize: '24px', marginBottom: '15px', color: 'white', fontWeight: 'bold' }}>
+            🎉 Start Your <strong>30-Day FREE Trial</strong>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '15px' }}>
-            <div style={{
-              fontSize: '32px',
-              textDecoration: 'line-through',
-              opacity: 0.5,
-              color: 'rgba(255,255,255,0.6)'
-            }}>
-              £4.99
-            </div>
             <div style={{
               fontSize: '56px',
               fontWeight: 'bold',
               color: '#10b981'
             }}>
-              £3.99
+              £0.00
             </div>
           </div>
           <div style={{
@@ -163,7 +155,7 @@ const LimitedTimeOffer = ({ onAccept, onDecline }) => {
             fontWeight: 'bold',
             color: '#10b981'
           }}>
-            💰 Save 20% (£12/year)
+            Then £6.99/month • Cancel anytime
           </div>
         </div>
 
@@ -202,7 +194,7 @@ const LimitedTimeOffer = ({ onAccept, onDecline }) => {
             onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
             onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
           >
-            🚀 Claim Offer - £3.99 for First Month
+            🚀 Start 30-Day FREE Trial
           </button>
           <button
             onClick={handleDecline}

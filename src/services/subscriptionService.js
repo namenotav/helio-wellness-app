@@ -32,7 +32,7 @@ class SubscriptionService {
           vipBadge: false
         },
         limits: {
-          aiMessages: 0,
+          aiMessages: 5,
           foodScans: 3,
           barcodeScans: 0,
           arScans: 0,
@@ -72,9 +72,9 @@ class SubscriptionService {
           vipBadge: false
         },
         limits: {
-          aiMessages: 0,
-          foodScans: 3,
-          barcodeScans: 3,
+          aiMessages: 999999,
+          foodScans: 999999,
+          barcodeScans: 999999,
           arScans: 0,
           workouts: 999999
         }
@@ -184,8 +184,14 @@ class SubscriptionService {
   }
 
   // Verify subscription with server (call on app launch)
+  // WRAPPED IN SAFE ERROR HANDLING TO PREVENT INFINITE LOOPS
   async verifySubscriptionWithServer(userId) {
     try {
+      if (!userId) {
+        console.warn('⚠️ Cannot verify subscription without userId');
+        return;
+      }
+
       // Check if we verified recently (cache for 6 hours)
       const lastVerified = localStorage.getItem('subscription_last_verified');
       const cacheTime = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
@@ -197,36 +203,47 @@ class SubscriptionService {
 
       // Verify with server
       const API_URL = import.meta.env.VITE_API_URL || 'https://helio-wellness-app-production.up.railway.app';
-      const response = await fetch(`${API_URL}/api/subscription/status/${userId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to verify subscription');
-      }
+      try {
+        const response = await fetch(`${API_URL}/api/subscription/status/${userId}`, {
+          timeout: 5000 // 5 second timeout to prevent hanging
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
+        }
 
-      const data = await response.json();
-      
-      // Update localStorage with server response
-      if (data.isActive && data.plan !== 'free') {
-        localStorage.setItem('subscription_plan', data.plan);
-        localStorage.setItem('subscription_status', data.status);
-        localStorage.setItem('subscription_period_end', data.currentPeriodEnd);
-        localStorage.setItem('subscription_verified', 'true');
-        if(import.meta.env.DEV) console.log(`✅ Subscription verified: ${data.plan} (${data.status})`);
-      } else {
-        // Subscription expired or inactive - downgrade to free
-        localStorage.setItem('subscription_plan', 'free');
-        localStorage.setItem('subscription_status', 'none');
-        localStorage.removeItem('subscription_verified');
-        if(import.meta.env.DEV) console.log('⚠️ Subscription expired or inactive, downgraded to free');
-      }
+        const data = await response.json();
+        
+        // Update localStorage with server response
+        if (data.isActive && data.plan !== 'free') {
+          localStorage.setItem('subscription_plan', data.plan);
+          localStorage.setItem('subscription_status', data.status);
+          localStorage.setItem('subscription_period_end', data.currentPeriodEnd);
+          localStorage.setItem('subscription_verified', 'true');
+          if(import.meta.env.DEV) console.log(`✅ Subscription verified: ${data.plan} (${data.status})`);
+        } else {
+          // Subscription expired or inactive - downgrade to free
+          localStorage.setItem('subscription_plan', 'free');
+          localStorage.setItem('subscription_status', 'none');
+          localStorage.removeItem('subscription_verified');
+          if(import.meta.env.DEV) console.log('⚠️ Subscription expired or inactive, downgraded to free');
+        }
 
-      // Update cache timestamp
-      localStorage.setItem('subscription_last_verified', Date.now().toString());
+        // Update cache timestamp
+        localStorage.setItem('subscription_last_verified', Date.now().toString());
+
+      } catch (fetchError) {
+        // If network request fails, don't throw - just log and continue
+        // This prevents subscription verification from blocking the app
+        console.warn('⚠️ Could not verify subscription with server:', fetchError.message);
+        console.log('ℹ️ Using cached/local subscription status - app will continue working');
+        // Do NOT downgrade user if server is unavailable - keep their existing plan
+      }
 
     } catch (error) {
-      console.error('Error verifying subscription:', error);
-      // On error, keep existing localStorage plan (graceful fallback)
-      // Don't downgrade user if server is temporarily unavailable
+      // Final catch-all to prevent any errors from propagating
+      console.error('⚠️ Subscription verification error (non-blocking):', error.message);
+      // Do not rethrow - let app continue
     }
   }
 

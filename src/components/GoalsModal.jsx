@@ -34,23 +34,57 @@ export default function GoalsModal({ isOpen, onClose, todaySteps = 0 }) {
     }
   }, [isOpen, todaySteps, currentDate]);
 
-  const loadGoals = () => {
+  const loadGoals = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const workoutLog = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
-      const mealLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
-      const waterLog = JSON.parse(localStorage.getItem('waterLog') || '[]');
-      const sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]');
-
-      const todayWorkouts = workoutLog.filter(w => w.date === today).length;
-      const todayMeals = mealLog.filter(m => m.date === today).length;
+      
+      // 🔥 READ STEPS DIRECTLY FROM NOTIFICATION SERVICE (bypass Dashboard prop)
+      let stepCount = todaySteps; // Fallback to prop
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        const storedSteps = await Preferences.get({ key: 'wellnessai_todaySteps' });
+        const rawValue = storedSteps.value || '0';
+        try {
+          stepCount = parseInt(JSON.parse(rawValue));
+        } catch {
+          stepCount = parseInt(rawValue);
+        }
+        if(import.meta.env.DEV)console.log('📊 [GoalsModal] Direct steps from notification:', stepCount);
+      } catch (err) {
+        if(import.meta.env.DEV)console.warn('[GoalsModal] Could not read steps, using prop:', todaySteps);
+      }
+      
+      // 🔥 READ FROM FIRESTORE (same sources as Dashboard)
+      const { default: firestoreService } = await import('../services/firestoreService');
+      const { default: authService } = await import('../services/authService');
+      
+      const userId = authService.getCurrentUser()?.uid;
+      
+      // Water from Firestore
+      const waterLog = await firestoreService.get('waterLog', userId) || [];
       const waterToday = waterLog.filter(w => w.date === today);
       const waterCups = waterToday.reduce((sum, w) => sum + (w.cups || 1), 0);
+      
+      // Meals from user profile
+      const currentUser = authService.getCurrentUser();
+      const foodLog = currentUser?.profile?.foodLog || [];
+      const todayMeals = foodLog.filter(f => 
+        f.date === today || (f.timestamp && new Date(f.timestamp).toISOString().split('T')[0] === today)
+      ).length;
+      
+      // Workouts from Firestore
+      const workoutLog = await firestoreService.get('workoutHistory', userId) || [];
+      const todayWorkouts = workoutLog.filter(w => w.date === today).length;
+      
+      // Sleep from Firestore
+      const sleepLog = await firestoreService.get('sleepLog', userId) || [];
       const sleepToday = sleepLog.find(s => s.date === today);
       const sleepHours = sleepToday ? (sleepToday.duration || sleepToday.hours || 0) : 0;
 
+      if(import.meta.env.DEV)console.log('🎯 [GoalsModal] Loaded:', { stepCount, waterCups, todayMeals, todayWorkouts, sleepHours });
+
       setGoals({
-        steps: { current: todaySteps, target: 10000, unit: 'steps' },
+        steps: { current: stepCount, target: 10000, unit: 'steps' },
         water: { current: waterCups, target: 8, unit: 'cups' },
         meals: { current: todayMeals, target: 3, unit: 'meals' },
         sleep: { current: sleepHours, target: 8, unit: 'hours' },

@@ -854,6 +854,36 @@ Return JSON:
   hasDNAData() {
     return this.geneticData !== null;
   }
+
+  /**
+   * Clear DNA data from storage - used for re-upload
+   */
+  async clearDNAData() {
+    try {
+      // Clear from Preferences (Capacitor storage)
+      await Preferences.remove({ key: 'dna_genetic_data' });
+      await Preferences.remove({ key: 'dna_analysis' });
+      await Preferences.remove({ key: 'dna_analysis_complete' });
+      
+      // Clear from localStorage if encryption service was used
+      try {
+        localStorage.removeItem('dnaAnalysis');
+      } catch (e) {
+        if(import.meta.env.DEV)console.warn('Could not clear localStorage:', e);
+      }
+      
+      // Clear in-memory data
+      this.geneticData = null;
+      this.analysis = null;
+      this.analysisComplete = false;
+      
+      if(import.meta.env.DEV)console.log('✅ DNA data cleared successfully');
+      return { success: true, message: 'DNA data cleared' };
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Error clearing DNA data:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export const dnaService = new DNAService();

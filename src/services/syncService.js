@@ -184,9 +184,14 @@ class SyncService {
     console.log('⚡ SYNC SERVICE: Auth checker started (checks every 2s)');
     
     this.authCheckInterval = setInterval(async () => {
-      if (firebaseService.isAuthenticated() && this.syncQueue.length > 0) {
-        console.log('✅ SYNC SERVICE: Auth ready! Processing', this.syncQueue.length, 'queued items');
-        await this.processSyncQueue();
+      try {
+        if (firebaseService.isAuthenticated() && this.syncQueue.length > 0) {
+          console.log('✅ SYNC SERVICE: Auth ready! Processing', this.syncQueue.length, 'queued items');
+          await this.processSyncQueue();
+        }
+      } catch (error) {
+        if(import.meta.env.DEV)console.error('Error in auth checker:', error);
+        // Continue checking, don't break the interval
       }
     }, 2000); // Check every 2 seconds
   }

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import subscriptionService from '../services/subscriptionService';
@@ -7,37 +7,47 @@ import './PaymentSuccess.css';
 function PaymentSuccess() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying');
+  const [hasVerified, setHasVerified] = useState(false);
   
-  const verifyPayment = useCallback(async () => {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        setStatus('error');
-        return;
-      }
-
-      // Verify subscription with server (force refresh, don't use cache)
-      localStorage.removeItem('subscription_last_verified');
-      await subscriptionService.verifySubscriptionWithServer(user.uid);
-      
-      const currentPlan = subscriptionService.getCurrentPlan();
-      
-      if (currentPlan.id !== 'free') {
-        setStatus('success');
-        setTimeout(() => navigate('/dashboard'), 3000);
-      } else {
-        setStatus('pending');
-      }
-    } catch (error) {
-      console.error('Error verifying payment:', error);
-      setStatus('error');
-    }
-  }, [navigate]);
-
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // Only run once
+    if (hasVerified) return;
+    setHasVerified(true);
+
+    const verifyPayment = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          setStatus('error');
+          return;
+        }
+
+        // Verify subscription with server (force refresh, don't use cache)
+        localStorage.removeItem('subscription_last_verified');
+        try {
+          await subscriptionService.verifySubscriptionWithServer(user.uid);
+        } catch (verifyError) {
+          // If verification fails (Railway backend issue), don't block - continue anyway
+          console.warn('⚠️ PaymentSuccess: Subscription verification failed (likely Railway issue):', verifyError.message);
+          // Even if verification fails, the subscription should still be valid locally
+        }
+        
+        const currentPlan = subscriptionService.getCurrentPlan();
+        
+        if (currentPlan.id !== 'free') {
+          setStatus('success');
+          setTimeout(() => navigate('/dashboard'), 3000);
+        } else {
+          setStatus('pending');
+        }
+      } catch (error) {
+        console.error('Error in PaymentSuccess:', error);
+        setStatus('error');
+      }
+    };
+
     verifyPayment();
-  }, [verifyPayment]);
+  }, [navigate, hasVerified]);
 
   return (
     <div className="payment-success-container">

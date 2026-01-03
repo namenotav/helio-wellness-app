@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
+import { initializeApp } from './init.js'
 import productionValidator from './services/productionValidator';
 
 // 🔥 AGGRESSIVE CACHE CLEARING - v1.0.8 Deployment
@@ -55,11 +56,19 @@ console.log('🔄 APP VERSION:', APP_VERSION);
 console.log('📅 BUILD TIME:', DEPLOYED_AT);
 console.log('🆕 CACHE BUSTED - Fresh load!');
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
+// 🎯 INITIALIZE APP BEFORE MOUNTING REACT (prevents useEffect loops)
+initializeApp().then(() => {
+  console.log('✅ App initialized - mounting React...');
+  createRoot(document.getElementById('root')).render(
     <App />
-  </StrictMode>,
-)
+  )
+}).catch(error => {
+  console.error('❌ App initialization failed:', error);
+  // Mount anyway so user sees error UI
+  createRoot(document.getElementById('root')).render(
+    <App />
+  )
+});
 
 
 

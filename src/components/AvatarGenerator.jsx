@@ -55,7 +55,7 @@ const AvatarGenerator = ({ user, userData, planType }) => {
 
   const generateAvatar = async () => {
     if (!canUpdate()) {
-      alert(`You can update avatar once per week on Essential plan. Next update in ${daysUntilUpdate} days. Upgrade to Premium for unlimited updates!`);
+      alert(`You can update avatar once per week on Starter plan. Next update in ${daysUntilUpdate} days. Upgrade to Premium for unlimited updates!`);
       return;
     }
 
@@ -204,7 +204,7 @@ const AvatarGenerator = ({ user, userData, planType }) => {
           fontSize: '14px',
           color: 'rgba(255,255,255,0.9)'
         }}>
-          💡 <strong>Essential Plan:</strong> Avatar updates once per week. 
+          💡 <strong>Starter Plan:</strong> Avatar updates once per week. 
           {canUpdateUnlimited ? '' : ` Next update in ${daysUntilUpdate} days.`}
           <a href="/#pricing" style={{ color: '#f59e0b', marginLeft: '10px', fontWeight: 'bold' }}>
             Upgrade for unlimited updates →

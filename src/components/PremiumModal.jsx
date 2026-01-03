@@ -51,10 +51,10 @@ export default function PremiumModal({ isOpen, onClose }) {
 
           <div className="pricing-section">
             <div className="price-tag">
-              <span className="price-value">$9.99</span>
+              <span className="price-value">£6.99</span>
               <span className="price-period">/month</span>
             </div>
-            <p className="trial-info">7-day free trial • Cancel anytime</p>
+            <p className="trial-info">30-day free trial • Cancel anytime</p>
           </div>
 
           <button className="upgrade-btn" onClick={handleUpgrade}>

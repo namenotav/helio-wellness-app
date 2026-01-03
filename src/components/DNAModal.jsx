@@ -19,7 +19,7 @@ export default function DNAModal({ isOpen, onClose }) {
 
   const loadDNAStatus = () => {
     try {
-      const dnaData = JSON.parse(localStorage.getItem('dna_data') || 'null');
+      const dnaData = JSON.parse(localStorage.getItem('dnaAnalysis') || 'null');
       
       if (dnaData && dnaData.traits) {
         setDnaStatus({

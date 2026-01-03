@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // User profile images - Only owner can write, anyone authenticated can read
+    match /users/{userId}/profile/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024  // Max 5MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // DNA files - Only owner can read/write, must be authenticated
+    match /users/{userId}/dna/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId
+                         && request.resource.size < 10 * 1024 * 1024  // Max 10MB
+                         && (request.resource.contentType == 'text/plain' || 
+                             request.resource.contentType == 'text/csv' ||
+                             request.resource.contentType == 'application/zip');
+    }
+    
+    // Food photos - Only owner can write, anyone authenticated can read
+    match /users/{userId}/food/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId
+                   && request.resource.size < 10 * 1024 * 1024  // Max 10MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // Progress photos - Only owner can read/write
+    match /users/{userId}/progress/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId
+                         && request.resource.size < 10 * 1024 * 1024  // Max 10MB
+                         && request.resource.contentType.matches('image/.*');
+    }
+    
+    // Data backups - Only owner can read/write
+    match /users/{userId}/backups/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId
+                         && request.resource.size < 50 * 1024 * 1024;  // Max 50MB
+    }
+    
+    // Default: Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

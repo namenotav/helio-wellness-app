@@ -1,0 +1,28 @@
+# 23andMe Genome Browser raw data
+# This file format version should be documented here.
+# Generated: 2024-01-15
+#
+# Note: This file contains raw genotype data from 23andMe testing.
+# The data below represents genomic positions and genotypes.
+#
+rsid	chromosome	position	genotype
+rs9939609	16	53832044	AA
+rs4988235	2	135902949	AG
+rs762551	15	74761784	CC
+rs1815739	11	66560624	TT
+rs1799983	7	150994278	GG
+rs2228570	12	48232319	AA
+rs174537	11	61570792	GG
+rs7903146	10	112998590	TT
+rs4994	3	25398284	AG
+rs1042714	5	148206228	CC
+rs1800592	5	148205650	AG
+rs429358	19	44908684	CT
+rs7412	19	44908822	CT
+rs1061179	16	20010852	AA
+rs6152	1	171048227	GG
+rs2267668	7	149056604	AG
+rs11603940	11	2707392	CT
+rs17782313	16	53816953	TC
+rs7566605	1	113179092	GG
+rs6235	9	107965053	CT

@@ -671,7 +671,7 @@ export default function LandingPage() {
                 £14.99<span className="per-month" style={{fontSize: '18px', opacity: '0.7'}}>/mo</span>
               </div>
               <ul className="features-list" style={{listStyle: 'none', padding: 0, marginBottom: '25px', textAlign: 'left'}}>
-                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)'}}>✅ Everything in Essential</li>
+                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)'}}>✅ Everything in Starter</li>
                 <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)'}}>✅ 50 AI messages/day</li>
                 <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)'}}>✅ 100 AR credits/month</li>
                 <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)'}}>✅ Full DNA analysis</li>
@@ -800,7 +800,7 @@ export default function LandingPage() {
                 From Noom
               </h3>
               <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.6'}}>
-                "£70/month for a CHATBOT?! Helio's AI is 10x smarter and costs £14.99. Plus I get DNA + AR features Noom doesn't even have."
+                "£70/month for a CHATBOT?! Helio's AI is 10x smarter and costs £16.99. Plus I get DNA + AR features Noom doesn't even have."
               </p>
               <div style={{marginTop: '12px', fontSize: '14px', color: '#10b981', fontWeight: 'bold'}}>
                 Saved £660/year
@@ -818,7 +818,7 @@ export default function LandingPage() {
                 From Personal Trainers
               </h3>
               <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.6'}}>
-                "Was spending £200/month on PT + nutritionist. Helio's AI gives better advice (it's trained on millions of data points) for £29.99."
+                "Was spending £200/month on PT + nutritionist. Helio's AI gives better advice (it's trained on millions of data points) for £34.99."
               </p>
               <div style={{marginTop: '12px', fontSize: '14px', color: '#10b981', fontWeight: 'bold'}}>
                 Saved £2,040/year

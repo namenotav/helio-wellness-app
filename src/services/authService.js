@@ -31,7 +31,7 @@ class AuthService {
             this.currentUser = profile;
             localStorage.setItem('wellnessai_user', JSON.stringify(this.currentUser));
             await syncService.onUserLogin(firebaseUser.uid);
-            this.notifyAuthStateChanged();
+            // Don't notify during init - prevents React loops
             return;
           }
         }
@@ -61,7 +61,7 @@ class AuthService {
             }
           }
           
-          this.notifyAuthStateChanged();
+          // Don't notify during init - prevents React loops
         } catch (error) {
           if(import.meta.env.DEV)console.error('Error loading saved session:', error);
           await Preferences.remove({ key: 'wellnessai_user' });
@@ -265,6 +265,16 @@ class AuthService {
   // Check if user is logged in
   isLoggedIn() {
     return this.currentUser !== null;
+  }
+
+  // Safe check for authentication status (prevents null reference errors)
+  isAuthenticated() {
+    try {
+      return this.currentUser !== null && this.currentUser !== undefined;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Error checking auth status:', error);
+      return false;
+    }
   }
 
   // Update user profile

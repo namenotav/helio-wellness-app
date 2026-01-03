@@ -203,6 +203,25 @@ public class StepCounterForegroundService extends Service implements SensorEvent
                 android.util.Log.d("StepService", "📍 FIRST BASELINE: " + totalSteps + " on " + today);
             }
             
+            // 🔥 CORRUPTION FIX: If baseline is higher than current sensor reading, reset it
+            if (initialStepCount > totalSteps) {
+                android.util.Log.e("StepService", "🚨 CORRUPTION DETECTED! Baseline(" + initialStepCount + ") > Current(" + totalSteps + ") - RESETTING");
+                initialStepCount = totalSteps;
+                
+                prefs.edit()
+                    .putInt("initialStepCount", initialStepCount)
+                    .putString("currentDate", currentDate)
+                    .apply();
+                
+                SharedPreferences capacitorPrefs = getSharedPreferences("CapacitorStorage", MODE_PRIVATE);
+                capacitorPrefs.edit()
+                    .putString("wellnessai_stepBaseline", String.valueOf(totalSteps))
+                    .putString("wellnessai_stepBaselineDate", today)
+                    .apply();
+                    
+                android.util.Log.d("StepService", "✅ CORRUPTION FIXED! New baseline: " + totalSteps);
+            }
+            
             // Calculate today's steps (always from baseline set at midnight or service start)
             int todaySteps = Math.abs(currentStepCount - initialStepCount);
             

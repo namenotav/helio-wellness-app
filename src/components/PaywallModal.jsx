@@ -78,7 +78,7 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
                 className="upgrade-btn starter"
                 onClick={() => handleUpgrade('starter')}
               >
-                💪 Get Starter
+                💪 Start 30 Days FREE
               </button>
             )}
           </div>
@@ -108,7 +108,7 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
                 className="upgrade-btn premium"
                 onClick={() => handleUpgrade('premium')}
               >
-                ⭐ Get Premium
+                ⭐ Start 30 Days FREE
               </button>
             )}
           </div>
@@ -139,7 +139,7 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
                 className="upgrade-btn ultimate"
                 onClick={() => handleUpgrade('ultimate')}
               >
-                👑 Get Ultimate
+                👑 Start 30 Days FREE
               </button>
             )}
           </div>

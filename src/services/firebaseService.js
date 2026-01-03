@@ -372,10 +372,14 @@ class FirebaseService {
   // ========================================
   // UTILITY METHODS
   // ========================================
-
-  // Check if user is authenticated
+  // Check if user is authenticated - with null safety
   isAuthenticated() {
-    return this.auth.currentUser !== null;
+    try {
+      return this.auth && this.auth.currentUser !== null;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Error checking firebase auth status:', error);
+      return false;
+    }
   }
 
   // Get user email

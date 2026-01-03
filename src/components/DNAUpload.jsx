@@ -13,6 +13,9 @@ export default function DNAUpload({ onClose }) {
   const [loading, setLoading] = useState(true);
   const [showPaywall, setShowPaywall] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  const [showReplaceWarning, setShowReplaceWarning] = useState(false);
+  const [replaceConsent1, setReplaceConsent1] = useState(false);
+  const [replaceConsent2, setReplaceConsent2] = useState(false);
 
   // 🔥 Load saved DNA data when component opens
   useEffect(() => {
@@ -97,6 +100,43 @@ export default function DNAUpload({ onClose }) {
     }
   };
 
+  const handleRequestReplace = () => {
+    // Reset consent checkboxes
+    setReplaceConsent1(false);
+    setReplaceConsent2(false);
+    setShowReplaceWarning(true);
+  };
+
+  const handleConfirmReplace = async () => {
+    // Verify both consents are checked
+    if (!replaceConsent1 || !replaceConsent2) {
+      alert('❌ You must accept both statements to proceed');
+      return;
+    }
+
+    try {
+      // Clear existing DNA data
+      const result = await dnaService.clearDNAData();
+      if (!result.success) {
+        alert('⚠️ Error clearing previous DNA data: ' + result.error);
+        return;
+      }
+
+      // Reset UI state
+      setDnaData(null);
+      setAnalysis(null);
+      setShowReplaceWarning(false);
+      setReplaceConsent1(false);
+      setReplaceConsent2(false);
+      
+      // Trigger file input
+      document.getElementById('dna-file-input')?.click();
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Error during replacement:', error);
+      alert('❌ Error preparing for new upload: ' + error.message);
+    }
+  };
+
   const handleExportResults = () => {
     const report = dnaService.getFullDNAReport();
     if (!report) {
@@ -163,6 +203,7 @@ export default function DNAUpload({ onClose }) {
             <label className={`upload-button ${!disclaimerAccepted ? 'disabled' : ''}`}>
               {uploading ? '⏳ Analyzing DNA...' : disclaimerAccepted ? '📁 Choose File' : '🔒 Accept Disclaimer First'}
               <input
+                id="dna-file-input"
                 type="file"
                 accept=".txt,.csv,.json"
                 onChange={handleFileUpload}
@@ -238,9 +279,14 @@ export default function DNAUpload({ onClose }) {
                   <div className="source-info">
                     🧬 Source: {dnaData.source || 'Unknown'}
                   </div>
-                  <button className="export-btn" onClick={handleExportResults}>
-                    💾 Save Results
-                  </button>
+                  <div className="dna-actions">
+                    <button className="export-btn" onClick={handleExportResults}>
+                      💾 Save Results
+                    </button>
+                    <button className="replace-btn" onClick={handleRequestReplace}>
+                      🔄 Upload New DNA
+                    </button>
+                  </div>
                 </div>
 
                 <h3>Your Genetic Traits</h3>
@@ -530,6 +576,60 @@ export default function DNAUpload({ onClose }) {
           message={subscriptionService.getUpgradeMessage('dnaAnalysis')}
           currentPlan={subscriptionService.getCurrentPlan()}
         />
+      )}
+
+      {/* DNA Replacement Warning Modal */}
+      {showReplaceWarning && (
+        <div className="modal-overlay">
+          <div className="dna-replace-modal">
+            <div className="modal-header orange-alert">
+              <h3>⚠️ Replace DNA Profile</h3>
+              <p>This will delete your current DNA analysis and replace it with a new one</p>
+            </div>
+            
+            <div className="modal-content">
+              <div className="warning-box">
+                <strong>Important:</strong> This action cannot be undone. Your previous DNA analysis will be permanently removed.
+              </div>
+
+              <div className="consent-section">
+                <label className="consent-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={replaceConsent1}
+                    onChange={(e) => setReplaceConsent1(e.target.checked)}
+                  />
+                  <span>I understand this will delete my current DNA profile</span>
+                </label>
+
+                <label className="consent-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={replaceConsent2}
+                    onChange={(e) => setReplaceConsent2(e.target.checked)}
+                  />
+                  <span>I confirm this is my DNA and I want to replace the previous profile</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                className="cancel-btn"
+                onClick={() => setShowReplaceWarning(false)}
+              >
+                ❌ Cancel
+              </button>
+              <button
+                className={`proceed-btn ${(replaceConsent1 && replaceConsent2) ? 'enabled' : 'disabled'}`}
+                onClick={handleConfirmReplace}
+                disabled={!replaceConsent1 || !replaceConsent2}
+              >
+                ✓ Proceed with Upload
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

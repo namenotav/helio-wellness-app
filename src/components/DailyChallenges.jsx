@@ -76,19 +76,31 @@ export default function DailyChallenges({ onChallengeComplete, todaySteps = 0 })
   const autoUpdateChallenges = () => {
     const today = new Date().toISOString().split('T')[0]
     
-    // Load real data from localStorage
+    // Load real data from localStorage - ENSURE ALL ARE ARRAYS
     const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]')
-    const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]')
+    const foodLogRaw = localStorage.getItem('foodLog') || '[]'
+    let foodLog = []
+    try {
+      foodLog = JSON.parse(foodLogRaw)
+      // CRITICAL FIX: Ensure foodLog is an array (it might be an object from user profile)
+      if (!Array.isArray(foodLog)) {
+        console.warn('⚠️ foodLog is not an array, converting to array')
+        foodLog = []
+      }
+    } catch (e) {
+      console.error('❌ Failed to parse foodLog:', e)
+      foodLog = []
+    }
     const waterLog = JSON.parse(localStorage.getItem('waterLog') || '[]')
     const sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]')
     
     // Count today's data
-    const todayWorkouts = workoutHistory.filter(w => w.date === today)
-    const todayMeals = foodLog.filter(f => 
+    const todayWorkouts = Array.isArray(workoutHistory) ? workoutHistory.filter(w => w.date === today) : []
+    const todayMeals = Array.isArray(foodLog) ? foodLog.filter(f => 
       f.date === today || (f.timestamp && new Date(f.timestamp).toISOString().split('T')[0] === today)
-    )
-    const todayWater = waterLog.filter(w => w.date === today)
-    const todaySleep = sleepLog.find(s => s.date === today)
+    ) : []
+    const todayWater = Array.isArray(waterLog) ? waterLog.filter(w => w.date === today) : []
+    const todaySleep = Array.isArray(sleepLog) ? sleepLog.find(s => s.date === today) : null
     
     const waterCups = todayWater.reduce((sum, w) => sum + (w.cups || 1), 0)
     const totalWorkoutMinutes = todayWorkouts.reduce((sum, w) => sum + (w.duration || 0), 0)
