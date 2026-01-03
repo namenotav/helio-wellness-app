@@ -62,8 +62,8 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
               <span className="period">/month</span>
             </div>
             <ul className="tier-features">
-              <li>✅ 3 food scans/day</li>
-              <li>✅ 3 barcode scans/day</li>
+              <li>✅ Unlimited food scans</li>
+              <li>✅ Unlimited barcode scans</li>
               <li>✅ Unlimited workouts</li>
               <li>✅ Social battles</li>
               <li>❌ No DNA analysis</li>
@@ -125,7 +125,7 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
             <ul className="tier-features">
               <li>✅ <strong>UNLIMITED</strong> AI messages</li>
               <li>✅ Everything in Premium</li>
-              <li>✅ � Priority Support (2hr SLA)</li>
+              <li>✅ 📞 Priority Support (2hr SLA)</li>
               <li>✅ 🔬 Beta: AI Workout Generator</li>
               <li>✅ 👑 VIP badge & exclusive perks</li>
               <li>✅ White-label reports (PDF)</li>
@@ -146,7 +146,7 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
         </div>
 
         <div className="paywall-footer">
-          <p>🔒 Cancel anytime • 7-day money-back guarantee</p>
+          <p>🔒 Cancel anytime • 30-day free trial</p>
         </div>
       </div>
     </div>

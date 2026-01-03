@@ -634,27 +634,27 @@ export default function LandingPage() {
 
             <div className="pricing-card featured" style={{padding: '40px', background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(147,51,234,0.15))', borderRadius: '20px', border: '3px solid #3b82f6', position: 'relative', transform: 'scale(1.05)'}}>
               <div className="badge" style={{position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)', background: '#3b82f6', padding: '8px 20px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold', color: 'white'}}>🔥 MOST POPULAR</div>
-              <h3 style={{fontSize: '28px', marginBottom: '15px', marginTop: '10px', color: 'rgba(255,255,255,0.98)'}}>Essential</h3>
+              <h3 style={{fontSize: '28px', marginBottom: '15px', marginTop: '10px', color: 'rgba(255,255,255,0.98)'}}>Starter</h3>
               <div style={{marginBottom: '15px'}}>
                 <div className="price" style={{fontSize: '48px', fontWeight: 'bold', display: 'inline'}}>£6.99</div>
                 <span className="per-month" style={{fontSize: '18px', opacity: '0.7'}}>/mo</span>
               </div>
               <div style={{background: 'rgba(59,130,246,0.3)', padding: '10px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold', border: '1px solid rgba(59,130,246,0.5)'}}>
-                💎 Perfect for serious wellness
+                💎 Perfect for getting started
               </div>
               <ul className="features-list" style={{listStyle: 'none', padding: 0, marginBottom: '25px', textAlign: 'left'}}>
                 <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ NO ADS</li>
-                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ 30 AI messages/day</li>
-                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ 1 AR scan/day</li>
-                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Weekly avatar update</li>
-                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Basic DNA insights</li>
+                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Unlimited AI messages</li>
+                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Unlimited food scans</li>
+                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Unlimited barcode scans</li>
+                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Unlimited workouts</li>
                 <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Social battles</li>
-                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Emergency contact</li>
-                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Offline tracking</li>
                 <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>✅ Email support (24hr)</li>
-                <li style={{padding: '10px 0', color: 'rgba(255,255,255,0.92)'}}>❌ No meal automation</li>
+                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>❌ No AR scanner</li>
+                <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.92)'}}>❌ No DNA analysis</li>
+                <li style={{padding: '10px 0', color: 'rgba(255,255,255,0.92)'}}>❌ No Health Avatar</li>
               </ul>
-              <button onClick={() => handleCheckout('essential')} className="btn-primary" disabled={selectedPlan === 'essential'} style={{width: '100%', padding: '18px', fontSize: '18px', fontWeight: 'bold', borderRadius: '12px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', cursor: selectedPlan === 'essential' ? 'not-allowed' : 'pointer'}}>
+              <button onClick={() => handleCheckout('starter')} className="btn-primary" disabled={selectedPlan === 'starter'} style={{width: '100%', padding: '18px', fontSize: '18px', fontWeight: 'bold', borderRadius: '12px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', cursor: selectedPlan === 'starter' ? 'not-allowed' : 'pointer'}}>
                 {selectedPlan === 'starter' ? '⏳ Processing...' : '💪 Get Starter - £6.99/mo'}
               </button>
               <div style={{textAlign: 'center', marginTop: '15px', fontSize: '13px', color: '#4CAF50', fontWeight: 'bold'}}>
@@ -668,7 +668,7 @@ export default function LandingPage() {
             <div className="pricing-card" style={{padding: '40px', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', border: '2px solid rgba(255,255,255,0.1)', position: 'relative'}}>
               <h3 style={{fontSize: '28px', marginBottom: '15px', color: 'rgba(255,255,255,0.95)'}}>Premium</h3>
               <div className="price" style={{fontSize: '48px', fontWeight: 'bold', marginBottom: '20px', color: 'rgba(255,255,255,0.95)'}}>
-                £14.99<span className="per-month" style={{fontSize: '18px', opacity: '0.7'}}>/mo</span>
+                £16.99<span className="per-month" style={{fontSize: '18px', opacity: '0.7'}}>/mo</span>
               </div>
               <ul className="features-list" style={{listStyle: 'none', padding: 0, marginBottom: '25px', textAlign: 'left'}}>
                 <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)'}}>✅ Everything in Starter</li>
@@ -683,7 +683,7 @@ export default function LandingPage() {
                 <li style={{padding: '10px 0', color: 'rgba(255,255,255,0.9)'}}>❌ No API access</li>
               </ul>
               <button onClick={() => handleCheckout('premium')} className="btn-outline" disabled={selectedPlan === 'premium'} style={{width: '100%', padding: '15px', fontSize: '16px', fontWeight: 'bold', borderRadius: '12px'}}>
-                {selectedPlan === 'premium' ? '⏳ Processing...' : 'Get Premium - £14.99/mo'}
+                {selectedPlan === 'premium' ? '⏳ Processing...' : 'Get Premium - £16.99/mo'}
               </button>
               <div style={{textAlign: 'center', marginTop: '15px', fontSize: '13px', opacity: '0.7'}}>
                 Best value for power users
@@ -694,7 +694,7 @@ export default function LandingPage() {
               <div className="badge" style={{position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #eab308, #d97706)', padding: '8px 20px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold', color: 'white'}}>👑 VIP</div>
               <h3 style={{fontSize: '28px', marginBottom: '15px', marginTop: '10px', color: 'rgba(255,255,255,0.95)'}}>Ultimate</h3>
               <div className="price" style={{fontSize: '48px', fontWeight: 'bold', marginBottom: '20px', color: 'rgba(255,255,255,0.95)'}}>
-                £29.99<span className="per-month" style={{fontSize: '18px', opacity: '0.7'}}>/mo</span>
+                £34.99<span className="per-month" style={{fontSize: '18px', opacity: '0.7'}}>/mo</span>
               </div>
               <ul className="features-list" style={{listStyle: 'none', padding: 0, marginBottom: '25px', textAlign: 'left'}}>
                 <li style={{padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)'}}>✅ <strong>UNLIMITED</strong> AI messages</li>
@@ -708,7 +708,7 @@ export default function LandingPage() {
                 <li style={{padding: '10px 0', color: 'rgba(255,255,255,0.9)'}}>✅ Priority onboarding</li>
               </ul>
               <button onClick={() => handleCheckout('ultimate')} className="btn-primary" disabled={selectedPlan === 'ultimate'} style={{width: '100%', padding: '18px', fontSize: '18px', fontWeight: 'bold', borderRadius: '12px', background: 'linear-gradient(135deg, #eab308, #d97706)', border: 'none', cursor: selectedPlan === 'ultimate' ? 'not-allowed' : 'pointer'}}>
-                {selectedPlan === 'ultimate' ? '⏳ Processing...' : '👑 Get Ultimate - £29.99/mo'}
+                {selectedPlan === 'ultimate' ? '⏳ Processing...' : '👑 Get Ultimate - £34.99/mo'}
               </button>
               <div style={{textAlign: 'center', marginTop: '15px', fontSize: '13px', color: '#eab308', fontWeight: 'bold'}}>
                 🏆 For serious health optimization
@@ -726,7 +726,7 @@ export default function LandingPage() {
             border: '2px solid rgba(16, 185, 129, 0.3)'
           }}>
             <h3 style={{fontSize: '28px', marginBottom: '15px', color: 'white', fontWeight: 'bold'}}>
-              🎁 Try Essential FREE for 14 Days
+              🎁 Try Starter FREE for 30 Days
             </h3>
             <p style={{fontSize: '18px', color: 'rgba(255,255,255,0.85)', marginBottom: '20px'}}>
               No credit card required. Cancel anytime. Zero risk. All features unlocked.
@@ -869,7 +869,7 @@ export default function LandingPage() {
           </p>
           
           <div style={{display: 'flex', gap: '20px', justifyContent: 'center', marginBottom: '40px', flexWrap: 'wrap'}}>
-            <button onClick={() => handleCheckout('essential')} className="btn-primary btn-large" style={{padding: '20px 50px', fontSize: '20px', fontWeight: 'bold', borderRadius: '15px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', boxShadow: '0 10px 30px rgba(59,130,246,0.4)', transition: 'transform 0.2s', cursor: 'pointer'}}>
+            <button onClick={() => handleCheckout('starter')} className="btn-primary btn-large" style={{padding: '20px 50px', fontSize: '20px', fontWeight: 'bold', borderRadius: '15px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', boxShadow: '0 10px 30px rgba(59,130,246,0.4)', transition: 'transform 0.2s', cursor: 'pointer'}}>
               💪 Get Starter - £6.99/mo
             </button>
             <button onClick={() => setShowAuthModal(true)} className="btn-outline" style={{padding: '20px 50px', fontSize: '20px', fontWeight: 'bold', borderRadius: '15px', border: '2px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', cursor: 'pointer'}}>

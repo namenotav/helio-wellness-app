@@ -40,9 +40,9 @@ const StripePayment = ({ isOpen, onClose }) => {
         '✅ Food scanner',
         '✅ Calorie tracking',
         '✅ Email support (24hr)',
+        '✅ Social Battles',
         '❌ No DNA Analysis',
         '❌ No AR Scanner',
-        '❌ No Social Battles',
         '❌ No Meal Automation'
       ],
       popular: true
@@ -236,7 +236,7 @@ const StripePayment = ({ isOpen, onClose }) => {
 
             <div className="stripe-footer">
               <p>🔒 Secure payment powered by Stripe</p>
-              <p className="footer-note">Cancel anytime • No hidden fees • 7-day money-back guarantee</p>
+              <p className="footer-note">Cancel anytime • No hidden fees • 30-day free trial</p>
             </div>
           </>
         )}
