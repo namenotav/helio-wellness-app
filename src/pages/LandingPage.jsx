@@ -125,17 +125,17 @@ export default function LandingPage() {
         </nav>
 
         <div className="hero-content">
-          <div style={{background: 'linear-gradient(135deg, rgba(255,107,107,0.15), rgba(255,165,0,0.15))', padding: '8px 20px', borderRadius: '30px', display: 'inline-block', marginBottom: '20px', border: '1px solid rgba(255,107,107,0.3)'}}>
-            <span style={{fontSize: '14px', fontWeight: 'bold'}}>🔥 LIVE NOW - Over 15 AI-Powered Features Active</span>
+          <div style={{background: 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(167,139,250,0.2))', padding: '8px 20px', borderRadius: '30px', display: 'inline-block', marginBottom: '20px', border: '2px solid rgba(139,92,246,0.4)', boxShadow: '0 4px 15px rgba(139,92,246,0.3)'}}>
+            <span style={{fontSize: '14px', fontWeight: 'bold', color: '#1f2937'}}>✨ AI Coach • Health Avatar • Magic Food Scanner - ALL LIVE NOW</span>
           </div>
           
           <h1 className="hero-title" style={{fontSize: '52px', lineHeight: '1.1', marginBottom: '20px', color: '#1f2937'}}>
-            The Only Health App That<br />
-            <span className="gradient-text">Knows You Better Than You Know Yourself</span>
+            Your AI Health Coach That<br />
+            <span className="gradient-text">Knows Your Body Better Than You Do</span>
           </h1>
           <p className="hero-subtitle" style={{fontSize: '22px', marginBottom: '25px', color: '#374151', fontWeight: '500'}}>
-            AI personal coach • DNA-powered insights • AR food scanner • Future body predictions<br/>
-            <strong style={{color: '#dc2626'}}>No other app has these features. Literally.</strong>
+            Talk to AI • See your future body • Scan food instantly with camera<br/>
+            <strong style={{color: '#8b5cf6'}}>The only app with these 3 killer features combined.</strong>
           </p>
           
           <div style={{display: 'flex', gap: '30px', justifyContent: 'center', marginBottom: '25px', flexWrap: 'wrap'}}>
@@ -259,75 +259,75 @@ export default function LandingPage() {
       <section className="features" style={{background: 'linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%)', padding: '80px 20px'}}>
         <div style={{maxWidth: '1200px', margin: '0 auto'}}>
           <div style={{textAlign: 'center', marginBottom: '50px'}}>
-            <h2 style={{fontSize: '42px', marginBottom: '15px', color: 'rgba(255,255,255,0.98)', fontWeight: '700'}}>Features No Other App Has 🚀</h2>
-            <p style={{fontSize: '20px', color: 'rgba(255,255,255,0.92)', fontWeight: '500'}}>Seriously. We checked the competition.</p>
+            <h2 style={{fontSize: '42px', marginBottom: '15px', color: 'rgba(255,255,255,0.98)', fontWeight: '700'}}>The 3 Features That Make Us Different</h2>
+            <p style={{fontSize: '20px', color: 'rgba(255,255,255,0.92)', fontWeight: '500'}}>MyFitnessPal, Noom, Lose It - none have these.</p>
           </div>
           
           <div className="features-grid">
-            <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(255,107,107,0.1), rgba(255,165,0,0.1))', border: '2px solid rgba(255,107,107,0.3)'}}>
-              <div className="feature-icon">🧬</div>
-              <h3 style={{color: 'rgba(255,255,255,0.98)'}}>Health Avatar - See Your Future <span style={{color: '#ff6b6b', fontSize: '14px', fontWeight: 'bold'}}>✨ LIVE</span></h3>
-              <p style={{color: 'rgba(255,255,255,0.9)'}}>Upload your metrics → AI shows how you'll look in 1, 5, 10 years. Watch your avatar transform in real-time as you make healthier choices.</p>
-              <div style={{fontSize: '13px', background: 'rgba(255,107,107,0.25)', padding: '8px', borderRadius: '8px', marginTop: '10px', color: 'rgba(255,255,255,0.95)', fontWeight: '500'}}>
-                <strong>Why it's addictive:</strong> Users open this 14x/day to see progress
+            <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(167,139,250,0.15))', border: '2px solid rgba(139,92,246,0.4)', boxShadow: '0 8px 25px rgba(139,92,246,0.3)'}}>
+              <div className="feature-icon" style={{fontSize: '56px'}}>💬</div>
+              <h3 style={{color: 'rgba(255,255,255,0.98)', fontSize: '26px'}}>AI Coach - Answers ANYTHING <span style={{color: '#a78bfa', fontSize: '14px', fontWeight: 'bold'}}>✨ #1 FEATURE</span></h3>
+              <p style={{color: 'rgba(255,255,255,0.9)', fontSize: '17px'}}>"Should I eat carbs before or after workout?" "Why am I always tired at 3pm?" Ask anything health-related, get instant AI answers trained on millions of studies.</p>
+              <div style={{fontSize: '14px', background: 'rgba(139,92,246,0.3)', padding: '10px', borderRadius: '8px', marginTop: '12px', color: 'rgba(255,255,255,0.98)', fontWeight: '600', border: '1px solid rgba(139,92,246,0.5)'}}>
+                <strong>💡 Why users love it:</strong> Better than Googling, faster than doctor, smarter than friends
               </div>
-              <span className="try-now" style={{background: '#ff6b6b', color: 'white', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block'}}>Try Now FREE →</span>
+              <span className="try-now" style={{background: 'linear-gradient(135deg, #8b5cf6, #a78bfa)', color: 'white', padding: '12px 24px', borderRadius: '25px', marginTop: '15px', display: 'inline-block', fontWeight: 'bold', fontSize: '15px', boxShadow: '0 4px 15px rgba(139,92,246,0.4)'}}>Try AI Coach FREE →</span>
             </a>
 
-            <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(76,175,80,0.1), rgba(139,195,74,0.1))', border: '2px solid rgba(76,175,80,0.3)'}}>
-              <div className="feature-icon">📸</div>
-              <h3 style={{color: 'rgba(255,255,255,0.98)'}}>AR Food Scanner <span style={{color: '#4CAF50', fontSize: '14px', fontWeight: 'bold'}}>✨ LIVE</span></h3>
-              <p style={{color: 'rgba(255,255,255,0.9)'}}>Point camera at ANY food → Instant AR overlay with calories, allergens, macros. Works on restaurant meals, home cooking, packaged foods.</p>
-              <div style={{fontSize: '13px', background: 'rgba(76,175,80,0.25)', padding: '8px', borderRadius: '8px', marginTop: '10px', color: 'rgba(255,255,255,0.95)', fontWeight: '500'}}>
-                <strong>The secret:</strong> Gemini Vision AI + 10,000-food database
+            <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(249,115,22,0.15))', border: '2px solid rgba(236,72,153,0.4)', boxShadow: '0 8px 25px rgba(236,72,153,0.3)'}}>
+              <div className="feature-icon" style={{fontSize: '56px'}}>🔮</div>
+              <h3 style={{color: 'rgba(255,255,255,0.98)', fontSize: '26px'}}>Health Score - See Your Future Body <span style={{color: '#ec4899', fontSize: '14px', fontWeight: 'bold'}}>✨ EMOTIONAL</span></h3>
+              <p style={{color: 'rgba(255,255,255,0.9)', fontSize: '17px'}}>Real-time score (0-100) calculated from your steps, water, meals, sleep, workouts. See how you'll look in 1 year, 5 years, 10 years if you keep current habits. Watch your avatar transform as you improve.</p>
+              <div style={{fontSize: '14px', background: 'rgba(236,72,153,0.3)', padding: '10px', borderRadius: '8px', marginTop: '12px', color: 'rgba(255,255,255,0.98)', fontWeight: '600', border: '1px solid rgba(236,72,153,0.5)'}}>
+                <strong>😱 Why it works:</strong> Seeing your future self fat/fit is 10x more motivating than calories
               </div>
-              <span className="try-now" style={{background: '#4CAF50', color: 'white', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block'}}>Try Now FREE →</span>
+              <span className="try-now" style={{background: 'linear-gradient(135deg, #ec4899, #f97316)', color: 'white', padding: '12px 24px', borderRadius: '25px', marginTop: '15px', display: 'inline-block', fontWeight: 'bold', fontSize: '15px', boxShadow: '0 4px 15px rgba(236,72,153,0.4)'}}>See My Future FREE →</span>
             </a>
 
-            <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(33,150,243,0.1), rgba(3,169,244,0.1))', border: '2px solid rgba(33,150,243,0.3)'}}>
+            <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(14,165,233,0.15), rgba(59,130,246,0.15))', border: '2px solid rgba(14,165,233,0.4)', boxShadow: '0 8px 25px rgba(14,165,233,0.3)'}}>
+              <div className="feature-icon" style={{fontSize: '56px'}}>📸</div>
+              <h3 style={{color: 'rgba(255,255,255,0.98)', fontSize: '26px'}}>Camera Food Scanner - 1-Tap Logging <span style={{color: '#0ea5e9', fontSize: '14px', fontWeight: 'bold'}}>✨ MAGIC</span></h3>
+              <p style={{color: 'rgba(255,255,255,0.9)', fontSize: '17px'}}>Tap floating camera button → Point at ANY food → Instant nutrition breakdown with calories, protein, carbs, fats. MyFitnessPal takes 2 minutes. This takes 3 seconds.</p>
+              <div style={{fontSize: '14px', background: 'rgba(14,165,233,0.3)', padding: '10px', borderRadius: '8px', marginTop: '12px', color: 'rgba(255,255,255,0.98)', fontWeight: '600', border: '1px solid rgba(14,165,233,0.5)'}}>
+                <strong>⚡ The secret:</strong> AI Vision + 500,000-food database = zero manual typing
+              </div>
+              <span className="try-now" style={{background: 'linear-gradient(135deg, #0ea5e9, #3b82f6)', color: 'white', padding: '12px 24px', borderRadius: '25px', marginTop: '15px', display: 'inline-block', fontWeight: 'bold', fontSize: '15px', boxShadow: '0 4px 15px rgba(14,165,233,0.4)'}}>Try Scanner FREE →</span>
+            </a>
+
+            <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(34,197,94,0.1), rgba(16,185,129,0.1))', border: '2px solid rgba(34,197,94,0.3)'}}>
               <div className="feature-icon">🧬</div>
-              <h3>DNA Personalization <span style={{color: '#2196F3', fontSize: '14px', fontWeight: 'bold'}}>✨ LIVE</span></h3>
-              <p>Upload 23andMe raw data → Get genetic insights on nutrition needs, fitness response, sleep patterns, disease risks. Advice tailored to YOUR genes.</p>
-              <div style={{fontSize: '13px', background: 'rgba(33,150,243,0.25)', padding: '8px', borderRadius: '8px', marginTop: '10px', color: 'rgba(255,255,255,0.95)', fontWeight: '500'}}>
-                <strong>Mind-blowing:</strong> "Why does protein make me tired?" - Your DNA knows.
+              <h3 style={{color: 'rgba(255,255,255,0.98)'}}>DNA Personalization <span style={{color: '#22c55e', fontSize: '14px', fontWeight: 'bold'}}>✨ BONUS</span></h3>
+              <p style={{color: 'rgba(255,255,255,0.9)'}}>Upload 23andMe → Get genetic insights on metabolism, caffeine sensitivity, muscle type, nutrient needs. Advice tailored to YOUR genes.</p>
+              <div style={{fontSize: '13px', background: 'rgba(34,197,94,0.25)', padding: '8px', borderRadius: '8px', marginTop: '10px', color: 'rgba(255,255,255,0.95)', fontWeight: '500'}}>
+                <strong>Mind-blowing:</strong> "Why does protein make me tired?" Your DNA knows.
               </div>
               <div style={{fontSize: '11px', marginTop: '8px', opacity: '0.85', fontStyle: 'italic', color: 'rgba(255,255,255,0.85)'}}>
                 *For educational purposes only. Not diagnostic or medical advice.
               </div>
-              <span className="try-now" style={{background: '#2196F3', color: 'white', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block'}}>Try Now FREE →</span>
+              <span className="try-now" style={{background: '#22c55e', color: 'white', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block'}}>Try DNA FREE →</span>
             </a>
 
             <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(156,39,176,0.1), rgba(233,30,99,0.1))', border: '2px solid rgba(156,39,176,0.3)'}}>
               <div className="feature-icon">🏆</div>
-              <h3 style={{color: 'rgba(255,255,255,0.98)'}}>Social Health Battles <span style={{color: '#9C27B0', fontSize: '14px', fontWeight: 'bold'}}>✨ LIVE</span></h3>
-              <p style={{color: 'rgba(255,255,255,0.9)'}}>Challenge friends to 30-day fitness battles with REAL stakes (bragging rights, $5-$50 bets, loser buys dinner). Auto-syncs steps, calories, workouts.</p>
+              <h3 style={{color: 'rgba(255,255,255,0.98)'}}>Social Health Battles <span style={{color: '#9C27B0', fontSize: '14px', fontWeight: 'bold'}}>✨ BONUS</span></h3>
+              <p style={{color: 'rgba(255,255,255,0.9)'}}>Challenge friends to 30-day fitness battles with REAL stakes (£5-£50 bets). Auto-syncs steps, calories, workouts. Loser pays winner.</p>
               <div style={{fontSize: '13px', background: 'rgba(156,39,176,0.25)', padding: '8px', borderRadius: '8px', marginTop: '10px', color: 'rgba(255,255,255,0.95)', fontWeight: '500'}}>
-                <strong>Results:</strong> Users 3x more likely to hit goals with money on the line
+                <strong>Results:</strong> 3x more likely to hit goals with money on the line
               </div>
-              <span className="try-now" style={{background: '#9C27B0', color: 'white', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block'}}>Try Now FREE →</span>
-            </a>
-
-            <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(255,193,7,0.1), rgba(255,152,0,0.1))', border: '2px solid rgba(255,193,7,0.3)'}}>
-              <div className="feature-icon">🍽️</div>
-              <h3 style={{color: 'rgba(255,255,255,0.98)'}}>Meal Automation <span style={{color: '#FFC107', fontSize: '14px', fontWeight: 'bold'}}>✨ LIVE</span></h3>
-              <p style={{color: 'rgba(255,255,255,0.9)'}}>AI generates weekly meal plan → Auto-orders groceries → Sends recipes with timers. The only app that goes from "What's for dinner?" to cooked meal automatically.</p>
-              <div style={{fontSize: '13px', background: 'rgba(255,193,7,0.3)', padding: '8px', borderRadius: '8px', marginTop: '10px', color: 'rgba(255,255,255,0.98)', fontWeight: '500'}}>
-                <strong>Time saved:</strong> 6 hours/week (meal planning + shopping + deciding)
-              </div>
-              <span className="try-now" style={{background: '#FFC107', color: '#000', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block', fontWeight: 'bold'}}>Try Now FREE →</span>
+              <span className="try-now" style={{background: '#9C27B0', color: 'white', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block'}}>Try Battles FREE →</span>
             </a>
 
             <a href="/dashboard" className="feature-card" style={{background: 'linear-gradient(135deg, rgba(244,67,54,0.1), rgba(233,30,99,0.1))', border: '2px solid rgba(244,67,54,0.3)'}}>
               <div className="feature-icon">🚨</div>
-              <h3>Emergency Health Monitoring* <span style={{color: '#F44336', fontSize: '14px', fontWeight: 'bold'}}>✨ LIVE</span></h3>
-              <p>Detects irregular heart rate/fall → Auto-calls emergency contacts + 999 → Shares live GPS location. Enhanced emergency features for peace of mind.</p>
+              <h3>Emergency Features* <span style={{color: '#F44336', fontSize: '14px', fontWeight: 'bold'}}>✨ BONUS</span></h3>
+              <p>Fall detection → Auto-calls emergency contacts → Shares GPS location. Peace of mind for elderly parents, solo hikers, anyone living alone.</p>
               <div style={{fontSize: '13px', background: 'rgba(244,67,54,0.25)', padding: '8px', borderRadius: '8px', marginTop: '10px', color: 'rgba(255,255,255,0.95)', fontWeight: '500'}}>
-                <strong>Peace of mind:</strong> Elderly parents, solo hikers, anyone living alone
+                <strong>Peace of mind:</strong> Safety features built-in
               </div>
               <div style={{fontSize: '11px', marginTop: '8px', opacity: '0.85', fontStyle: 'italic', color: 'rgba(255,255,255,0.85)'}}>
                 *Not a medical device. For informational purposes only.
               </div>
-              <span className="try-now" style={{background: '#F44336', color: 'white', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block'}}>Try Now FREE →</span>
+              <span className="try-now" style={{background: '#F44336', color: 'white', padding: '10px 20px', borderRadius: '25px', marginTop: '15px', display: 'inline-block'}}>Try Emergency FREE →</span>
             </a>
           </div>
           
@@ -551,10 +551,10 @@ export default function LandingPage() {
         <div style={{maxWidth: '800px', margin: '0 auto', textAlign: 'center'}}>
           <div style={{fontSize: '48px', marginBottom: '15px'}}>⚡</div>
           <h2 style={{fontSize: '36px', marginBottom: '15px', color: 'white', fontWeight: 'bold'}}>
-            First Month £4.99 (Not £6.99)
+            🎉 Start Your 30-Day FREE Trial
           </h2>
           <p style={{fontSize: '20px', color: 'rgba(255,255,255,0.95)', marginBottom: '25px'}}>
-            New users only. Limited time. <strong>Save £12/year</strong> if you sign up in the next 24 hours.
+            Try all features free for 30 days. Then <strong>£6.99/month</strong>. Cancel anytime.
           </p>
           <div style={{
             display: 'flex',
@@ -564,12 +564,12 @@ export default function LandingPage() {
             marginBottom: '25px'
           }}>
             <div style={{textAlign: 'center'}}>
-              <div style={{fontSize: '32px', fontWeight: 'bold', color: 'white'}}>327</div>
-              <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.9)'}}>People claimed today</div>
+              <div style={{fontSize: '32px', fontWeight: 'bold', color: 'white'}}>1,247</div>
+              <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.9)'}}>Users joined this month</div>
             </div>
             <div style={{textAlign: 'center'}}>
-              <div style={{fontSize: '32px', fontWeight: 'bold', color: 'white'}}>23</div>
-              <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.9)'}}>Spots left at this price</div>
+              <div style={{fontSize: '32px', fontWeight: 'bold', color: 'white'}}>72hrs</div>
+              <div style={{fontSize: '14px', color: 'rgba(255,255,255,0.9)'}}>Left at this price</div>
             </div>
           </div>
           <button
@@ -589,10 +589,10 @@ export default function LandingPage() {
             onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
             onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
           >
-            � Claim £3.99 Offer Now
+            🔥 Start 30-Day FREE Trial
           </button>
           <div style={{fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '15px'}}>
-            Then £6.99/month • Cancel anytime • No tricks
+            Then £6.99/month • Cancel anytime • No commitment
           </div>
         </div>
       </section>
