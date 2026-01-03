@@ -423,8 +423,7 @@ Look for Halal logos: JAKIM, MUI, HFA, IFANCA, Islamic symbols
             },
             body: JSON.stringify({
               prompt: prompt,
-              imageData: imageBase64,
-              model: 'gemini-2.0-flash-exp' // Request specific model for Halal
+              imageData: imageBase64
             }),
             mode: 'cors'
           }
