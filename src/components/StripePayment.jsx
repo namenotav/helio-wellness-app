@@ -15,12 +15,14 @@ const StripePayment = ({ isOpen, onClose }) => {
       billing: '',
       features: [
         '✅ All basic tracking',
-        '✅ 10 AI messages/day',
+        '✅ 5 AI messages/day',
         '✅ 3 food scans/day',
-        '✅ 1 AR scan/week',
-        '✅ Community access',
-        '✅ 1 social battle',
-        '❌ No ads removal',
+        '✅ 1 workout/day',
+        '✅ Step counter',
+        '✅ Water tracking',
+        '❌ No barcode scanner',
+        '❌ No AR scanner',
+        '❌ No social battles',
         '❌ Limited features'
       ]
     },
@@ -32,17 +34,18 @@ const StripePayment = ({ isOpen, onClose }) => {
       stripeLink: import.meta.env.VITE_STRIPE_PAYMENT_LINK_STARTER || 'https://buy.stripe.com/9B6bJ03b1awCbb2emI6kg0a',
       features: [
         '✅ NO ADS',
+        '✅ Unlimited AI messages',
+        '✅ Unlimited food scans',
+        '✅ Unlimited barcode scans',
         '✅ Unlimited workouts',
-        '✅ Barcode scans (3/day)',
         '✅ Step counter',
-        '✅ Basic tracking',
-        '✅ Rep counter',
-        '✅ Food scanner',
-        '✅ Calorie tracking',
-        '✅ Email support (24hr)',
         '✅ Social Battles',
+        '✅ Heart rate tracking',
+        '✅ Sleep tracking',
+        '✅ Email support (24hr)',
         '❌ No DNA Analysis',
         '❌ No AR Scanner',
+        '❌ No Health Avatar',
         '❌ No Meal Automation'
       ],
       popular: true
@@ -77,13 +80,12 @@ const StripePayment = ({ isOpen, onClose }) => {
       features: [
         '✅ Everything in Premium',
         '✅ UNLIMITED AI messages',
+        '✅ UNLIMITED AR scans',
         '✅ Priority Support (2hr response)',
-        '✅ Beta access',
+        '✅ Beta access (early features)',
         '✅ VIP Badge in leaderboards',
-        '✅ API access (1K calls/mo)',
-        '✅ Phone support (9am-6pm)',
-        '✅ Family plan (5 members)',
-        '✅ Priority onboarding'
+        '✅ White-label reports (PDF)',
+        '✅ Advanced analytics'
       ]
     }
   ];
