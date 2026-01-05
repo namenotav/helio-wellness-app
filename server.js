@@ -10,9 +10,55 @@ import admin from 'firebase-admin';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import Joi from 'joi';
+import crypto from 'crypto';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// SECURITY: CSRF token storage (in-memory, reset on server restart)
+const csrfTokens = new Map(); // Map<token, {createdAt, used}>
+const CSRF_TOKEN_LIFETIME = 3600000; // 1 hour
+
+// SECURITY: API key rotation monitoring
+const API_KEY_AGE_THRESHOLD = 90 * 24 * 60 * 60 * 1000; // 90 days
+const API_KEY_CREATION_DATES = {
+  STRIPE_SECRET_KEY: process.env.STRIPE_KEY_CREATED_AT || Date.now(),
+  GEMINI_API_KEY: process.env.GEMINI_KEY_CREATED_AT || Date.now(),
+  ELEVENLABS_API_KEY: process.env.ELEVENLABS_KEY_CREATED_AT || Date.now()
+};
+
+// SECURITY: Check API key age and send alerts
+function checkApiKeyAge() {
+  const now = Date.now();
+  const alerts = [];
+  
+  for (const [keyName, createdAt] of Object.entries(API_KEY_CREATION_DATES)) {
+    const age = now - new Date(createdAt).getTime();
+    const daysOld = Math.floor(age / (24 * 60 * 60 * 1000));
+    
+    if (age > API_KEY_AGE_THRESHOLD) {
+      const message = `⚠️ API Key Rotation Alert: ${keyName} is ${daysOld} days old (threshold: 90 days). Please rotate immediately.`;
+      console.warn(message);
+      alerts.push(message);
+      
+      // TODO: Send email alert to admin
+      // await sendEmail(process.env.ADMIN_EMAIL, 'API Key Rotation Required', message);
+    }
+  }
+  
+  return alerts;
+}
+
+// Run API key age check on server start
+checkApiKeyAge();
+
+// Run API key age check daily at midnight
+setInterval(() => {
+  const alerts = checkApiKeyAge();
+  if (alerts.length > 0) {
+    console.warn('🔑 API Key Rotation Alerts:', alerts);
+  }
+}, 24 * 60 * 60 * 1000); // Once per day
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -92,6 +138,12 @@ function rateLimit(req, res, next) {
   }
   
   if (clientData.count >= MAX_REQUESTS_PER_WINDOW) {
+    // ENHANCEMENT: Add rate limit headers
+    res.set('X-RateLimit-Limit', MAX_REQUESTS_PER_WINDOW);
+    res.set('X-RateLimit-Remaining', 0);
+    res.set('X-RateLimit-Reset', Math.ceil(clientData.resetTime / 1000));
+    res.set('Retry-After', Math.ceil((clientData.resetTime - now) / 1000));
+    
     return res.status(429).json({ 
       error: 'Too many requests. Please try again later.',
       retryAfter: Math.ceil((clientData.resetTime - now) / 1000)
@@ -99,6 +151,12 @@ function rateLimit(req, res, next) {
   }
   
   clientData.count++;
+  
+  // ENHANCEMENT: Add rate limit headers to successful responses
+  res.set('X-RateLimit-Limit', MAX_REQUESTS_PER_WINDOW);
+  res.set('X-RateLimit-Remaining', MAX_REQUESTS_PER_WINDOW - clientData.count);
+  res.set('X-RateLimit-Reset', Math.ceil(clientData.resetTime / 1000));
+  
   next();
 }
 
@@ -113,16 +171,92 @@ setInterval(() => {
 }, 300000);
 
 // Enable CORS for all origins (allows your phone to connect)
-app.use(cors());
+app.use(cors({
+  origin: true, // Allow all origins (for mobile app)
+  credentials: true // Allow cookies
+}));
 
-// Security: Add HTTP security headers with Helmet.js
+// Security: Add HTTP security headers with Helmet.js + CSP
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable CSP for now (can be configured later)
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com", "https://apis.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "https://api.stripe.com", "https://*.firebaseio.com", "https://*.googleapis.com", "https://helio-wellness-app-production.up.railway.app"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"]
+    }
+  },
   crossOriginEmbedderPolicy: false // Allow embedding for Stripe/payment iframes
 }));
 
 // Parse cookies for CSRF tokens
 app.use(cookieParser());
+
+// Parse JSON bodies (must come BEFORE routes)
+app.use(express.json({ limit: '10mb' }));
+app.use(rateLimit); // Apply rate limiting to all routes
+
+// SECURITY: Generate CSRF token
+function generateCsrfToken() {
+  const token = crypto.randomBytes(32).toString('hex');
+  csrfTokens.set(token, { createdAt: Date.now(), used: false });
+  return token;
+}
+
+// SECURITY: Validate CSRF token
+function validateCsrfToken(token) {
+  if (!token) return false;
+  
+  const tokenData = csrfTokens.get(token);
+  if (!tokenData) return false;
+  
+  // Check if token expired
+  if (Date.now() - tokenData.createdAt > CSRF_TOKEN_LIFETIME) {
+    csrfTokens.delete(token);
+    return false;
+  }
+  
+  // Check if already used (one-time use)
+  if (tokenData.used) {
+    csrfTokens.delete(token);
+    return false;
+  }
+  
+  // Mark as used
+  tokenData.used = true;
+  return true;
+}
+
+// SECURITY: CSRF protection middleware for state-changing operations
+function csrfProtection(req, res, next) {
+  // Skip CSRF for Stripe webhooks (signature verified separately)
+  if (req.path === '/api/stripe/webhook') {
+    return next();
+  }
+  
+  const token = req.headers['x-csrf-token'] || req.body?.csrfToken;
+  
+  if (!validateCsrfToken(token)) {
+    return res.status(403).json({ 
+      error: 'Invalid or expired CSRF token. Please refresh and try again.' 
+    });
+  }
+  
+  next();
+}
+
+// SECURITY: Clean up expired CSRF tokens every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, data] of csrfTokens.entries()) {
+    if (now - data.createdAt > CSRF_TOKEN_LIFETIME) {
+      csrfTokens.delete(token);
+    }
+  }
+}, 600000);
 
 // Serve static files from React build
 import path from 'path';
@@ -130,6 +264,72 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, 'dist')));
+
+// SECURITY: Joi validation schemas
+const schemas = {
+  createCheckout: Joi.object({
+    userId: Joi.string().required().min(1).max(200),
+    priceId: Joi.string().required().min(1).max(200),
+    plan: Joi.string().required().valid('free', 'starter', 'premium', 'ultimate', 'essential', 'vip'),
+    csrfToken: Joi.string() // Optional, validated separately by middleware
+  }),
+  
+  cancelSubscription: Joi.object({
+    userId: Joi.string().required().min(1).max(200),
+    csrfToken: Joi.string()
+  }),
+  
+  supportNotify: Joi.object({
+    ticketId: Joi.string().required(),
+    userEmail: Joi.string().email().required(),
+    userName: Joi.string().required().max(200),
+    subject: Joi.string().required().max(500),
+    message: Joi.string().required().max(10000),
+    priority: Joi.string().required().valid('urgent', 'high', 'standard'),
+    planTier: Joi.string().required(),
+    slaHours: Joi.number().required().min(0)
+  }),
+  
+  createBattle: Joi.object({
+    userId: Joi.string().required(),
+    friendId: Joi.string().required(),
+    challenge: Joi.string().required().max(500),
+    duration: Joi.number().required().min(1).max(90),
+    csrfToken: Joi.string()
+  })
+};
+
+// SECURITY: Validation middleware
+function validate(schemaName) {
+  return (req, res, next) => {
+    const schema = schemas[schemaName];
+    if (!schema) {
+      return res.status(500).json({ error: 'Invalid schema' });
+    }
+    
+    const { error, value } = schema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true
+    });
+    
+    if (error) {
+      const errors = error.details.map(detail => detail.message);
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors 
+      });
+    }
+    
+    req.body = value; // Use validated data
+    next();
+  };
+}
+
+// API Endpoint - Get CSRF token
+app.get('/api/csrf-token', (req, res) => {
+  const token = generateCsrfToken();
+  res.json({ csrfToken: token });
+});
 
 // Stripe webhook needs raw body
 app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (req, res) => {
@@ -291,14 +491,10 @@ async function handlePaymentFailed(invoice) {
   }
 }
 
-// API Endpoint - Create Stripe checkout session
-app.post('/api/stripe/create-checkout', async (req, res) => {
+// API Endpoint - Create Stripe checkout session (with CSRF protection + Joi validation)
+app.post('/api/stripe/create-checkout', csrfProtection, validate('createCheckout'), async (req, res) => {
   try {
     const { userId, priceId, plan } = req.body;
-    
-    if (!userId || !priceId) {
-      return res.status(400).json({ error: 'Missing userId or priceId' });
-    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -361,14 +557,10 @@ app.get('/api/subscription/status/:userId', async (req, res) => {
   }
 });
 
-// API Endpoint - Cancel subscription
-app.post('/api/subscription/cancel', async (req, res) => {
+// API Endpoint - Cancel subscription (with CSRF protection + Joi validation)
+app.post('/api/subscription/cancel', csrfProtection, validate('cancelSubscription'), async (req, res) => {
   try {
     const { userId } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ error: 'Missing userId' });
-    }
 
     if (!db_firebase) {
       console.error('Firebase Admin not initialized - cannot cancel subscription in Firestore');
@@ -408,9 +600,6 @@ app.post('/api/subscription/cancel', async (req, res) => {
     res.status(500).json({ error: 'Failed to cancel subscription' });
   }
 });
-
-app.use(express.json({ limit: '10mb' }));  // Increase limit for image data
-app.use(rateLimit); // Apply rate limiting to all routes
 
 // SECURITY: API key from environment variables only (never hardcoded)
 const API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
@@ -666,11 +855,36 @@ app.post('/api/v1/chat', async (req, res) => {
       return res.status(400).json({ error: 'Invalid request format' });
     }
 
-    const prompt = `You are a friendly AI wellness coach. Answer this question in a helpful, encouraging way (2-3 sentences max):
+    // Extract user context from request
+    const userContext = req.body.userContext || {};
+    
+    // Build personalized context string
+    let contextInfo = '';
+    if (userContext.age) contextInfo += `User is ${userContext.age} years old. `;
+    if (userContext.medicalConditions && userContext.medicalConditions !== 'none') {
+      contextInfo += `Medical conditions: ${userContext.medicalConditions}. `;
+    }
+    if (userContext.allergies && userContext.allergies !== 'none') {
+      contextInfo += `CRITICAL - Allergies: ${userContext.allergies}. NEVER suggest these foods. `;
+    }
+    if (userContext.medications && userContext.medications !== 'none') {
+      contextInfo += `Current medications: ${userContext.medications}. Consider drug interactions. `;
+    }
+    if (userContext.fitnessLevel && userContext.fitnessLevel !== 'unknown') {
+      contextInfo += `Fitness level: ${userContext.fitnessLevel}. `;
+    }
+    if (userContext.dietaryPreferences && userContext.dietaryPreferences !== 'none') {
+      contextInfo += `Diet: ${userContext.dietaryPreferences}. `;
+    }
+    if (userContext.smoker === true) {
+      contextInfo += `User smokes - factor into health advice. `;
+    }
+    
+    const prompt = `You are a personalized AI wellness coach. ${contextInfo}
 
-${sanitizedMessage}
+User question: ${sanitizedMessage}
 
-Keep it simple, friendly, and motivating!`;
+Provide helpful, safe advice that considers their medical profile, allergies, and fitness level. Keep it encouraging and actionable (2-3 sentences).`;
 
     if(process.env.NODE_ENV!=="production")console.log('🤖 Calling Gemini API...');
     
