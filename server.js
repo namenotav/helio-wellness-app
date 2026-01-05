@@ -1499,7 +1499,11 @@ app.post('/api/logs', express.json(), (req, res) => {
 
 // Serve React app for all non-API routes (must be last)
 // Express 5 requires using a middleware approach instead of app.get('/*')
-app.use((req, res) => {
+app.use((req, res, next) => {
+  // Don't serve index.html for API routes
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
