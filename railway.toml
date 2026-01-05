@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install --legacy-peer-deps && npm run build && cp package-server.json package.json && npm install"
+buildCommand = "cp package-server.json package.json && npm install --legacy-peer-deps"
 
 [deploy]
 startCommand = "node server.js"
