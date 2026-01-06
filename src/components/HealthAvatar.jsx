@@ -579,3 +579,6 @@ export default function HealthAvatar({ onClose }) {
           currentPlan={userPlan}
         />
       )}
+    </div>
+  );
+}
