@@ -498,7 +498,9 @@ app.post('/api/stripe/create-checkout', csrfProtection, validate('createCheckout
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'link', 'amazon_pay', 'klarna', 'paypal'],
+      customer_creation: 'always',
+      billing_address_collection: 'auto',
       line_items: [{
         price: priceId,
         quantity: 1,
@@ -510,6 +512,7 @@ app.post('/api/stripe/create-checkout', csrfProtection, validate('createCheckout
         plan: plan
       },
       subscription_data: {
+        trial_period_days: 30,
         metadata: {
           firebaseUserId: userId,
           plan: plan
@@ -1497,15 +1500,8 @@ app.post('/api/logs', express.json(), (req, res) => {
   res.json({ success: true, received: logs.length });
 });
 
-// Serve React app for all non-API routes (must be last)
-// Express 5 requires using a middleware approach instead of app.get('/*')
-app.use((req, res, next) => {
-  // Don't serve index.html for API routes
-  if (req.path.startsWith('/api/')) {
-    return next();
-  }
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+// Railway is API-only server - no need to serve React app
+// React app is bundled in the mobile APK via Capacitor
 
 app.listen(PORT, '0.0.0.0', () => {
   if(process.env.NODE_ENV!=="production")console.log(`
