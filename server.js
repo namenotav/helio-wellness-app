@@ -499,7 +499,6 @@ app.post('/api/stripe/create-checkout', csrfProtection, validate('createCheckout
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card', 'link', 'amazon_pay', 'klarna', 'paypal'],
-      customer_creation: 'always',
       billing_address_collection: 'auto',
       line_items: [{
         price: priceId,
