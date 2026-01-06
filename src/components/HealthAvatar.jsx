@@ -4,14 +4,32 @@ import './HealthAvatar.css';
 import healthAvatarService from '../services/healthAvatarService';
 import healthRecommendationService from '../services/healthRecommendationService';
 import authService from '../services/authService';
+import subscriptionService from '../services/subscriptionService';
+import PaywallModal from './PaywallModal';
 
 export default function HealthAvatar({ onClose }) {
+  // Check Premium access first
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [userPlan, setUserPlan] = useState('free');
+
   // Always start fresh - no cached state to ensure real-time data
   const [avatarState, setAvatarState] = useState(null);
   const [activeView, setActiveView] = useState('current'); // current, 1year, 5years, 10years, recommendations
   const [loading, setLoading] = useState(true);
   const [aiRecommendations, setAiRecommendations] = useState(null);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+
+  // Check if user has Premium access
+  useEffect(() => {
+    const plan = subscriptionService.getCurrentPlan();
+    setUserPlan(plan.id);
+    
+    if (!subscriptionService.hasAccess('healthAvatar')) {
+      setShowPaywall(true);
+      setLoading(false);
+      return;
+    }
+  }, []);
 
   useEffect(() => {
     loadAvatarData();
@@ -550,9 +568,14 @@ export default function HealthAvatar({ onClose }) {
           </>
         )}
       </div>
-    </div>
-  );
-}
 
-
-
+      {/* Paywall Modal for Premium-only feature */}
+      {showPaywall && (
+        <PaywallModal
+          isOpen={showPaywall}
+          onClose={onClose}
+          featureName="Health Avatar"
+          message="🧬 Health Avatar requires Premium plan for AI-powered health predictions"
+          currentPlan={userPlan}
+        />
+      )}
