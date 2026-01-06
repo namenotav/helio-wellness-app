@@ -287,17 +287,20 @@ function AIAssistantModal({ userName, initialPrompt, onClose }) {
     // Check if developer mode is active - bypass all limits
     const isDevMode = localStorage.getItem('helio_dev_mode') === 'true'
     
-    // CHECK AI MESSAGE LIMIT FOR FREE USERS (skip if dev mode)
+    // CHECK AI MESSAGE LIMIT (skip if dev mode)
     if (!isDevMode) {
       const limit = window.subscriptionService?.checkLimit('aiMessages')
       if (limit && !limit.allowed) {
+        // BLOCK user from sending message
         setMessages(prev => [...prev, 
           { type: 'user', text: userText },
           { 
             type: 'ai', 
-            text: `🔒 You've reached your daily limit of ${limit.limit} AI messages.\n\nUpgrade for more:\n💪 Starter £6.99/mo - Unlimited AI messages\n⭐ Premium £16.99/mo - Everything + DNA + Avatar\n👑 Ultimate £34.99/mo - UNLIMITED + Priority Support` 
+            text: `🔒 Daily AI Message Limit Reached!\n\nYou've used all ${limit.limit} free messages today.\n\nUpgrade to continue chatting:\n💪 Starter £6.99/mo - Unlimited AI chat\n⭐ Premium £16.99/mo - 50 messages/day + DNA + Avatar\n👑 Ultimate £34.99/mo - UNLIMITED messages + VIP Support\n\nYour limit resets at midnight! 🌙` 
           }
         ])
+        setIsProcessing(false)
+        // Stop processing immediately - do not call AI
         return
       }
     } else {

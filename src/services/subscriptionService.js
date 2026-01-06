@@ -52,7 +52,7 @@ class SubscriptionService {
           waterTracking: true,
           aiVoiceCoach: 'limited',
           breathing: true,
-          socialBattles: true,
+          socialBattles: false,
           workouts: true,
           // LOCKED
           dnaAnalysis: false,
