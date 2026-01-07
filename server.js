@@ -1623,12 +1623,13 @@ app.post('/api/logs', express.json(), (req, res) => {
 // Serve React frontend static files from dist folder
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Catch-all route: serve index.html for any route not handled by API
-app.get('*', (req, res) => {
+// Catch-all route: serve index.html for any route not handled by API (Express 5 compatible)
+app.use((req, res, next) => {
   // Skip API routes
   if (req.path.startsWith('/api/') || req.path === '/health') {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
+  // Serve React app for all other routes
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
