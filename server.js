@@ -736,17 +736,6 @@ if(process.env.NODE_ENV!=="production")console.log('✅ API key loaded from envi
 
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
-// Health check endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'WellnessAI API Server Running',
-    database: db ? (db.memory ? 'memory' : 'connected') : 'disconnected',
-    version: '2.0.0',
-    endpoints: ['/api/chat', '/api/vision', '/api/backup', '/api/user/delete', '/api/battles', '/api/feedback']
-  });
-});
-
 // Cloud Backup Endpoints
 app.post('/api/backup', async (req, res) => {
   try {
