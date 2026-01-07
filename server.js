@@ -11,6 +11,11 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import Joi from 'joi';
 import crypto from 'crypto';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -261,13 +266,6 @@ setInterval(() => {
     }
   }
 }, 600000);
-
-// Serve static files from React build
-import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, 'dist')));
 
 // SECURITY: Joi validation schemas
 const schemas = {
@@ -1622,8 +1620,17 @@ app.post('/api/logs', express.json(), (req, res) => {
   res.json({ success: true, received: logs.length });
 });
 
-// Railway is API-only server - no need to serve React app
-// React app is bundled in the mobile APK via Capacitor
+// Serve React frontend static files from dist folder
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Catch-all route: serve index.html for any route not handled by API
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/') || req.path === '/health') {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   if(process.env.NODE_ENV!=="production")console.log(`
