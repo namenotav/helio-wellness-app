@@ -135,9 +135,6 @@ class FirestoreService {
         key: key
       }, { merge: true });
 
-      // 🔥 CRITICAL FIX: Clear cache after save to force fresh reads
-      this.cache.delete(key);
-
       console.log(`✅ Firestore saved [${uid.substring(0, 20)}...]: ${key}`);
       return { success: true };
 

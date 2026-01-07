@@ -1,0 +1,307 @@
+{
+  "startTime": "2026-01-06T13:02:40.061Z",
+  "totalTests": 24,
+  "passed": 24,
+  "failed": 0,
+  "warnings": 0,
+  "screenshots": 26,
+  "dataValidations": 3,
+  "modals": [
+    {
+      "name": "Progress Modal",
+      "tested": true,
+      "dataValidated": true,
+      "expectedData": {
+        "steps": 4000,
+        "calories": 350,
+        "water": 1,
+        "workouts": 1
+      }
+    },
+    {
+      "name": "My Stats Modal",
+      "tested": true,
+      "expectedData": {
+        "streak": 1,
+        "level": 1,
+        "xp": 30
+      }
+    },
+    {
+      "name": "Goals Modal",
+      "tested": true,
+      "note": "Should show customizable goals with progress"
+    },
+    {
+      "name": "Recipes Modal",
+      "tested": true,
+      "note": "Community and AI recipes displayed"
+    },
+    {
+      "name": "AI Insights Modal",
+      "tested": true,
+      "note": "AI-generated insights based on user data"
+    },
+    {
+      "name": "DNA Modal",
+      "tested": true,
+      "note": "DNA analysis interface"
+    },
+    {
+      "name": "Premium Modal",
+      "tested": true,
+      "note": "Premium features and pricing"
+    },
+    {
+      "name": "Achievements Modal",
+      "tested": true,
+      "expectedData": {
+        "mealsLogged": 1,
+        "workoutsCompleted": 1
+      },
+      "note": "Achievement unlock conditions should be validated"
+    },
+    {
+      "name": "Wellness Warrior Modal",
+      "tested": true,
+      "note": "Social battles system"
+    },
+    {
+      "name": "Your Stats Modal",
+      "tested": true,
+      "dataValidated": true,
+      "expectedData": {
+        "totalSteps": 8000,
+        "totalCalories": 350,
+        "caloriesBurned": 600,
+        "netCalories": -250,
+        "waterCups": 1,
+        "workouts": 2,
+        "meals": 1,
+        "meditationMinutes": 0,
+        "sleepHours": 0,
+        "streak": 1,
+        "level": 1,
+        "xp": 60
+      }
+    },
+    {
+      "name": "Data Reports Modal",
+      "tested": true,
+      "note": "Export functionality for user data"
+    },
+    {
+      "name": "Full Stats Modal",
+      "tested": true,
+      "note": "Complete statistics dashboard"
+    },
+    {
+      "name": "Monthly Stats Modal",
+      "tested": true,
+      "note": "Should reset on 1st of each month"
+    },
+    {
+      "name": "Weekly Compare Modal",
+      "tested": true,
+      "note": "Should reset every Monday"
+    },
+    {
+      "name": "Upgrade to Premium Banner",
+      "tested": true,
+      "note": "Should appear for non-premium users"
+    },
+    {
+      "name": "Health Avatar Modal",
+      "tested": true,
+      "note": "Should update based on user health data"
+    },
+    {
+      "name": "Daily Reset",
+      "tested": true,
+      "resetTime": "00:00 (Midnight)",
+      "affectedMetrics": [
+        "steps",
+        "calories",
+        "water",
+        "workouts"
+      ]
+    },
+    {
+      "name": "Weekly Reset",
+      "tested": true,
+      "resetDay": "Monday",
+      "resetTime": "00:00",
+      "affectedMetrics": [
+        "weekly steps",
+        "weekly workouts",
+        "weekly comparison"
+      ]
+    },
+    {
+      "name": "Monthly Reset",
+      "tested": true,
+      "resetDate": "1st of each month",
+      "resetTime": "00:00",
+      "affectedMetrics": [
+        "monthly steps",
+        "monthly workouts",
+        "monthly stats"
+      ]
+    },
+    {
+      "name": "Real-Time Updates",
+      "tested": true,
+      "working": true,
+      "note": "Modals should reflect latest data immediately"
+    }
+  ],
+  "tests": [
+    {
+      "name": "Breakfast Logged",
+      "passed": true,
+      "notes": "350 calories",
+      "timestamp": "2026-01-06T13:02:55.071Z"
+    },
+    {
+      "name": "Workout Logged",
+      "passed": true,
+      "notes": "30 min, 300 calories burned",
+      "timestamp": "2026-01-06T13:03:06.762Z"
+    },
+    {
+      "name": "Water Logged",
+      "passed": true,
+      "notes": "1 cup",
+      "timestamp": "2026-01-06T13:03:11.534Z"
+    },
+    {
+      "name": "Progress Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:03:18.099Z"
+    },
+    {
+      "name": "My Stats Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:03:25.909Z"
+    },
+    {
+      "name": "Goals Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:03:34.981Z"
+    },
+    {
+      "name": "Recipes Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:03:43.948Z"
+    },
+    {
+      "name": "AI Insights Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:03:54.506Z"
+    },
+    {
+      "name": "DNA Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:04:03.521Z"
+    },
+    {
+      "name": "Premium Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:04:12.531Z"
+    },
+    {
+      "name": "Achievements Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:04:21.870Z"
+    },
+    {
+      "name": "Wellness Warrior Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:04:30.544Z"
+    },
+    {
+      "name": "Your Stats Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:04:38.233Z"
+    },
+    {
+      "name": "Data Reports Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:04:47.353Z"
+    },
+    {
+      "name": "Full Stats Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:04:56.322Z"
+    },
+    {
+      "name": "Monthly Stats Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:05:05.444Z"
+    },
+    {
+      "name": "Weekly Compare Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:05:14.638Z"
+    },
+    {
+      "name": "Upgrade Banner - Displayed",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:05:22.872Z"
+    },
+    {
+      "name": "Health Avatar Modal - Opened",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T13:05:30.285Z"
+    },
+    {
+      "name": "Daily Reset - Logic Verified",
+      "passed": true,
+      "notes": "Resets at midnight",
+      "timestamp": "2026-01-06T13:05:34.825Z"
+    },
+    {
+      "name": "Weekly Reset - Logic Verified",
+      "passed": true,
+      "notes": "Resets every Monday",
+      "timestamp": "2026-01-06T13:05:38.154Z"
+    },
+    {
+      "name": "Monthly Reset - Logic Verified",
+      "passed": true,
+      "notes": "Resets on 1st of month",
+      "timestamp": "2026-01-06T13:05:41.872Z"
+    },
+    {
+      "name": "Workout Logged",
+      "passed": true,
+      "notes": "30 min, 300 calories burned",
+      "timestamp": "2026-01-06T13:06:00.093Z"
+    },
+    {
+      "name": "Real-Time Updates - Stats Modal",
+      "passed": true,
+      "notes": "Data updated immediately",
+      "timestamp": "2026-01-06T13:06:05.349Z"
+    }
+  ],
+  "endTime": "2026-01-06T13:06:06.594Z",
+  "duration": 206533,
+  "durationSeconds": 206
+}

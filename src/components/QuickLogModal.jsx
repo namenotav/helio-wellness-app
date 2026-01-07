@@ -10,15 +10,22 @@ export default function QuickLogModal({ isOpen, onClose }) {
   const [workoutDuration, setWorkoutDuration] = useState('');
   const [workoutCalories, setWorkoutCalories] = useState('');
   
-  // 🔥 Auto-calculate calories based on workout type and duration
-  const calculateWorkoutCalories = (type, duration) => {
+  // 🔥 FIX #9: Auto-calculate calories based on workout type, duration AND user weight
+  const calculateWorkoutCalories = async (type, duration) => {
     if (!type || !duration) return 0;
+    
+    // Get user weight for personalized calculation
+    const { default: authService } = await import('../services/authService');
+    const userProfile = authService.getCurrentUser()?.profile || {};
+    const userWeight = userProfile.weight || 150; // Default 150 lbs
+    const weightFactor = userWeight / 150;
+    
     const calorieRateMap = {
       'Running': 11, 'Cycling': 10, 'Swimming': 12, 'Weights': 7,
       'Yoga': 3, 'HIIT': 13, 'Walking': 5, 'Sports': 9, 'Other': 7
     };
     const rate = calorieRateMap[type] || 7;
-    return Math.round(duration * rate);
+    return Math.round(duration * rate * weightFactor);
   };
 
   if (!isOpen) return null;

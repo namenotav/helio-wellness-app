@@ -47,7 +47,13 @@ class DataControlService {
       nutrition: this.getNutritionData(),
       settings: this.getSettingsData(),
       consent: this.getConsentData(),
-      gamification: this.getGamificationData()
+      gamification: this.getGamificationData(),
+      aiChatHistory: JSON.parse(localStorage.getItem('ai_chat_history') || '[]'),
+      battleHistory: JSON.parse(localStorage.getItem('battle_history') || '[]'),
+      socialBattles: JSON.parse(localStorage.getItem('social_battles') || '[]'),
+      subscriptionPlan: localStorage.getItem('subscription_plan') || 'free',
+      locationHistory: JSON.parse(localStorage.getItem('locationHistory') || '[]'),
+      dnaAnalysisResults: localStorage.getItem('dna_analysis_results') || null
     };
 
     return data;
@@ -96,6 +102,7 @@ class DataControlService {
   getNutritionData() {
     return {
       meals: JSON.parse(localStorage.getItem('meals') || '[]'),
+      foodLog: JSON.parse(localStorage.getItem('foodLog') || '[]'),
       waterIntake: JSON.parse(localStorage.getItem('water_intake') || '[]'),
       calorieGoal: localStorage.getItem('calorie_goal'),
       nutritionPreferences: JSON.parse(localStorage.getItem('nutrition_preferences') || '{}')

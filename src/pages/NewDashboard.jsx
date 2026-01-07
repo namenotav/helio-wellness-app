@@ -96,6 +96,10 @@ const SettingsHubModal = lazy(() => import('../components/SettingsHubModal'))
 const QuickLogModal = lazy(() => import('../components/QuickLogModal'))
 const SupportModal = lazy(() => import('../components/SupportModal'))
 
+// 🔥 FIX #2 & #5: New analytics modals for monthly/weekly stats
+const MonthlyStatsModal = lazy(() => import('../components/MonthlyStatsModal'))
+const WeeklyComparison = lazy(() => import('../components/WeeklyComparison'))
+
 export default function NewDashboard() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('home')
@@ -221,6 +225,10 @@ export default function NewDashboard() {
   
   // Data Recovery modal state
   const [showDataRecovery, setShowDataRecovery] = useState(false)
+  
+  // 🔥 FIX #2 & #5: New modal states for Monthly Stats and Weekly Comparison
+  const [showMonthlyStats, setShowMonthlyStats] = useState(false)
+  const [showWeeklyComparison, setShowWeeklyComparison] = useState(false)
   
   if(import.meta.env.DEV)console.log('🏗️ NewDashboard component loaded - Build timestamp:', new Date().toISOString())
   if(import.meta.env.DEV)console.log('🔵 Initial state:', { showDevButton: true, isDevMode })
@@ -1261,10 +1269,6 @@ export default function NewDashboard() {
         
         // Cleanup function
         cleanupFn = () => {
-          const index = nativeHealthService.stepListeners.indexOf(stepListener)
-          if (index > -1) {
-            nativeHealthService.stepListeners.splice(index, 1)
-          }
           nativeHealthService.cleanup()
           if(import.meta.env.DEV)console.log('🧹 Step tracking cleanup complete')
         }
@@ -1787,6 +1791,8 @@ export default function NewDashboard() {
               onOpenSettingsHub={() => setShowSettingsHubModal(true)}
               onEditProfile={() => setShowProfileSetup(true)}
               onOpenFullStats={() => setShowFullStats(true)}
+              onOpenMonthlyStats={() => setShowMonthlyStats(true)}
+              onOpenWeeklyComparison={() => setShowWeeklyComparison(true)}
             />
           </Suspense>
         )}
@@ -2012,6 +2018,18 @@ export default function NewDashboard() {
       
       {/* Full Stats Modal - Placed outside parent to avoid CSS conflicts */}
       {showFullStats && <FullStatsModal user={user} stats={stats} onClose={() => setShowFullStats(false)} />}
+      
+      {/* 🔥 FIX #2 & #5: Monthly Stats and Weekly Comparison Modals */}
+      {showMonthlyStats && (
+        <Suspense fallback={null}>
+          <MonthlyStatsModal onClose={() => setShowMonthlyStats(false)} />
+        </Suspense>
+      )}
+      {showWeeklyComparison && (
+        <Suspense fallback={null}>
+          <WeeklyComparison onClose={() => setShowWeeklyComparison(false)} />
+        </Suspense>
+      )}
       
       {/* Activity Pulse Modal */}
       {showActivityPulse && <ActivityPulseModal activitiesPromise={getAllActivities()} onClose={() => setShowActivityPulse(false)} />}
@@ -3524,7 +3542,7 @@ function FullStatsModal({ user, stats, onClose }) {
           </div>
         </div>
 
-        {/* 7-Day Activity Chart */}
+        {/* 30-Day Activity Chart - 🔥 FIX #1: Extended from 7 days to 30 days */}
         <div style={{
           background: 'rgba(139, 95, 232, 0.1)',
           border: '1px solid rgba(139, 95, 232, 0.3)',
@@ -3532,31 +3550,65 @@ function FullStatsModal({ user, stats, onClose }) {
           padding: '20px',
           marginBottom: '20px'
         }}>
-          <h3 style={{fontSize: '18px', marginBottom: '15px', color: 'white'}}>📈 7-Day Step Activity</h3>
-          <div style={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '120px', gap: '8px'}}>
-            {[0, 1, 2, 3, 4, 5, 6].map(i => {
-              // ✅ FIX: Use stats.weeklySteps from parent (correct source)
-              const dayData = stats?.weeklySteps?.[i] || { steps: 0 }
-              const steps = dayData.steps || 0
-              const height = Math.max((steps / 10000) * 100, 5)
-              return (
-                <div key={i} style={{flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                  <small style={{color: '#8B5FE8', fontSize: '10px', marginBottom: '3px'}}>
-                    {steps > 0 ? (steps / 1000).toFixed(1) + 'k' : '0'}
-                  </small>
-                  <div style={{
-                    width: '100%',
-                    height: `${height}%`,
-                    background: steps > 0 ? 'linear-gradient(to top, #8B5FE8, #B794F6)' : 'rgba(139, 95, 232, 0.2)',
-                    borderRadius: '6px 6px 0 0',
-                    minHeight: '5px'
-                  }}></div>
-                  <small style={{color: '#666', fontSize: '11px', marginTop: '5px'}}>
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
-                  </small>
-                </div>
-              )
-            })}
+          <h3 style={{fontSize: '18px', marginBottom: '15px', color: 'white'}}>📈 30-Day Step Activity</h3>
+          <div style={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '120px', gap: '2px', overflowX: 'auto'}}>
+            {(() => {
+              // Get last 30 days of stepHistory from localStorage
+              const stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '[]')
+              const today = new Date()
+              const last30Days = []
+              
+              // Create array of last 30 days
+              for (let i = 29; i >= 0; i--) {
+                const date = new Date(today)
+                date.setDate(date.getDate() - i)
+                const dateStr = date.toISOString().split('T')[0]
+                
+                // Find steps for this date
+                const dayData = stepHistory.find(s => s.date === dateStr)
+                last30Days.push({
+                  date: dateStr,
+                  steps: dayData?.steps || 0,
+                  dayOfWeek: date.getDay()
+                })
+              }
+              
+              const maxSteps = Math.max(...last30Days.map(d => d.steps), 10000)
+              
+              return last30Days.map((day, i) => {
+                const height = Math.max((day.steps / maxSteps) * 100, 5)
+                const isToday = i === 29
+                const isWeekend = day.dayOfWeek === 0 || day.dayOfWeek === 6
+                
+                return (
+                  <div key={i} style={{flex: 1, minWidth: '6px', display: 'flex', flexDirection: 'column', alignItems: 'center'}} title={`${day.date}: ${day.steps} steps`}>
+                    {/* Only show label every 5 days to avoid clutter */}
+                    {i % 5 === 0 && (
+                      <small style={{color: '#8B5FE8', fontSize: '9px', marginBottom: '2px', whiteSpace: 'nowrap', transform: 'rotate(-45deg)', transformOrigin: 'center', position: 'absolute', top: '-15px'}}>
+                        {day.steps > 0 ? (day.steps / 1000).toFixed(0) + 'k' : ''}
+                      </small>
+                    )}
+                    <div style={{
+                      width: '100%',
+                      height: `${height}%`,
+                      background: isToday 
+                        ? 'linear-gradient(to top, #FF6B6B, #FFE66D)' 
+                        : day.steps > 0 
+                        ? 'linear-gradient(to top, #8B5FE8, #B794F6)' 
+                        : 'rgba(139, 95, 232, 0.15)',
+                      borderRadius: '2px 2px 0 0',
+                      minHeight: '5px',
+                      opacity: isWeekend ? 0.7 : 1,
+                      border: isToday ? '2px solid #FFE66D' : 'none'
+                    }}></div>
+                  </div>
+                )
+              })
+            })()}
+          </div>
+          <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '10px', color: '#666', fontSize: '11px'}}>
+            <span>30 days ago</span>
+            <span style={{color: '#8B5FE8'}}>Today</span>
           </div>
         </div>
 
@@ -3574,7 +3626,133 @@ function FullStatsModal({ user, stats, onClose }) {
           <p style={{color: '#aaa', fontSize: '14px', marginBottom: '10px'}}>⭐ Wellness Score: {stats?.wellnessScore || 0}/100</p>
           <p style={{color: '#8B5FE8', fontSize: '14px', fontWeight: 'bold'}}>Keep crushing your goals! 💪</p>
         </div>
+
+        {/* 🔥 FIX #4: Date Search - View Historical Data */}
+        <DateSearchSection />
       </div>
+    </div>
+  )
+}
+
+// 🔥 FIX #4: Date Search Component for viewing historical data
+function DateSearchSection() {
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [dayData, setDayData] = useState(null)
+
+  useEffect(() => {
+    loadDayData()
+  }, [selectedDate])
+
+  const loadDayData = () => {
+    // Get all data sources from localStorage
+    const stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '[]')
+    let foodLogRaw = localStorage.getItem('foodLog') || '[]'
+    let foodLog = []
+    try {
+      foodLog = JSON.parse(foodLogRaw)
+      if (!Array.isArray(foodLog)) foodLog = []
+    } catch (e) {
+      foodLog = []
+    }
+    const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]')
+    const waterLog = JSON.parse(localStorage.getItem('waterLog') || '[]')
+    const sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]')
+
+    // Filter by selected date
+    const daySteps = stepHistory.find(s => s.date === selectedDate)
+    const dayMeals = foodLog.filter(f => f.date === selectedDate)
+    const dayWorkouts = workoutHistory.filter(w => w.date === selectedDate)
+    const dayWater = waterLog.filter(w => w.date === selectedDate)
+    const daySleep = sleepLog.find(s => s.date === selectedDate)
+
+    setDayData({
+      steps: daySteps?.steps || 0,
+      meals: dayMeals,
+      workouts: dayWorkouts,
+      waterCups: dayWater.length,
+      sleepHours: daySleep?.hours || 0
+    })
+  }
+
+  return (
+    <div style={{
+      background: 'rgba(102, 126, 234, 0.1)',
+      border: '1px solid rgba(102, 126, 234, 0.3)',
+      borderRadius: '15px',
+      padding: '20px',
+      marginTop: '20px'
+    }}>
+      <h3 style={{fontSize: '18px', marginBottom: '15px', color: 'white'}}>🔍 Search Historical Data</h3>
+      
+      <input
+        type="date"
+        value={selectedDate}
+        onChange={(e) => setSelectedDate(e.target.value)}
+        max={new Date().toISOString().split('T')[0]}
+        style={{
+          width: '100%',
+          padding: '12px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          border: '1px solid rgba(102, 126, 234, 0.5)',
+          borderRadius: '8px',
+          color: 'white',
+          fontSize: '16px',
+          marginBottom: '15px',
+          cursor: 'pointer'
+        }}
+      />
+
+      {dayData && (
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px'}}>
+          <div style={{background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+            <div style={{fontSize: '24px', marginBottom: '5px'}}>👟</div>
+            <div style={{color: 'white', fontSize: '18px', fontWeight: 'bold'}}>{dayData.steps.toLocaleString()}</div>
+            <div style={{color: '#888', fontSize: '12px'}}>steps</div>
+          </div>
+          
+          <div style={{background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+            <div style={{fontSize: '24px', marginBottom: '5px'}}>🍽️</div>
+            <div style={{color: 'white', fontSize: '18px', fontWeight: 'bold'}}>{dayData.meals.length}</div>
+            <div style={{color: '#888', fontSize: '12px'}}>meals</div>
+          </div>
+          
+          <div style={{background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+            <div style={{fontSize: '24px', marginBottom: '5px'}}>💪</div>
+            <div style={{color: 'white', fontSize: '18px', fontWeight: 'bold'}}>{dayData.workouts.length}</div>
+            <div style={{color: '#888', fontSize: '12px'}}>workouts</div>
+          </div>
+          
+          <div style={{background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '8px', textAlign: 'center'}}>
+            <div style={{fontSize: '24px', marginBottom: '5px'}}>💧</div>
+            <div style={{color: 'white', fontSize: '18px', fontWeight: 'bold'}}>{dayData.waterCups}</div>
+            <div style={{color: '#888', fontSize: '12px'}}>water cups</div>
+          </div>
+        </div>
+      )}
+
+      {/* Meals Details */}
+      {dayData && dayData.meals.length > 0 && (
+        <div style={{marginTop: '15px', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px'}}>
+          <h4 style={{color: '#8B5FE8', fontSize: '14px', marginBottom: '10px'}}>Meals on {selectedDate}:</h4>
+          {dayData.meals.map((meal, i) => (
+            <div key={i} style={{color: '#aaa', fontSize: '13px', marginBottom: '5px', paddingLeft: '10px', borderLeft: '2px solid #8B5FE8'}}>
+              • {meal.name || 'Meal'} - {meal.calories} cal (Protein: {meal.protein}g, Carbs: {meal.carbs}g, Fat: {meal.fat}g)
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Workouts Details */}
+      {dayData && dayData.workouts.length > 0 && (
+        <div style={{marginTop: '15px', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px'}}>
+          <h4 style={{color: '#8B5FE8', fontSize: '14px', marginBottom: '10px'}}>Workouts on {selectedDate}:</h4>
+          {dayData.workouts.map((workout, i) => (
+            <div key={i} style={{color: '#aaa', fontSize: '13px', marginBottom: '5px', paddingLeft: '10px', borderLeft: '2px solid #8B5FE8'}}>
+              • {workout.type || 'Workout'} - {workout.duration} min ({workout.calories} cal burned)
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

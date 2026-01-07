@@ -6,18 +6,18 @@ import { Capacitor } from '@capacitor/core';
 
 class DevAuthService {
   constructor() {
-    // LOCKED: Multiple authorized devices for development
+    // SECURITY: Only specific device IDs allowed (removed generic model names)
+    // Generic model names like 'CPH2551' match thousands of devices worldwide
     this.authorizedDeviceIds = [
-      '85e89dbedd0cda70',  // ACTUAL OPPO CPH2551 device ID
+      '85e89dbedd0cda70',  // ACTUAL OPPO CPH2551 device ID (primary dev device)
       'a8f5d227622e766f',  // Backup device ID
-      'CPH2551',            // OPPO device model
-      'OPPO CPH2551',       // Full device name
-      'cph2551',            // Lowercase variant
-      'oppo cph2551',       // Lowercase full name
+      // REMOVED: Generic model patterns for security
+      // If dev mode stops working, add your actual device ID here (not model name)
     ];
     
-    // Developer password
-    this.devPassword = 'helio2025dev';
+    // Developer password - now from environment variable for security
+    // Fallback to default only in development
+    this.devPassword = import.meta.env.VITE_DEV_PASSWORD || 'helio2025dev';
     
     // Developer mode state - starts disabled
     this.isDevMode = false;

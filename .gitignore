@@ -30,11 +30,7 @@ dist-ssr
 
 .vercel
 
-# Firebase Admin SDK (NEVER commit)
+# Firebase Admin SDK & Service Account Keys (NEVER commit)
 *firebase-adminsdk*.json
-
-# Firebase Admin SDK (NEVER commit)
-*firebase-adminsdk*.json
-
-# Firebase Admin SDK (NEVER commit)
-*firebase-adminsdk*.json
+service-account-key.json
+*service-account*.json

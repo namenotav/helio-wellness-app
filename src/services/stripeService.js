@@ -12,10 +12,21 @@ async function createCheckoutSession(priceId, plan) {
       throw new Error('User must be logged in to subscribe');
     }
 
+    // Fetch CSRF token for security
+    console.log('🔒 Fetching CSRF token...');
+    const csrfResponse = await fetch(`${API_URL}/api/csrf-token`);
+    if (!csrfResponse.ok) {
+      throw new Error('Failed to get security token. Please check your connection.');
+    }
+    const { csrfToken } = await csrfResponse.json();
+    console.log('✅ CSRF token received');
+
+    // Create checkout session with CSRF token
     const response = await fetch(`${API_URL}/api/stripe/create-checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-csrf-token': csrfToken
       },
       body: JSON.stringify({
         userId: user.uid,
@@ -25,14 +36,15 @@ async function createCheckoutSession(priceId, plan) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create checkout session');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to create checkout session');
     }
 
     const data = await response.json();
     window.location.href = data.url;
   } catch (error) {
-    console.error('Error creating checkout:', error);
-    alert('Failed to start checkout. Please try again.');
+    console.error('❌ Error creating checkout:', error);
+    alert('Failed to start checkout. Please try again.\n\n' + error.message);
   }
 }
 

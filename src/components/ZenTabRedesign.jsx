@@ -22,7 +22,8 @@ export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
       localStorage.setItem('meditation_minutes_today', '0')
     }
     
-    // Calculate streak
+    // Calculate streak - 🔥 FIX: Only reset after 11:59 PM
+    const now = new Date()
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
     const yesterdayStr = yesterday.toISOString().split('T')[0]
@@ -33,9 +34,15 @@ export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
     } else if (lastDate === yesterdayStr) {
       // Meditated yesterday, will increment on next session
     } else if (lastDate && lastDate < yesterdayStr) {
-      // Missed a day, reset streak
-      streak = 0
-      localStorage.setItem('meditation_streak', '0')
+      // 🔥 FIX: Only reset streak after midnight (give user full day to meditate)
+      const currentHour = now.getHours()
+      const currentMinute = now.getMinutes()
+      // If it's past 11:59 PM and user hasn't meditated, break streak
+      if (currentHour === 23 && currentMinute >= 59) {
+        streak = 0
+        localStorage.setItem('meditation_streak', '0')
+      }
+      // Otherwise, keep streak but show warning
     }
     
     const sessions = parseInt(localStorage.getItem('meditation_sessions') || '0')

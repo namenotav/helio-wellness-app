@@ -1,0 +1,2645 @@
+{
+  "startTime": "2026-01-06T15:26:57.978Z",
+  "totalTests": 3,
+  "passed": 3,
+  "failed": 0,
+  "mismatches": [],
+  "emptyScreens": [
+    "Home Screen",
+    "Food Tab",
+    "Workouts Tab",
+    "Stats Tab",
+    "Progress Modal",
+    "Your Stats Modal",
+    "Monthly Stats Modal",
+    "Weekly Compare Modal",
+    "Full Stats Modal"
+  ],
+  "allData": {
+    "home": {
+      "steps": null,
+      "calories": null,
+      "water": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    },
+    "foodTab": {
+      "calories": null,
+      "meals": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    },
+    "workoutsTab": {
+      "workouts": null,
+      "caloriesBurned": null,
+      "steps": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    },
+    "statsTab": {
+      "steps": null,
+      "calories": null,
+      "water": null,
+      "workouts": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    },
+    "progressModal": {
+      "steps": null,
+      "calories": null,
+      "water": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    },
+    "yourStatsModal": {
+      "steps": null,
+      "calories": null,
+      "water": null,
+      "workouts": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    },
+    "monthlyStatsModal": {
+      "steps": null,
+      "calories": null,
+      "water": null,
+      "workouts": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    },
+    "weeklyCompareModal": {
+      "steps": null,
+      "calories": null,
+      "workouts": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    },
+    "fullStatsModal": {
+      "steps": null,
+      "calories": null,
+      "water": null,
+      "workouts": null,
+      "allNumbers": [
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128293;3Day Streak",
+          "value": 3,
+          "display": "3"
+        },
+        {
+          "text": "&#128100;",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "LVL 2",
+          "value": 2,
+          "display": "2"
+        },
+        {
+          "text": "&#128081; VIP",
+          "value": 128081,
+          "display": "128081"
+        },
+        {
+          "text": "130 XP • 0 Achievements",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#127942; Achievements",
+          "value": 127942,
+          "display": "127942"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129367;",
+          "value": 129367,
+          "display": "129367"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#127939;",
+          "value": 127939,
+          "display": "127939"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128274;",
+          "value": 128274,
+          "display": "128274"
+        },
+        {
+          "text": "&#128202; Your Stats",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "1",
+          "value": 1,
+          "display": "1"
+        },
+        {
+          "text": "130",
+          "value": 130,
+          "display": "130"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "19",
+          "value": 19,
+          "display": "19"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#127973; Health Tools",
+          "value": 127973,
+          "display": "127973"
+        },
+        {
+          "text": "&#128202; Data &amp; Reports",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#127918; Social &amp; Auto",
+          "value": 127918,
+          "display": "127918"
+        },
+        {
+          "text": "&#128100; Edit Profile",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128200; Full Stats",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128197; Monthly Stats",
+          "value": 128197,
+          "display": "128197"
+        },
+        {
+          "text": "&#128202; Weekly Compare",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "&#128142;",
+          "value": 128142,
+          "display": "128142"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#127968; Home",
+          "value": 127968,
+          "display": "127968"
+        },
+        {
+          "text": "&#127908; Voice",
+          "value": 127908,
+          "display": "127908"
+        },
+        {
+          "text": "&#128248;",
+          "value": 128248,
+          "display": "128248"
+        },
+        {
+          "text": "&#129496; Zen",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128100; Me",
+          "value": 128100,
+          "display": "128100"
+        },
+        {
+          "text": "&#128202; Monthly Summary",
+          "value": 128202,
+          "display": "128202"
+        },
+        {
+          "text": "January 2026",
+          "value": 2026,
+          "display": "2026"
+        },
+        {
+          "text": "&#128095;",
+          "value": 128095,
+          "display": "128095"
+        },
+        {
+          "text": "&#128170;",
+          "value": 128170,
+          "display": "128170"
+        },
+        {
+          "text": "&#127869;️",
+          "value": 127869,
+          "display": "127869"
+        },
+        {
+          "text": "&#128293;",
+          "value": 128293,
+          "display": "128293"
+        },
+        {
+          "text": "&#128200;",
+          "value": 128200,
+          "display": "128200"
+        },
+        {
+          "text": "&#128167;",
+          "value": 128167,
+          "display": "128167"
+        },
+        {
+          "text": "&#129496;",
+          "value": 129496,
+          "display": "129496"
+        },
+        {
+          "text": "&#128197;",
+          "value": 128197,
+          "display": "128197"
+        }
+      ]
+    }
+  },
+  "tests": [
+    {
+      "name": "Logged Breakfast",
+      "passed": true,
+      "notes": "450 calories"
+    },
+    {
+      "name": "Logged Water",
+      "passed": true,
+      "notes": "2 cups"
+    },
+    {
+      "name": "Logged Workout",
+      "passed": true,
+      "notes": "35 min"
+    }
+  ],
+  "endTime": "2026-01-06T15:29:15.315Z",
+  "duration": 137,
+  "expectedData": {
+    "breakfast": {
+      "name": "Eggs and toast",
+      "calories": 450
+    },
+    "workout": {
+      "duration": 35,
+      "steps": 5000,
+      "caloriesBurned": 350
+    },
+    "water": {
+      "cups": 2
+    },
+    "totalCalories": 450,
+    "netCalories": 100,
+    "totalSteps": 5000,
+    "totalWater": 2,
+    "totalWorkouts": 1,
+    "totalMeals": 1
+  }
+}

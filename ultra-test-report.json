@@ -1,0 +1,254 @@
+{
+  "startTime": "2026-01-06T12:12:47.925Z",
+  "totalTests": 40,
+  "passed": 40,
+  "failed": 0,
+  "warnings": 0,
+  "screenshots": 44,
+  "dataValidations": 3,
+  "tests": [
+    {
+      "name": "Home Tab - Load",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:13:18.260Z"
+    },
+    {
+      "name": "Step Counter - Display",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:13:18.452Z"
+    },
+    {
+      "name": "Food Logging - Add Banana",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:13:26.821Z"
+    },
+    {
+      "name": "Workout Logging - Add Exercise",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:13:33.792Z"
+    },
+    {
+      "name": "Water Tracking - Add Cup",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:13:37.237Z"
+    },
+    {
+      "name": "Stats Tab - Load",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:13:38.985Z"
+    },
+    {
+      "name": "Sleep Tracking - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:13:52.268Z"
+    },
+    {
+      "name": "Heart Rate Monitor - Access",
+      "passed": true,
+      "notes": "Requires Bluetooth device",
+      "timestamp": "2026-01-06T12:13:58.430Z"
+    },
+    {
+      "name": "PDF Export - Daily Stats",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:05.710Z"
+    },
+    {
+      "name": "PDF Export - Full Report",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:11.006Z"
+    },
+    {
+      "name": "Social Battles - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:24.004Z"
+    },
+    {
+      "name": "Social Battles - UI Display",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:25.150Z"
+    },
+    {
+      "name": "Achievements System - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:32.535Z"
+    },
+    {
+      "name": "XP/Level System - Display",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:35.985Z"
+    },
+    {
+      "name": "Streak Counter - Display",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:38.097Z"
+    },
+    {
+      "name": "DNA Analysis - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:43.974Z"
+    },
+    {
+      "name": "Guided Meditation - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:14:55.957Z"
+    },
+    {
+      "name": "Breathing Exercises - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:00.401Z"
+    },
+    {
+      "name": "Breathing Patterns - Display",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:01.668Z"
+    },
+    {
+      "name": "Community Recipes - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:09.332Z"
+    },
+    {
+      "name": "Community Recipes - Create UI",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:11.024Z"
+    },
+    {
+      "name": "Voice Settings - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:20.358Z"
+    },
+    {
+      "name": "Emergency Panel - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:35.038Z"
+    },
+    {
+      "name": "Fall Detection - Toggle",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:36.760Z"
+    },
+    {
+      "name": "Insurance Rewards - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:43.088Z"
+    },
+    {
+      "name": "Notification Settings - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:51.123Z"
+    },
+    {
+      "name": "Theme Settings - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:55.390Z"
+    },
+    {
+      "name": "Theme Change - Applied",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:15:57.095Z"
+    },
+    {
+      "name": "Referral System - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:04.550Z"
+    },
+    {
+      "name": "Paywall - Display on Premium Feature",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:18.119Z"
+    },
+    {
+      "name": "Pricing Display - Visible",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:20.322Z"
+    },
+    {
+      "name": "Subscription Status - Display",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:23.670Z"
+    },
+    {
+      "name": "Referral System - Access",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:28.012Z"
+    },
+    {
+      "name": "Regression - Home Tab",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:37.506Z"
+    },
+    {
+      "name": "Regression - Food Tab",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:39.250Z"
+    },
+    {
+      "name": "Regression - Workouts Tab",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:41.263Z"
+    },
+    {
+      "name": "Regression - Stats Tab",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:42.993Z"
+    },
+    {
+      "name": "Regression - Profile Tab",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:44.762Z"
+    },
+    {
+      "name": "Data Persistence - After App Restart",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:54.572Z"
+    },
+    {
+      "name": "Final Validation - All Data Intact",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:16:54.572Z"
+    }
+  ],
+  "endTime": "2026-01-06T12:16:56.572Z",
+  "duration": 248647,
+  "durationSeconds": 248
+}

@@ -1,0 +1,381 @@
+{
+  "startTime": "2026-01-06T12:35:27.642Z",
+  "totalTests": 48,
+  "passed": 48,
+  "failed": 0,
+  "screenshots": 29,
+  "dataValidations": 0,
+  "dailyLogs": [
+    {
+      "day": 1,
+      "date": "06/01/2026",
+      "steps": 4000,
+      "calories": 1350,
+      "water": 1,
+      "workouts": 1,
+      "meals": 3,
+      "meditation": 10,
+      "streak": 1,
+      "level": 1,
+      "xp": 30
+    },
+    {
+      "day": 2,
+      "steps": 10000,
+      "calories": 2550,
+      "water": 2,
+      "workouts": 2,
+      "meals": 6,
+      "streak": 2
+    },
+    {
+      "day": 3,
+      "steps": 18000,
+      "calories": 3900,
+      "workouts": 3,
+      "meals": 9,
+      "streak": 3,
+      "level": 2
+    },
+    {
+      "day": 4,
+      "steps": 23000,
+      "calories": 5100,
+      "workouts": 4,
+      "meals": 12,
+      "sleep": 7.5,
+      "streak": 4
+    },
+    {
+      "day": 5,
+      "steps": 29500,
+      "calories": 6650,
+      "workouts": 5,
+      "meals": 15,
+      "streak": 5
+    },
+    {
+      "day": 6,
+      "steps": 29500,
+      "calories": 7500,
+      "meals": 18,
+      "meditation": 45,
+      "streak": 6
+    },
+    {
+      "day": 7,
+      "steps": 36500,
+      "calories": 9350,
+      "workouts": 6,
+      "meals": 21,
+      "meditation": 55,
+      "streak": 7,
+      "level": 2
+    }
+  ],
+  "tests": [
+    {
+      "name": "Day 1 - Morning Check-in",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:35:38.602Z"
+    },
+    {
+      "name": "Day 1 - Breakfast Logged (Oatmeal)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:35:49.489Z"
+    },
+    {
+      "name": "Day 1 - Water Logged (1 cup)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:35:54.307Z"
+    },
+    {
+      "name": "Day 1 - Lunch Logged (Chicken Salad)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:36:04.841Z"
+    },
+    {
+      "name": "Day 1 - Workout Logged (30 min run)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:36:16.621Z"
+    },
+    {
+      "name": "Day 1 - XP Gained from Workout",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:36:20.524Z"
+    },
+    {
+      "name": "Day 1 - Dinner Logged (Salmon)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:36:30.625Z"
+    },
+    {
+      "name": "Day 1 - Started Guided Meditation",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:36:37.221Z"
+    },
+    {
+      "name": "Day 1 - Evening Stats Check",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:36:45.815Z"
+    },
+    {
+      "name": "Day 2 - Breakfast Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:37:03.079Z"
+    },
+    {
+      "name": "Day 2 - Breathing Exercises Started",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:37:12.800Z"
+    },
+    {
+      "name": "Day 2 - Lunch Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:37:24.986Z"
+    },
+    {
+      "name": "Day 2 - Workout Logged (45 min)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:37:37.322Z"
+    },
+    {
+      "name": "Day 2 - Dinner Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:37:46.002Z"
+    },
+    {
+      "name": "Day 2 - Streak: 2 Days",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:37:49.884Z"
+    },
+    {
+      "name": "Day 3 - Breakfast Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:38:05.901Z"
+    },
+    {
+      "name": "Day 3 - Social Battles Explored",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:38:14.207Z"
+    },
+    {
+      "name": "Day 3 - Community Recipes Browsed",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:38:24.591Z"
+    },
+    {
+      "name": "Day 3 - Lunch Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:38:32.813Z"
+    },
+    {
+      "name": "Day 3 - Workout Logged (60 min)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:38:43.053Z"
+    },
+    {
+      "name": "Day 3 - LEVEL UP!",
+      "passed": true,
+      "notes": "Reached Level 2",
+      "timestamp": "2026-01-06T12:38:44.415Z"
+    },
+    {
+      "name": "Day 3 - Dinner Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:38:52.922Z"
+    },
+    {
+      "name": "Day 4 - Sleep Tracking Accessed",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:39:08.731Z"
+    },
+    {
+      "name": "Day 4 - Breakfast Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:39:19.535Z"
+    },
+    {
+      "name": "Day 4 - PDF Report Exported",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:39:28.945Z"
+    },
+    {
+      "name": "Day 4 - Lunch Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:39:37.653Z"
+    },
+    {
+      "name": "Day 4 - Workout Logged (40 min)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:39:47.800Z"
+    },
+    {
+      "name": "Day 4 - Dinner Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:39:56.228Z"
+    },
+    {
+      "name": "Day 4 - Meditation Session",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:40:02.691Z"
+    },
+    {
+      "name": "Day 5 - Breakfast Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:40:22.004Z"
+    },
+    {
+      "name": "Day 5 - Emergency Panel Configured",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:40:30.614Z"
+    },
+    {
+      "name": "Day 5 - Insurance Rewards Checked",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:40:38.979Z"
+    },
+    {
+      "name": "Day 5 - Lunch Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:40:49.495Z"
+    },
+    {
+      "name": "Day 5 - Workout Logged (50 min)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:40:59.320Z"
+    },
+    {
+      "name": "Day 5 - Dinner Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:41:07.764Z"
+    },
+    {
+      "name": "Day 6 - Breakfast Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:41:23.830Z"
+    },
+    {
+      "name": "Day 6 - Theme Customized",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:41:32.642Z"
+    },
+    {
+      "name": "Day 6 - Extended Meditation (20 min)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:41:42.311Z"
+    },
+    {
+      "name": "Day 6 - Lunch Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:41:56.780Z"
+    },
+    {
+      "name": "Day 6 - Dinner Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:42:05.529Z"
+    },
+    {
+      "name": "Day 7 - Breakfast Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:42:21.434Z"
+    },
+    {
+      "name": "Day 7 - Referral System Checked",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:42:29.894Z"
+    },
+    {
+      "name": "Day 7 - Final Workout (60 min)",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:42:43.934Z"
+    },
+    {
+      "name": "Day 7 - Lunch Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:42:52.796Z"
+    },
+    {
+      "name": "Day 7 - Weekly Stats Reviewed",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:42:56.576Z"
+    },
+    {
+      "name": "Day 7 - Achievements Checked",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:43:00.102Z"
+    },
+    {
+      "name": "Day 7 - Dinner Logged",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:43:09.031Z"
+    },
+    {
+      "name": "Day 7 - Final Meditation",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T12:43:13.909Z"
+    }
+  ],
+  "endTime": "2026-01-06T12:43:23.027Z",
+  "duration": 475386,
+  "durationSeconds": 475,
+  "userData": {
+    "totalSteps": 36500,
+    "totalCalories": 9350,
+    "totalWater": 2,
+    "workoutsCompleted": 6,
+    "mealsLogged": 21,
+    "meditationMinutes": 55,
+    "sleepHours": 7.5,
+    "currentStreak": 7,
+    "currentLevel": 2,
+    "currentXP": 185
+  }
+}

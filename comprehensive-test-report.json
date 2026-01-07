@@ -1,0 +1,3822 @@
+{
+  "startTime": "2026-01-06T10:58:32.415Z",
+  "totalTests": 250,
+  "passed": 250,
+  "failed": 0,
+  "warnings": 0,
+  "features": [
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:58:39.548Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:58:52.614Z"
+    },
+    {
+      "name": "Food Scanner",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:58:56.956Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:59:08.099Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:59:17.228Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:59:26.102Z"
+    },
+    {
+      "name": "Monthly Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:59:32.410Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:59:43.039Z"
+    },
+    {
+      "name": "Social Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:59:47.305Z"
+    },
+    {
+      "name": "Profile Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:59:51.864Z"
+    },
+    {
+      "name": "Step Counter",
+      "status": "PASS",
+      "timestamp": "2026-01-06T10:59:56.982Z"
+    },
+    {
+      "name": "Paywall & Payments",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:00:10.592Z"
+    },
+    {
+      "name": "Data Persistence",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:00:18.909Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:00:30.041Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:00:38.647Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:00:39.939Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:00:51.144Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:01:00.450Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:01:10.834Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:01:18.976Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:01:33.759Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:01:43.743Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:01:45.736Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:01:58.576Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:02:08.827Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:02:21.680Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:02:31.478Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:02:45.437Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:02:55.669Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:02:57.534Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:03:08.787Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:03:18.283Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:03:29.612Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:03:38.791Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:03:49.396Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:04:03.078Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:04:12.016Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:04:13.462Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:04:24.869Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:04:34.220Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:04:45.994Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:04:55.325Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:05:08.665Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:05:18.065Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:05:19.799Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:05:31.940Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:05:41.521Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:05:53.529Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:06:02.852Z"
+    },
+    {
+      "name": "Data Persistence",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:06:11.746Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:06:23.623Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:06:32.136Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:06:33.494Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:06:45.215Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:06:54.730Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:07:07.343Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:07:15.735Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:07:26.776Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:07:39.444Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:07:49.117Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:07:50.562Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:08:02.997Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:08:12.732Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:08:24.443Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:08:32.954Z"
+    },
+    {
+      "name": "Paywall & Payments",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:08:46.542Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:08:59.457Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:09:08.675Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:09:10.359Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:09:21.876Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:09:31.074Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:09:43.122Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:09:52.531Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:10:05.797Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:10:15.317Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:10:16.621Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:10:28.265Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:10:37.529Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:10:49.623Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:10:58.396Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:11:10.096Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:11:22.392Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:11:31.203Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:11:32.711Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:11:44.804Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:11:54.174Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:12:06.485Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:12:15.117Z"
+    },
+    {
+      "name": "Data Persistence",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:12:24.487Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:12:37.390Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:12:46.313Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:12:47.862Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:13:00.400Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:13:10.422Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:13:22.442Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:13:31.145Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:13:44.532Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:13:53.573Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:13:55.748Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:14:08.410Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:14:17.708Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:14:29.610Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:14:38.186Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:14:49.828Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:15:03.161Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:15:12.783Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:15:14.393Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:15:26.855Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:15:36.105Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:15:48.945Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:15:58.075Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:16:11.369Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:16:20.405Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:16:22.180Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:16:34.530Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:16:44.025Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:16:57.422Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:17:06.967Z"
+    },
+    {
+      "name": "Paywall & Payments",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:17:21.317Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:17:34.742Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:17:44.261Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:17:45.681Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:17:58.449Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:18:08.395Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:18:20.687Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:18:29.324Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:18:39.898Z"
+    },
+    {
+      "name": "Data Persistence",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:18:49.293Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:19:03.732Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:19:12.868Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:19:14.076Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:19:25.901Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:19:35.379Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:19:48.198Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:19:56.996Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:20:12.886Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:20:23.421Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:20:25.602Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:20:37.860Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:20:47.141Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:20:59.059Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:21:08.081Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:21:21.866Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:21:31.385Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:21:33.103Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:21:45.105Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:21:54.653Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:22:06.377Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:22:15.127Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:22:27.172Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:22:40.671Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:22:50.077Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:22:51.821Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:23:04.556Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:23:13.997Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:23:26.689Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:23:35.418Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:23:48.663Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:23:57.560Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:23:59.249Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:24:11.178Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:24:20.522Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:24:33.064Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:24:42.114Z"
+    },
+    {
+      "name": "Data Persistence",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:24:51.412Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:25:04.679Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:25:13.541Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:25:14.817Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:25:26.749Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:25:35.962Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:25:48.880Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:25:58.122Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:26:09.307Z"
+    },
+    {
+      "name": "Paywall & Payments",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:26:23.401Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:26:36.662Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:26:45.848Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:26:47.312Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:27:00.087Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:27:10.403Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:27:23.430Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:27:32.175Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:27:46.434Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:27:57.166Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:27:58.620Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:28:11.109Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:28:20.843Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:28:32.760Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:28:41.753Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:28:55.409Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:29:04.275Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:29:05.941Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:29:18.334Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:29:27.795Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:29:39.529Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:29:48.197Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:29:58.948Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:30:12.270Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:30:21.869Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:30:23.315Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:30:35.710Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:30:45.221Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:30:57.737Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:31:06.359Z"
+    },
+    {
+      "name": "Data Persistence",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:31:15.643Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:31:28.502Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:31:37.724Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:31:39.100Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:31:52.066Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:32:02.183Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:32:14.643Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:32:23.941Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:32:37.744Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:32:47.766Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:32:50.025Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:33:02.609Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:33:12.660Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:33:24.561Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:33:33.196Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:33:44.575Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:33:57.363Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:34:06.129Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:34:07.579Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:34:20.371Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:34:29.911Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:34:42.221Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:34:50.997Z"
+    },
+    {
+      "name": "Paywall & Payments",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:35:05.547Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:35:18.969Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:35:28.267Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:35:29.961Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:35:41.889Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:35:51.178Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:36:03.160Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:36:12.577Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:36:25.623Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:36:34.996Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:36:36.525Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:36:48.576Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:36:57.890Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:37:10.290Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:37:19.028Z"
+    },
+    {
+      "name": "Zen Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:37:30.172Z"
+    },
+    {
+      "name": "Data Persistence",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:37:39.555Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:37:53.146Z"
+    },
+    {
+      "name": "Water Tracking",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:38:02.237Z"
+    },
+    {
+      "name": "Home Tab",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:38:03.592Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:38:16.284Z"
+    },
+    {
+      "name": "Workout Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:38:25.927Z"
+    },
+    {
+      "name": "Food Logging",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:38:37.762Z"
+    },
+    {
+      "name": "Full Stats Modal",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:38:46.171Z"
+    }
+  ],
+  "paymentTests": [
+    {
+      "feature": "Paywall Display",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:00:10.592Z"
+    },
+    {
+      "feature": "Subscription Plans",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:00:10.592Z"
+    },
+    {
+      "feature": "Paywall Display",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:08:46.542Z"
+    },
+    {
+      "feature": "Subscription Plans",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:08:46.542Z"
+    },
+    {
+      "feature": "Paywall Display",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:17:21.317Z"
+    },
+    {
+      "feature": "Subscription Plans",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:17:21.317Z"
+    },
+    {
+      "feature": "Paywall Display",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:26:23.401Z"
+    },
+    {
+      "feature": "Subscription Plans",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:26:23.401Z"
+    },
+    {
+      "feature": "Paywall Display",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:35:05.547Z"
+    },
+    {
+      "feature": "Subscription Plans",
+      "status": "PASS",
+      "timestamp": "2026-01-06T11:35:05.547Z"
+    }
+  ],
+  "dailyLogs": [
+    {
+      "day": 1,
+      "date": "2026-01-06T11:00:18.911Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 2,
+      "date": "2026-01-06T11:01:19.982Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 3,
+      "date": "2026-01-06T11:02:32.478Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 4,
+      "date": "2026-01-06T11:03:50.434Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 5,
+      "date": "2026-01-06T11:04:56.325Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 6,
+      "date": "2026-01-06T11:06:12.746Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 7,
+      "date": "2026-01-06T11:07:27.776Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Checked premium features"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 8,
+      "date": "2026-01-06T11:08:47.542Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 9,
+      "date": "2026-01-06T11:09:53.578Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 10,
+      "date": "2026-01-06T11:11:11.096Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 11,
+      "date": "2026-01-06T11:12:25.509Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 12,
+      "date": "2026-01-06T11:13:32.145Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 13,
+      "date": "2026-01-06T11:14:50.888Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 14,
+      "date": "2026-01-06T11:15:59.129Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Checked premium features"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 15,
+      "date": "2026-01-06T11:17:22.317Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 16,
+      "date": "2026-01-06T11:18:50.523Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 17,
+      "date": "2026-01-06T11:19:58.018Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 18,
+      "date": "2026-01-06T11:21:09.081Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 19,
+      "date": "2026-01-06T11:22:28.172Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 20,
+      "date": "2026-01-06T11:23:36.418Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 21,
+      "date": "2026-01-06T11:24:52.412Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session",
+        "Checked premium features"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 22,
+      "date": "2026-01-06T11:26:24.401Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 23,
+      "date": "2026-01-06T11:27:33.175Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 24,
+      "date": "2026-01-06T11:28:42.801Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 25,
+      "date": "2026-01-06T11:29:59.952Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 26,
+      "date": "2026-01-06T11:31:16.643Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 27,
+      "date": "2026-01-06T11:32:24.941Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 28,
+      "date": "2026-01-06T11:33:45.575Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Checked premium features"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 29,
+      "date": "2026-01-06T11:35:06.548Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 30,
+      "date": "2026-01-06T11:36:13.577Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats",
+        "Meditation session"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    },
+    {
+      "day": 31,
+      "date": "2026-01-06T11:37:40.555Z",
+      "activities": [
+        "Logged breakfast",
+        "Logged water intake",
+        "Checked home stats",
+        "Logged lunch",
+        "Logged workout",
+        "Logged dinner",
+        "Viewed full stats"
+      ],
+      "errors": [],
+      "status": "SUCCESS"
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    {
+      "name": "app-launch",
+      "filename": "app-launch-1767697115809.png",
+      "timestamp": 1767697115809
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697117862.png",
+      "timestamp": 1767697117862
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697121211.png",
+      "timestamp": 1767697121211
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697130797.png",
+      "timestamp": 1767697130797
+    },
+    {
+      "name": "food-scanner",
+      "filename": "food-scanner-1767697135347.png",
+      "timestamp": 1767697135347
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697141991.png",
+      "timestamp": 1767697141991
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697154335.png",
+      "timestamp": 1767697154335
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697159942.png",
+      "timestamp": 1767697159942
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697163332.png",
+      "timestamp": 1767697163332
+    },
+    {
+      "name": "monthly-stats-modal",
+      "filename": "monthly-stats-modal-1767697168844.png",
+      "timestamp": 1767697168844
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767697175151.png",
+      "timestamp": 1767697175151
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767697180385.png",
+      "timestamp": 1767697180385
+    },
+    {
+      "name": "social-tab",
+      "filename": "social-tab-1767697185703.png",
+      "timestamp": 1767697185703
+    },
+    {
+      "name": "profile-tab",
+      "filename": "profile-tab-1767697189939.png",
+      "timestamp": 1767697189939
+    },
+    {
+      "name": "step-counter",
+      "filename": "step-counter-1767697194987.png",
+      "timestamp": 1767697194987
+    },
+    {
+      "name": "paywall-triggered",
+      "filename": "paywall-triggered-1767697199683.png",
+      "timestamp": 1767697199683
+    },
+    {
+      "name": "subscription-plans",
+      "filename": "subscription-plans-1767697202869.png",
+      "timestamp": 1767697202869
+    },
+    {
+      "name": "plan-selected",
+      "filename": "plan-selected-1767697205760.png",
+      "timestamp": 1767697205760
+    },
+    {
+      "name": "app-launch",
+      "filename": "app-launch-1767697217015.png",
+      "timestamp": 1767697217015
+    },
+    {
+      "name": "data-after-restart",
+      "filename": "data-after-restart-1767697217810.png",
+      "timestamp": 1767697217810
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697220540.png",
+      "timestamp": 1767697220540
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697229194.png",
+      "timestamp": 1767697229194
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697236302.png",
+      "timestamp": 1767697236302
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697238647.png",
+      "timestamp": 1767697238647
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697241591.png",
+      "timestamp": 1767697241591
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697250156.png",
+      "timestamp": 1767697250156
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697254441.png",
+      "timestamp": 1767697254441
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697262116.png",
+      "timestamp": 1767697262116
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697269846.png",
+      "timestamp": 1767697269846
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697273484.png",
+      "timestamp": 1767697273484
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697276162.png",
+      "timestamp": 1767697276162
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697281617.png",
+      "timestamp": 1767697281617
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697291716.png",
+      "timestamp": 1767697291716
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697300127.png",
+      "timestamp": 1767697300127
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697303785.png",
+      "timestamp": 1767697303785
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697307314.png",
+      "timestamp": 1767697307314
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697316335.png",
+      "timestamp": 1767697316335
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697321892.png",
+      "timestamp": 1767697321892
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697330441.png",
+      "timestamp": 1767697330441
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697339842.png",
+      "timestamp": 1767697339842
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697344334.png",
+      "timestamp": 1767697344334
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697347888.png",
+      "timestamp": 1767697347888
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697354135.png",
+      "timestamp": 1767697354135
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697363000.png",
+      "timestamp": 1767697363000
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697371490.png",
+      "timestamp": 1767697371490
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697375672.png",
+      "timestamp": 1767697375672
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697379133.png",
+      "timestamp": 1767697379133
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697387387.png",
+      "timestamp": 1767697387387
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697391986.png",
+      "timestamp": 1767697391986
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697399989.png",
+      "timestamp": 1767697399989
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697408186.png",
+      "timestamp": 1767697408186
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697412213.png",
+      "timestamp": 1767697412213
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697415333.png",
+      "timestamp": 1767697415333
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767697421479.png",
+      "timestamp": 1767697421479
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767697426469.png",
+      "timestamp": 1767697426469
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697432165.png",
+      "timestamp": 1767697432165
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697441172.png",
+      "timestamp": 1767697441172
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697449060.png",
+      "timestamp": 1767697449060
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697452016.png",
+      "timestamp": 1767697452016
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697455039.png",
+      "timestamp": 1767697455039
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697463278.png",
+      "timestamp": 1767697463278
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697468100.png",
+      "timestamp": 1767697468100
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697475843.png",
+      "timestamp": 1767697475843
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697484426.png",
+      "timestamp": 1767697484426
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697488573.png",
+      "timestamp": 1767697488573
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697491748.png",
+      "timestamp": 1767697491748
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697497944.png",
+      "timestamp": 1767697497944
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697506858.png",
+      "timestamp": 1767697506858
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697514685.png",
+      "timestamp": 1767697514685
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697518065.png",
+      "timestamp": 1767697518065
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697521540.png",
+      "timestamp": 1767697521540
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697530183.png",
+      "timestamp": 1767697530183
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697535188.png",
+      "timestamp": 1767697535188
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697543144.png",
+      "timestamp": 1767697543144
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697552004.png",
+      "timestamp": 1767697552004
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697556290.png",
+      "timestamp": 1767697556290
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697559577.png",
+      "timestamp": 1767697559577
+    },
+    {
+      "name": "app-launch",
+      "filename": "app-launch-1767697569178.png",
+      "timestamp": 1767697569178
+    },
+    {
+      "name": "data-after-restart",
+      "filename": "data-after-restart-1767697570468.png",
+      "timestamp": 1767697570468
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697574381.png",
+      "timestamp": 1767697574381
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697582576.png",
+      "timestamp": 1767697582576
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697589616.png",
+      "timestamp": 1767697589616
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697592136.png",
+      "timestamp": 1767697592136
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697595097.png",
+      "timestamp": 1767697595097
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697604062.png",
+      "timestamp": 1767697604062
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697608583.png",
+      "timestamp": 1767697608583
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697616426.png",
+      "timestamp": 1767697616426
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697626059.png",
+      "timestamp": 1767697626059
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697629939.png",
+      "timestamp": 1767697629939
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697632699.png",
+      "timestamp": 1767697632699
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767697638402.png",
+      "timestamp": 1767697638402
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767697643992.png",
+      "timestamp": 1767697643992
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697649390.png",
+      "timestamp": 1767697649390
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697658070.png",
+      "timestamp": 1767697658070
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697665660.png",
+      "timestamp": 1767697665660
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697669117.png",
+      "timestamp": 1767697669117
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697672177.png",
+      "timestamp": 1767697672177
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697682106.png",
+      "timestamp": 1767697682106
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697686454.png",
+      "timestamp": 1767697686454
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697694532.png",
+      "timestamp": 1767697694532
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697703474.png",
+      "timestamp": 1767697703474
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697707046.png",
+      "timestamp": 1767697707046
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697710175.png",
+      "timestamp": 1767697710175
+    },
+    {
+      "name": "paywall-triggered",
+      "filename": "paywall-triggered-1767697715579.png",
+      "timestamp": 1767697715579
+    },
+    {
+      "name": "subscription-plans",
+      "filename": "subscription-plans-1767697718539.png",
+      "timestamp": 1767697718539
+    },
+    {
+      "name": "plan-selected",
+      "filename": "plan-selected-1767697721686.png",
+      "timestamp": 1767697721686
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697729151.png",
+      "timestamp": 1767697729151
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697738069.png",
+      "timestamp": 1767697738069
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697745538.png",
+      "timestamp": 1767697745538
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697748675.png",
+      "timestamp": 1767697748675
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697751969.png",
+      "timestamp": 1767697751969
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697760627.png",
+      "timestamp": 1767697760627
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697765153.png",
+      "timestamp": 1767697765153
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697772688.png",
+      "timestamp": 1767697772688
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697781514.png",
+      "timestamp": 1767697781514
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697785784.png",
+      "timestamp": 1767697785784
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697789033.png",
+      "timestamp": 1767697789033
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697795387.png",
+      "timestamp": 1767697795387
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697804401.png",
+      "timestamp": 1767697804401
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697812454.png",
+      "timestamp": 1767697812454
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697815317.png",
+      "timestamp": 1767697815317
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697818281.png",
+      "timestamp": 1767697818281
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697826762.png",
+      "timestamp": 1767697826762
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697831676.png",
+      "timestamp": 1767697831676
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697839376.png",
+      "timestamp": 1767697839376
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697848327.png",
+      "timestamp": 1767697848327
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697852268.png",
+      "timestamp": 1767697852268
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697855191.png",
+      "timestamp": 1767697855191
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767697861431.png",
+      "timestamp": 1767697861431
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767697867222.png",
+      "timestamp": 1767697867222
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697872708.png",
+      "timestamp": 1767697872708
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697881084.png",
+      "timestamp": 1767697881084
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697888360.png",
+      "timestamp": 1767697888360
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697891203.png",
+      "timestamp": 1767697891203
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697894333.png",
+      "timestamp": 1767697894333
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697903445.png",
+      "timestamp": 1767697903445
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697908119.png",
+      "timestamp": 1767697908119
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697915780.png",
+      "timestamp": 1767697915780
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697925242.png",
+      "timestamp": 1767697925242
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767697929105.png",
+      "timestamp": 1767697929105
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767697932190.png",
+      "timestamp": 1767697932190
+    },
+    {
+      "name": "app-launch",
+      "filename": "app-launch-1767697941704.png",
+      "timestamp": 1767697941704
+    },
+    {
+      "name": "data-after-restart",
+      "filename": "data-after-restart-1767697943108.png",
+      "timestamp": 1767697943108
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697947348.png",
+      "timestamp": 1767697947348
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697956383.png",
+      "timestamp": 1767697956383
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767697963602.png",
+      "timestamp": 1767697963602
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767697966313.png",
+      "timestamp": 1767697966313
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697969634.png",
+      "timestamp": 1767697969634
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767697978847.png",
+      "timestamp": 1767697978847
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767697983696.png",
+      "timestamp": 1767697983696
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767697992037.png",
+      "timestamp": 1767697992037
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698001000.png",
+      "timestamp": 1767698001000
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698005093.png",
+      "timestamp": 1767698005093
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698008083.png",
+      "timestamp": 1767698008083
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698013762.png",
+      "timestamp": 1767698013762
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698023101.png",
+      "timestamp": 1767698023101
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698030635.png",
+      "timestamp": 1767698030635
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698033573.png",
+      "timestamp": 1767698033573
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698037476.png",
+      "timestamp": 1767698037476
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698047093.png",
+      "timestamp": 1767698047093
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698051639.png",
+      "timestamp": 1767698051639
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698059337.png",
+      "timestamp": 1767698059337
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698068345.png",
+      "timestamp": 1767698068345
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698072234.png",
+      "timestamp": 1767698072234
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698075056.png",
+      "timestamp": 1767698075056
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767698081036.png",
+      "timestamp": 1767698081036
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767698086771.png",
+      "timestamp": 1767698086771
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698092647.png",
+      "timestamp": 1767698092647
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698101818.png",
+      "timestamp": 1767698101818
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698109596.png",
+      "timestamp": 1767698109596
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698112783.png",
+      "timestamp": 1767698112783
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698116007.png",
+      "timestamp": 1767698116007
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698125466.png",
+      "timestamp": 1767698125466
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698130211.png",
+      "timestamp": 1767698130211
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698137701.png",
+      "timestamp": 1767698137701
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698147364.png",
+      "timestamp": 1767698147364
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698151569.png",
+      "timestamp": 1767698151569
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698154710.png",
+      "timestamp": 1767698154710
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698160753.png",
+      "timestamp": 1767698160753
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698169763.png",
+      "timestamp": 1767698169763
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698177381.png",
+      "timestamp": 1767698177381
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698180405.png",
+      "timestamp": 1767698180405
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698183805.png",
+      "timestamp": 1767698183805
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698192999.png",
+      "timestamp": 1767698192999
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698197909.png",
+      "timestamp": 1767698197909
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698205705.png",
+      "timestamp": 1767698205705
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698215471.png",
+      "timestamp": 1767698215471
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698220046.png",
+      "timestamp": 1767698220046
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698223733.png",
+      "timestamp": 1767698223733
+    },
+    {
+      "name": "paywall-triggered",
+      "filename": "paywall-triggered-1767698229739.png",
+      "timestamp": 1767698229739
+    },
+    {
+      "name": "subscription-plans",
+      "filename": "subscription-plans-1767698232968.png",
+      "timestamp": 1767698232968
+    },
+    {
+      "name": "plan-selected",
+      "filename": "plan-selected-1767698236284.png",
+      "timestamp": 1767698236284
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698243940.png",
+      "timestamp": 1767698243940
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698253438.png",
+      "timestamp": 1767698253438
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698261253.png",
+      "timestamp": 1767698261253
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698264261.png",
+      "timestamp": 1767698264261
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698267272.png",
+      "timestamp": 1767698267272
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698276950.png",
+      "timestamp": 1767698276950
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698281886.png",
+      "timestamp": 1767698281886
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698290093.png",
+      "timestamp": 1767698290093
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698299368.png",
+      "timestamp": 1767698299368
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698303296.png",
+      "timestamp": 1767698303296
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698306366.png",
+      "timestamp": 1767698306366
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767698311948.png",
+      "timestamp": 1767698311948
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767698317011.png",
+      "timestamp": 1767698317011
+    },
+    {
+      "name": "app-launch",
+      "filename": "app-launch-1767698326401.png",
+      "timestamp": 1767698326401
+    },
+    {
+      "name": "data-after-restart",
+      "filename": "data-after-restart-1767698327918.png",
+      "timestamp": 1767698327918
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698332470.png",
+      "timestamp": 1767698332470
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698341411.png",
+      "timestamp": 1767698341411
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698349957.png",
+      "timestamp": 1767698349957
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698352877.png",
+      "timestamp": 1767698352877
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698355702.png",
+      "timestamp": 1767698355702
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698364552.png",
+      "timestamp": 1767698364552
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698369185.png",
+      "timestamp": 1767698369185
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698377254.png",
+      "timestamp": 1767698377254
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698386688.png",
+      "timestamp": 1767698386688
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698390835.png",
+      "timestamp": 1767698390835
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698393770.png",
+      "timestamp": 1767698393770
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698399724.png",
+      "timestamp": 1767698399724
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698410599.png",
+      "timestamp": 1767698410599
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698419177.png",
+      "timestamp": 1767698419177
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698423434.png",
+      "timestamp": 1767698423434
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698427248.png",
+      "timestamp": 1767698427248
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698436416.png",
+      "timestamp": 1767698436416
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698441099.png",
+      "timestamp": 1767698441099
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698448776.png",
+      "timestamp": 1767698448776
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698457572.png",
+      "timestamp": 1767698457572
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698461673.png",
+      "timestamp": 1767698461673
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698464854.png",
+      "timestamp": 1767698464854
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698470697.png",
+      "timestamp": 1767698470697
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698480498.png",
+      "timestamp": 1767698480498
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698488071.png",
+      "timestamp": 1767698488071
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698491385.png",
+      "timestamp": 1767698491385
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698494758.png",
+      "timestamp": 1767698494758
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698503521.png",
+      "timestamp": 1767698503521
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698508738.png",
+      "timestamp": 1767698508738
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698516283.png",
+      "timestamp": 1767698516283
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698524838.png",
+      "timestamp": 1767698524838
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698529011.png",
+      "timestamp": 1767698529011
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698531869.png",
+      "timestamp": 1767698531869
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767698537842.png",
+      "timestamp": 1767698537842
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767698543827.png",
+      "timestamp": 1767698543827
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698549786.png",
+      "timestamp": 1767698549786
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698559008.png",
+      "timestamp": 1767698559008
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698566974.png",
+      "timestamp": 1767698566974
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698570077.png",
+      "timestamp": 1767698570077
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698573481.png",
+      "timestamp": 1767698573481
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698583234.png",
+      "timestamp": 1767698583234
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698587903.png",
+      "timestamp": 1767698587903
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698595873.png",
+      "timestamp": 1767698595873
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698605260.png",
+      "timestamp": 1767698605260
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698609320.png",
+      "timestamp": 1767698609320
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698612459.png",
+      "timestamp": 1767698612459
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698618048.png",
+      "timestamp": 1767698618048
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698627016.png",
+      "timestamp": 1767698627016
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698634682.png",
+      "timestamp": 1767698634682
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698637560.png",
+      "timestamp": 1767698637560
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698640860.png",
+      "timestamp": 1767698640860
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698649810.png",
+      "timestamp": 1767698649810
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698654452.png",
+      "timestamp": 1767698654452
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698662137.png",
+      "timestamp": 1767698662137
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698671744.png",
+      "timestamp": 1767698671744
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698675684.png",
+      "timestamp": 1767698675684
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698678827.png",
+      "timestamp": 1767698678827
+    },
+    {
+      "name": "app-launch",
+      "filename": "app-launch-1767698688742.png",
+      "timestamp": 1767698688742
+    },
+    {
+      "name": "data-after-restart",
+      "filename": "data-after-restart-1767698690017.png",
+      "timestamp": 1767698690017
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698694033.png",
+      "timestamp": 1767698694033
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698703326.png",
+      "timestamp": 1767698703326
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698710815.png",
+      "timestamp": 1767698710815
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698713541.png",
+      "timestamp": 1767698713541
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698716427.png",
+      "timestamp": 1767698716427
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698725206.png",
+      "timestamp": 1767698725206
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698730180.png",
+      "timestamp": 1767698730180
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698737586.png",
+      "timestamp": 1767698737586
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698747604.png",
+      "timestamp": 1767698747604
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698751498.png",
+      "timestamp": 1767698751498
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698754744.png",
+      "timestamp": 1767698754744
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767698760757.png",
+      "timestamp": 1767698760757
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767698766291.png",
+      "timestamp": 1767698766291
+    },
+    {
+      "name": "paywall-triggered",
+      "filename": "paywall-triggered-1767698771928.png",
+      "timestamp": 1767698771928
+    },
+    {
+      "name": "subscription-plans",
+      "filename": "subscription-plans-1767698775369.png",
+      "timestamp": 1767698775369
+    },
+    {
+      "name": "plan-selected",
+      "filename": "plan-selected-1767698778449.png",
+      "timestamp": 1767698778449
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698786020.png",
+      "timestamp": 1767698786020
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698795083.png",
+      "timestamp": 1767698795083
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698802843.png",
+      "timestamp": 1767698802843
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698805848.png",
+      "timestamp": 1767698805848
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698808947.png",
+      "timestamp": 1767698808947
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698818391.png",
+      "timestamp": 1767698818391
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698823772.png",
+      "timestamp": 1767698823772
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698832047.png",
+      "timestamp": 1767698832047
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698842148.png",
+      "timestamp": 1767698842148
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698846039.png",
+      "timestamp": 1767698846039
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698848901.png",
+      "timestamp": 1767698848901
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698854791.png",
+      "timestamp": 1767698854791
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698864332.png",
+      "timestamp": 1767698864332
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698873649.png",
+      "timestamp": 1767698873649
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698877166.png",
+      "timestamp": 1767698877166
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698880251.png",
+      "timestamp": 1767698880251
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698889686.png",
+      "timestamp": 1767698889686
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698894425.png",
+      "timestamp": 1767698894425
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698902474.png",
+      "timestamp": 1767698902474
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698911401.png",
+      "timestamp": 1767698911401
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698915376.png",
+      "timestamp": 1767698915376
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698918614.png",
+      "timestamp": 1767698918614
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698924529.png",
+      "timestamp": 1767698924529
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698934049.png",
+      "timestamp": 1767698934049
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767698941433.png",
+      "timestamp": 1767698941433
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767698944281.png",
+      "timestamp": 1767698944281
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698947756.png",
+      "timestamp": 1767698947756
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698957110.png",
+      "timestamp": 1767698957110
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767698961618.png",
+      "timestamp": 1767698961618
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767698969441.png",
+      "timestamp": 1767698969441
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767698978243.png",
+      "timestamp": 1767698978243
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767698982151.png",
+      "timestamp": 1767698982151
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767698985084.png",
+      "timestamp": 1767698985084
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767698990820.png",
+      "timestamp": 1767698990820
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767698996011.png",
+      "timestamp": 1767698996011
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699001586.png",
+      "timestamp": 1767699001586
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699010722.png",
+      "timestamp": 1767699010722
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767699018873.png",
+      "timestamp": 1767699018873
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767699021869.png",
+      "timestamp": 1767699021869
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699024934.png",
+      "timestamp": 1767699024934
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699034452.png",
+      "timestamp": 1767699034452
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767699038950.png",
+      "timestamp": 1767699038950
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699046866.png",
+      "timestamp": 1767699046866
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699056363.png",
+      "timestamp": 1767699056363
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767699060384.png",
+      "timestamp": 1767699060384
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767699063175.png",
+      "timestamp": 1767699063175
+    },
+    {
+      "name": "app-launch",
+      "filename": "app-launch-1767699072691.png",
+      "timestamp": 1767699072691
+    },
+    {
+      "name": "data-after-restart",
+      "filename": "data-after-restart-1767699074018.png",
+      "timestamp": 1767699074018
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699078324.png",
+      "timestamp": 1767699078324
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699087226.png",
+      "timestamp": 1767699087226
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767699094742.png",
+      "timestamp": 1767699094742
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767699097725.png",
+      "timestamp": 1767699097725
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699100729.png",
+      "timestamp": 1767699100729
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699109885.png",
+      "timestamp": 1767699109885
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767699115471.png",
+      "timestamp": 1767699115471
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699123818.png",
+      "timestamp": 1767699123818
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699132772.png",
+      "timestamp": 1767699132772
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767699137259.png",
+      "timestamp": 1767699137259
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767699140422.png",
+      "timestamp": 1767699140422
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699146670.png",
+      "timestamp": 1767699146670
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699156161.png",
+      "timestamp": 1767699156161
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767699164116.png",
+      "timestamp": 1767699164116
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767699167766.png",
+      "timestamp": 1767699167766
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699171644.png",
+      "timestamp": 1767699171644
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699180988.png",
+      "timestamp": 1767699180988
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767699186171.png",
+      "timestamp": 1767699186171
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699194285.png",
+      "timestamp": 1767699194285
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699203194.png",
+      "timestamp": 1767699203194
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767699207202.png",
+      "timestamp": 1767699207202
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767699210101.png",
+      "timestamp": 1767699210101
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767699215792.png",
+      "timestamp": 1767699215792
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767699221498.png",
+      "timestamp": 1767699221498
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699227194.png",
+      "timestamp": 1767699227194
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699235867.png",
+      "timestamp": 1767699235867
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767699243367.png",
+      "timestamp": 1767699243367
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767699246129.png",
+      "timestamp": 1767699246129
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699249406.png",
+      "timestamp": 1767699249406
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699258582.png",
+      "timestamp": 1767699258582
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767699263837.png",
+      "timestamp": 1767699263837
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699271628.png",
+      "timestamp": 1767699271628
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699280777.png",
+      "timestamp": 1767699280777
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767699284870.png",
+      "timestamp": 1767699284870
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767699287850.png",
+      "timestamp": 1767699287850
+    },
+    {
+      "name": "paywall-triggered",
+      "filename": "paywall-triggered-1767699293607.png",
+      "timestamp": 1767699293607
+    },
+    {
+      "name": "subscription-plans",
+      "filename": "subscription-plans-1767699296907.png",
+      "timestamp": 1767699296907
+    },
+    {
+      "name": "plan-selected",
+      "filename": "plan-selected-1767699299860.png",
+      "timestamp": 1767699299860
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699308192.png",
+      "timestamp": 1767699308192
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699317354.png",
+      "timestamp": 1767699317354
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767699325159.png",
+      "timestamp": 1767699325159
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767699328267.png",
+      "timestamp": 1767699328267
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699331626.png",
+      "timestamp": 1767699331626
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699340552.png",
+      "timestamp": 1767699340552
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767699345170.png",
+      "timestamp": 1767699345170
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699352817.png",
+      "timestamp": 1767699352817
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699361762.png",
+      "timestamp": 1767699361762
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767699365769.png",
+      "timestamp": 1767699365769
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767699369089.png",
+      "timestamp": 1767699369089
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699375188.png",
+      "timestamp": 1767699375188
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699384327.png",
+      "timestamp": 1767699384327
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767699391756.png",
+      "timestamp": 1767699391756
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767699394996.png",
+      "timestamp": 1767699394996
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699398155.png",
+      "timestamp": 1767699398155
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699407249.png",
+      "timestamp": 1767699407249
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767699411810.png",
+      "timestamp": 1767699411810
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699419519.png",
+      "timestamp": 1767699419519
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699428808.png",
+      "timestamp": 1767699428808
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767699432910.png",
+      "timestamp": 1767699432910
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767699435791.png",
+      "timestamp": 1767699435791
+    },
+    {
+      "name": "zen-tab",
+      "filename": "zen-tab-1767699441650.png",
+      "timestamp": 1767699441650
+    },
+    {
+      "name": "meditation-active",
+      "filename": "meditation-active-1767699447137.png",
+      "timestamp": 1767699447137
+    },
+    {
+      "name": "app-launch",
+      "filename": "app-launch-1767699456514.png",
+      "timestamp": 1767699456514
+    },
+    {
+      "name": "data-after-restart",
+      "filename": "data-after-restart-1767699458003.png",
+      "timestamp": 1767699458003
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699462193.png",
+      "timestamp": 1767699462193
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699472074.png",
+      "timestamp": 1767699472074
+    },
+    {
+      "name": "water-logged",
+      "filename": "water-logged-1767699479294.png",
+      "timestamp": 1767699479294
+    },
+    {
+      "name": "home-tab",
+      "filename": "home-tab-1767699482237.png",
+      "timestamp": 1767699482237
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699485405.png",
+      "timestamp": 1767699485405
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699494592.png",
+      "timestamp": 1767699494592
+    },
+    {
+      "name": "workout-log",
+      "filename": "workout-log-1767699499530.png",
+      "timestamp": 1767699499530
+    },
+    {
+      "name": "quick-log-modal",
+      "filename": "quick-log-modal-1767699507550.png",
+      "timestamp": 1767699507550
+    },
+    {
+      "name": "food-logged",
+      "filename": "food-logged-1767699516485.png",
+      "timestamp": 1767699516485
+    },
+    {
+      "name": "full-stats-modal",
+      "filename": "full-stats-modal-1767699520381.png",
+      "timestamp": 1767699520381
+    },
+    {
+      "name": "date-search",
+      "filename": "date-search-1767699523214.png",
+      "timestamp": 1767699523214
+    }
+  ],
+  "endTime": "2026-01-06T11:38:47.171Z",
+  "duration": "2415s"
+}

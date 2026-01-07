@@ -192,9 +192,9 @@ class SubscriptionService {
         return;
       }
 
-      // Check if we verified recently (cache for 6 hours)
+      // Check if we verified recently (cache for 15 minutes)
       const lastVerified = localStorage.getItem('subscription_last_verified');
-      const cacheTime = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+      const cacheTime = 15 * 60 * 1000; // 15 minutes in milliseconds
       
       if (lastVerified && Date.now() - parseInt(lastVerified) < cacheTime) {
         if(import.meta.env.DEV) console.log('✅ Using cached subscription status');
@@ -247,7 +247,7 @@ class SubscriptionService {
     }
   }
 
-  // Check if user has access to a feature
+  // Check if user has access to a feature (SYNCHRONOUS - no breaking changes)
   hasAccess(featureName) {
     // Check if developer mode is active
     try {
@@ -265,7 +265,62 @@ class SubscriptionService {
       console.warn('⚠️ Invalid plan data, defaulting to free');
       return this.plans.free.features[featureName] === true;
     }
+    
+    // Check local subscription status
+    // Server verification happens on app launch via verifySubscriptionWithServer()
     return plan.features[featureName] === true || plan.features[featureName] === 'unlimited';
+  }
+  
+  // SECURITY: Server verification (call this on feature unlock for critical features)
+  async verifyFeatureAccess(featureName) {
+    const plan = this.getCurrentPlan();
+    
+    // Free users - no need to verify
+    if (plan.id === 'free') {
+      return false;
+    }
+    
+    // For premium features, verify with server
+    try {
+      const userId = localStorage.getItem('userId') || localStorage.getItem('user_id');
+      if (!userId) {
+        console.warn('No userId for verification');
+        return this.hasAccess(featureName);
+      }
+      
+      const API_URL = import.meta.env.VITE_API_URL || 'https://helio-wellness-app-production.up.railway.app';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      
+      const response = await fetch(`${API_URL}/api/subscription/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, feature: featureName }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const { hasAccess, plan: serverPlan } = await response.json();
+        
+        // Update local storage if server says different
+        if (serverPlan && serverPlan !== plan.id) {
+          console.warn(`⚠️ Local plan (${plan.id}) differs from server (${serverPlan}). Updating...`);
+          localStorage.setItem('subscription_plan', serverPlan);
+        }
+        
+        if(import.meta.env.DEV) console.log(`✅ Server verified ${featureName}: ${hasAccess}`);
+        return hasAccess;
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.warn('Server verification failed, using local check:', error.message);
+      }
+    }
+    
+    // Fallback to local check
+    return this.hasAccess(featureName);
   }
 
   // Check if user has reached their limit for a feature

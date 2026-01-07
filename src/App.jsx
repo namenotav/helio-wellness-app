@@ -13,9 +13,23 @@ import { analytics } from './services/analyticsService'
 
 function App() {
   useEffect(() => {
-    // Only track analytics - NO initialization
-    analytics.initGoogleAnalytics();
-    analytics.trackPageView('App_Start');
+    // GDPR COMPLIANCE: Only initialize analytics if user has consented
+    const checkConsent = () => {
+      const consent = localStorage.getItem('cookieConsent');
+      if (consent === 'accepted') {
+        analytics.initGoogleAnalytics();
+        analytics.trackPageView('App_Start');
+      }
+    };
+    
+    // Check immediately
+    checkConsent();
+    
+    // Listen for consent changes
+    const consentHandler = () => checkConsent();
+    window.addEventListener('cookieConsentChanged', consentHandler);
+    
+    return () => window.removeEventListener('cookieConsentChanged', consentHandler);
   }, []);
 
   return (

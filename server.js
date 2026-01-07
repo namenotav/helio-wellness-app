@@ -19,6 +19,10 @@ const PORT = process.env.PORT || 3001;
 const csrfTokens = new Map(); // Map<token, {createdAt, used}>
 const CSRF_TOKEN_LIFETIME = 3600000; // 1 hour
 
+// SECURITY: Webhook replay protection - track processed event IDs
+const processedWebhookEvents = new Set();
+const MAX_PROCESSED_EVENTS = 10000; // Limit memory usage
+
 // SECURITY: API key rotation monitoring
 const API_KEY_AGE_THRESHOLD = 90 * 24 * 60 * 60 * 1000; // 90 days
 const API_KEY_CREATION_DATES = {
@@ -296,6 +300,42 @@ const schemas = {
     challenge: Joi.string().required().max(500),
     duration: Joi.number().required().min(1).max(90),
     csrfToken: Joi.string()
+  }),
+  
+  logMeal: Joi.object({
+    name: Joi.string().required().max(200),
+    calories: Joi.number().min(0).max(10000).required(),
+    protein: Joi.number().min(0).max(500),
+    carbs: Joi.number().min(0).max(1000),
+    fats: Joi.number().min(0).max(500),
+    date: Joi.string().required(),
+    timestamp: Joi.number().required()
+  }),
+  
+  logWorkout: Joi.object({
+    type: Joi.string().required().max(100),
+    duration: Joi.number().min(1).max(600).required(),
+    calories: Joi.number().min(0).max(5000),
+    intensity: Joi.string().valid('low', 'medium', 'high', 'extreme'),
+    date: Joi.string().required(),
+    timestamp: Joi.number().required()
+  }),
+  
+  uploadDNA: Joi.object({
+    fileName: Joi.string().required().max(255),
+    fileSize: Joi.number().min(1).max(10485760), // 10MB max
+    fileContent: Joi.string().required(),
+    timestamp: Joi.number().required()
+  }),
+  
+  chatHistory: Joi.object({
+    messages: Joi.array().items(
+      Joi.object({
+        role: Joi.string().valid('user', 'assistant').required(),
+        content: Joi.string().required().max(5000),
+        timestamp: Joi.number().required()
+      })
+    ).max(1000)
   })
 };
 
@@ -349,6 +389,19 @@ app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (
   } catch (err) {
     console.error('⚠️ Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // SECURITY FIX: Prevent webhook replay attacks
+  if (processedWebhookEvents.has(event.id)) {
+    if(process.env.NODE_ENV!=="production")console.log('⚠️ Duplicate webhook event detected:', event.id);
+    return res.json({ received: true, duplicate: true });
+  }
+  processedWebhookEvents.add(event.id);
+  
+  // Clean up old events to prevent memory bloat
+  if (processedWebhookEvents.size > MAX_PROCESSED_EVENTS) {
+    const firstEvent = processedWebhookEvents.values().next().value;
+    processedWebhookEvents.delete(firstEvent);
   }
 
   // Handle the event
@@ -447,6 +500,76 @@ async function handleSubscriptionDeleted(subscription) {
     console.error('Error deleting subscription:', error);
   }
 }
+
+// SECURITY FIX: Add subscription verification endpoint to prevent paywall bypass
+app.post('/api/subscription/verify', async (req, res) => {
+  try {
+    const { userId, feature } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ hasAccess: false, error: 'Missing userId' });
+    }
+    
+    // Check subscription status from Firestore
+    if (!db_firebase) {
+      // Fallback: trust localStorage if Firebase unavailable (development mode)
+      if(process.env.NODE_ENV !== "production") {
+        return res.json({ hasAccess: true, message: 'Dev mode - verification skipped' });
+      }
+      return res.status(503).json({ hasAccess: false, error: 'Verification unavailable' });
+    }
+    
+    const subDoc = await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').get();
+    
+    if (!subDoc.exists) {
+      return res.json({ hasAccess: false, plan: 'free' });
+    }
+    
+    const subscription = subDoc.data();
+    const plan = subscription.plan || 'free';
+    const status = subscription.status || 'inactive';
+    
+    // Check if subscription is active
+    const isActive = status === 'active' || status === 'trialing';
+    
+    if (!isActive) {
+      return res.json({ hasAccess: false, plan: 'free', reason: 'Subscription inactive' });
+    }
+    
+    // Feature access matrix
+    const featureAccess = {
+      free: ['basicTracking', 'stepCounter', 'waterTracking', 'breathing', 'emergencyPanel'],
+      starter: ['meditation', 'heartRate', 'sleepTracking', 'workouts', 'socialBattles'],
+      premium: ['dnaAnalysis', 'healthAvatar', 'arScanner', 'mealAutomation', 'exportReports'],
+      ultimate: ['betaAccess', 'vipBadge', 'prioritySupport', 'insuranceRewards']
+    };
+    
+    // Determine if user has access to feature
+    let hasAccess = false;
+    if (plan === 'ultimate') {
+      hasAccess = true; // Ultimate has everything
+    } else if (plan === 'premium') {
+      hasAccess = !featureAccess.ultimate.includes(feature);
+    } else if (plan === 'starter') {
+      hasAccess = featureAccess.starter.includes(feature) || featureAccess.free.includes(feature);
+    } else {
+      hasAccess = featureAccess.free.includes(feature);
+    }
+    
+    res.json({ 
+      hasAccess, 
+      plan, 
+      status,
+      verified: true 
+    });
+    
+  } catch (error) {
+    console.error('Subscription verification error:', error);
+    res.status(500).json({ hasAccess: false, error: 'Verification failed' });
+  }
+});
+
+// Webhook handler - Subscription updated
 
 // Webhook handler - Invoice paid successfully
 async function handleInvoicePaid(invoice) {
@@ -1252,7 +1375,7 @@ app.post('/api/stripe/connect/onboard', async (req, res) => {
 });
 
 // 🎧 SUPPORT TICKET EMAIL NOTIFICATION
-app.post('/api/support/notify', async (req, res) => {
+app.post('/api/support/notify', csrfProtection, async (req, res) => {
   try {
     const { ticketId, userEmail, userName, subject, message, priority, planTier, slaHours } = req.body;
 

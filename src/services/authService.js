@@ -647,6 +647,16 @@ class AuthService {
       if(import.meta.env.DEV)console.log('🎯 [DAILY CHALLENGE] Meal logged - updated challenge progress');
     }
     
+    // 🔥 EXPLICIT FIRESTORE SAVE: Redundant backup for foodLog (in addition to profile sync)
+    if (this.useFirebase && this.currentUser?.uid) {
+      try {
+        await firestoreService.save('foodLog', dashboardFoodLog, this.currentUser.uid);
+        if(import.meta.env.DEV)console.log('✅ foodLog explicitly saved to Firestore');
+      } catch (firestoreError) {
+        console.warn('⚠️ foodLog Firestore save failed (will retry via profile sync):', firestoreError);
+      }
+    }
+    
     return this.updateProfile({ foodLog });
   }
 

@@ -43,7 +43,25 @@ class ProductionValidator {
       `;
       
       if (typeof document !== 'undefined') {
-        document.body.innerHTML = errorHTML;
+        // SECURITY FIX: Use textContent instead of innerHTML to prevent XSS
+        const errorContainer = document.createElement('div');
+        errorContainer.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;color:#fff;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;z-index:999999';
+        
+        const errorBox = document.createElement('div');
+        errorBox.style.cssText = 'max-width:600px;padding:40px;background:#2a2a5e;border-radius:20px;text-align:center';
+        
+        const errorTitle = document.createElement('h1');
+        errorTitle.textContent = '⚠️ Configuration Error';
+        errorTitle.style.cssText = 'font-size:32px;margin:0 0 20px 0;color:#ff6b6b';
+        
+        const errorMessage = document.createElement('p');
+        errorMessage.textContent = this.errors.join(' ');
+        errorMessage.style.cssText = 'font-size:18px;line-height:1.6;margin:0';
+        
+        errorBox.appendChild(errorTitle);
+        errorBox.appendChild(errorMessage);
+        errorContainer.appendChild(errorBox);
+        document.body.appendChild(errorContainer);
       }
       
       return false;

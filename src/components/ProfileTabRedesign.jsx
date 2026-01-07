@@ -12,7 +12,9 @@ export default function ProfileTabRedesign({
   onOpenSocialFeatures,
   onOpenSettingsHub,
   onEditProfile,
-  onOpenFullStats
+  onOpenFullStats,
+  onOpenMonthlyStats,
+  onOpenWeeklyComparison
 }) {
   const [level, setLevel] = useState(1)
   const [xp, setXP] = useState(0)
@@ -211,6 +213,16 @@ export default function ProfileTabRedesign({
           <button className="access-card" onClick={onOpenFullStats}>
             <span className="access-icon">📈</span>
             <span className="access-label">Full Stats</span>
+          </button>
+          
+          <button className="access-card" onClick={onOpenMonthlyStats}>
+            <span className="access-icon">📅</span>
+            <span className="access-label">Monthly Stats</span>
+          </button>
+          
+          <button className="access-card" onClick={onOpenWeeklyComparison}>
+            <span className="access-icon">📊</span>
+            <span className="access-label">Weekly Compare</span>
           </button>
           
           <button className="access-card" onClick={onOpenSettingsHub}>

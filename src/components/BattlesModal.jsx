@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import './BattlesModal.css';
 import SocialBattles from './SocialBattles';
+import firestoreService from '../services/firestoreService';
 
 export default function BattlesModal({ isOpen, onClose }) {
   const [showFullBattles, setShowFullBattles] = useState(false);
@@ -17,15 +18,36 @@ export default function BattlesModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  const loadBattleStats = () => {
+  const loadBattleStats = async () => {
     try {
-      const battles = JSON.parse(localStorage.getItem('active_battles') || '[]');
-      const profile = JSON.parse(localStorage.getItem('user_profile') || '{}');
+      console.log('⚔️ [BattlesModal] Loading battle stats from Firestore...');
+      // Check Firestore first for latest data
+      let battles = await firestoreService.get('active_battles');
+      let profile = await firestoreService.get('user_profile');
+      console.log('⚔️ [BattlesModal] Firestore battles:', battles ? 'FOUND' : 'EMPTY');
+      console.log('⚔️ [BattlesModal] Firestore profile:', profile ? 'FOUND' : 'EMPTY');
+      
+      // Fallback to localStorage and sync to Firestore
+      if (!battles) {
+        console.log('⚔️ [BattlesModal] Syncing localStorage battles to Firestore...');
+        battles = JSON.parse(localStorage.getItem('active_battles') || '[]');
+        if (battles.length > 0) {
+          await firestoreService.save('active_battles', battles);
+          console.log('⚔️ [BattlesModal] ✅ Battles synced to Firestore');
+        }
+      }
+      
+      if (!profile) {
+        profile = JSON.parse(localStorage.getItem('user_profile') || '{}');
+        if (Object.keys(profile).length > 0) {
+          await firestoreService.save('user_profile', profile);
+        }
+      }
       
       setBattleStats({
-        activeBattles: battles.length,
-        wins: profile.battleWins || 0,
-        rank: profile.globalRank || 0
+        activeBattles: Array.isArray(battles) ? battles.length : 0,
+        wins: profile?.battleWins || 0,
+        rank: profile?.globalRank || 0
       });
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to load battle stats:', error);

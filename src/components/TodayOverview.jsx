@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import './TodayOverview.css';
 import gamificationService from '../services/gamificationService';
 import nativeHealthService from '../services/nativeHealthService';
+import authService from '../services/authService';
 import { Preferences } from '@capacitor/preferences';
 
 export default function TodayOverview({ todaySteps = 0 }) {
@@ -74,7 +75,11 @@ export default function TodayOverview({ todaySteps = 0 }) {
       // 🔥 Calculate calories from steps (0.04 cal per step)
       const stepCalories = Math.round(liveSteps * 0.04);
       
-      // 🔥 NEW: Calculate calories from workouts based on type
+      // 🔥 FIX #9: Calculate calories from workouts based on type AND user weight
+      const userProfile = authService.getCurrentUser()?.profile || {};
+      const userWeight = userProfile.weight || 150; // Default 150 lbs if not set
+      const weightFactor = userWeight / 150; // Personalization factor
+      
       const calorieRateMap = {
         'Running': 11, 'Cycling': 10, 'Swimming': 12, 'Weights': 7,
         'Yoga': 3, 'HIIT': 13, 'Walking': 5, 'Sports': 9, 'Other': 7
@@ -84,11 +89,23 @@ export default function TodayOverview({ todaySteps = 0 }) {
       workoutsToday.forEach(workout => {
         const type = workout.type || workout.activity || 'Other';
         const rate = calorieRateMap[type] || 7;
-        workoutCalories += (workout.duration || 0) * rate;
+        // 🔥 Multiply by weight factor for personalized calorie burn
+        workoutCalories += Math.round((workout.duration || 0) * rate * weightFactor);
       });
+      console.log('⚖️ [TodayOverview] User weight:', userWeight, 'lbs, Weight factor:', weightFactor.toFixed(2));
       
-      const totalCalories = stepCalories + workoutCalories;
-      console.log('🔥 [TodayOverview] Calories - Steps:', stepCalories, 'Workouts:', workoutCalories, 'Total:', totalCalories);
+      const totalCaloriesBurned = stepCalories + workoutCalories;
+      console.log('🔥 [TodayOverview] Calories - Steps:', stepCalories, 'Workouts:', workoutCalories, 'Total Burned:', totalCaloriesBurned);
+      
+      // 🔥 FIX #7: Calculate net calories (consumed - burned)
+      const foodLog = authService.getCurrentUser()?.profile?.foodLog || [];
+      const foodToday = foodLog.filter(f => {
+        const foodDate = new Date(f.timestamp);
+        return foodDate.toISOString().split('T')[0] === today;
+      });
+      const caloriesConsumed = foodToday.reduce((sum, f) => sum + (f.calories || 0), 0);
+      const netCalories = caloriesConsumed - totalCaloriesBurned;
+      console.log('🍽️ [TodayOverview] Net Calories: Consumed', caloriesConsumed, '- Burned', totalCaloriesBurned, '= Net', netCalories);
       
       setStats({
         streak: streakInfo.streak || 0,
@@ -97,8 +114,10 @@ export default function TodayOverview({ todaySteps = 0 }) {
         xpToNext: levelInfo.xpToNext || 1000,
         steps: liveSteps,
         stepsGoal: 10000,
-        calories: totalCalories,
+        calories: totalCaloriesBurned,
         caloriesGoal: 2000,
+        caloriesConsumed: caloriesConsumed,
+        netCalories: netCalories,
         activeMinutes: workoutMinutes,
         activeMinutesGoal: 60,
         waterCups: waterCups,
@@ -252,6 +271,37 @@ export default function TodayOverview({ todaySteps = 0 }) {
           </div>
         </div>
       </div>
+
+      {/* 🔥 FIX #7: Net Calories Display */}
+      {stats.netCalories !== undefined && (
+        <div style={{
+          margin: '16px 4px 8px 4px',
+          background: stats.netCalories < 0 
+            ? 'linear-gradient(135deg, #4CAF50 0%, #45B049 100%)' 
+            : 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+          borderRadius: '15px',
+          padding: '16px',
+          textAlign: 'center',
+          boxShadow: stats.netCalories < 0
+            ? '0 4px 15px rgba(76, 175, 80, 0.4)'
+            : '0 4px 15px rgba(255, 152, 0, 0.4)'
+        }}>
+          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', marginBottom: '8px' }}>
+            {stats.netCalories < 0 ? '📉 Calorie Deficit' : '📈 Calorie Surplus'}
+          </div>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>
+            {stats.netCalories > 0 ? '+' : ''}{stats.netCalories.toLocaleString()} cal
+          </div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+            Consumed: {stats.caloriesConsumed} | Burned: {stats.calories}
+          </div>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '6px', fontStyle: 'italic' }}>
+            {stats.netCalories < 0 
+              ? '✅ Great for weight loss!' 
+              : '⚠️ Eating more than burning'}
+          </div>
+        </div>
+      )}
 
       {/* Quick Log Stats - Water/Sleep/Workout */}
       <div className="quick-log-stats" style={{

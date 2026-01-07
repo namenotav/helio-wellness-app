@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import './DNAModal.css';
 import DNAUpload from './DNAUpload';
+import firestoreService from '../services/firestoreService';
 
 export default function DNAModal({ isOpen, onClose }) {
   const [showDNAUpload, setShowDNAUpload] = useState(false);
@@ -17,9 +18,19 @@ export default function DNAModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  const loadDNAStatus = () => {
+  const loadDNAStatus = async () => {
     try {
-      const dnaData = JSON.parse(localStorage.getItem('dnaAnalysis') || 'null');
+      console.log('🧬 [DNAModal] Loading DNA status from Firestore...');
+      // Check Firestore first for latest data
+      const firestoreData = await firestoreService.get('dnaAnalysis');
+      let dnaData = firestoreData;
+      console.log('🧬 [DNAModal] Firestore data:', firestoreData ? 'FOUND' : 'EMPTY');
+      
+      // Fallback to localStorage if Firestore is empty
+      if (!dnaData) {
+        console.log('🧬 [DNAModal] Falling back to localStorage');
+        dnaData = JSON.parse(localStorage.getItem('dnaAnalysis') || 'null');
+      }
       
       if (dnaData && dnaData.traits) {
         setDnaStatus({

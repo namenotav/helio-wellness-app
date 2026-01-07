@@ -459,6 +459,76 @@ export default function FoodScanner({ onClose, initialMode = null, lockMode = fa
             {/* Food Name */}
             <h3 className="food-name">{result.foodName}</h3>
 
+            {/* 🔥 FIX #8: AI Confidence Score */}
+            {result.confidence !== undefined && (
+              <div style={{
+                background: result.confidence >= 80 
+                  ? 'linear-gradient(135deg, #10b981, #059669)' 
+                  : result.confidence >= 60 
+                  ? 'linear-gradient(135deg, #f59e0b, #d97706)' 
+                  : 'linear-gradient(135deg, #ef4444, #dc2626)',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                marginBottom: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                  <span style={{fontSize: '20px'}}>
+                    {result.confidence >= 80 ? '✅' : result.confidence >= 60 ? '⚠️' : '❌'}
+                  </span>
+                  <div>
+                    <div style={{color: 'white', fontWeight: 'bold', fontSize: '14px'}}>
+                      AI Confidence: {result.confidence}%
+                    </div>
+                    <div style={{color: 'rgba(255,255,255,0.9)', fontSize: '12px'}}>
+                      {result.confidence >= 80 
+                        ? 'High confidence - nutrition data should be accurate' 
+                        : result.confidence >= 60 
+                        ? 'Moderate confidence - please review values below' 
+                        : 'Low confidence - consider manually editing nutrition values'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    const newProtein = prompt('Enter protein (grams):', result.protein || 0)
+                    const newCarbs = prompt('Enter carbs (grams):', result.carbs || result.carbohydrates || 0)
+                    const newFat = prompt('Enter fat (grams):', result.fat || result.fats || 0)
+                    const newCalories = prompt('Enter calories:', result.calories || 0)
+                    if (newProtein !== null && newCarbs !== null && newFat !== null && newCalories !== null) {
+                      setResult({
+                        ...result,
+                        protein: parseFloat(newProtein),
+                        carbs: parseFloat(newCarbs),
+                        carbohydrates: parseFloat(newCarbs),
+                        fat: parseFloat(newFat),
+                        fats: parseFloat(newFat),
+                        calories: parseFloat(newCalories),
+                        confidence: 100 // Mark as manually verified
+                      })
+                      showToast('✅ Nutrition values updated', 'success')
+                    }
+                  }}
+                  style={{
+                    background: 'rgba(255,255,255,0.3)',
+                    border: '1px solid rgba(255,255,255,0.5)',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  ✏️ Edit Values
+                </button>
+              </div>
+            )}
+
             {/* Database Matches */}
             {result.databaseMatches && result.databaseMatches.length > 0 && (
               <div style={{background: '#f0f9ff', padding: '15px', borderRadius: '12px', marginBottom: '15px'}}>

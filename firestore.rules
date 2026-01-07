@@ -12,14 +12,26 @@ service cloud.firestore {
       allow read, write: if userId.matches('device_.*');
     }
     
-    // Support Tickets - users can create and read their own tickets
+    // Support Tickets - secure admin dashboard + user ticket creation
     match /support_tickets/{ticketId} {
-      // Allow anyone to create a ticket (authenticated or device-based users)
+      // Anyone can create a ticket (users don't need full auth)
       allow create: if true;
-      // Allow ANYONE (including anonymous) to read all tickets for admin dashboard
-      allow read: if true;
-      // Allow ANYONE (including anonymous) to update any ticket for admin dashboard
-      allow update: if true;
+      
+      // Read access: Only authenticated users can read their own tickets OR admins can read all
+      // SECURITY FIX: Removed world-readable access
+      allow read: if request.auth != null && 
+                     (resource.data.userId == request.auth.uid ||
+                      exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+      
+      // Update: Only admins (from /admins collection) or ticket creator can update
+      allow update: if (request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid))) ||
+                       resource.data.userId == request.auth.uid;
+    }
+    
+    // Admins collection - only readable by the admin themselves
+    match /admins/{adminId} {
+      allow read: if request.auth != null && request.auth.uid == adminId;
+      allow write: if false; // Only via Admin SDK (create-admin.cjs script)
     }
     
     // Deny all other access

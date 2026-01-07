@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, serverTimestamp, getDoc, getDocs } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { db } from '../services/firebase';
-import { auth } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 import './AdminSupportDashboard.css';
 
 const AdminSupportDashboard = () => {
@@ -16,18 +15,11 @@ const AdminSupportDashboard = () => {
   const [adminName, setAdminName] = useState('Support Team');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Admin authentication - BYPASS: Allow anonymous access (Firestore rules handle security)
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  // Admin authentication - require email/password login
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-
-  // No auth check needed - Firestore rules updated to allow anonymous reads
-  useEffect(() => {
-    console.log('🔓 [ADMIN] Anonymous access enabled - no login required');
-    setIsAuthenticated(true);
-    setAdminName('Admin');
-  }, []);
 
   // Handle admin login
   const handleLogin = async (e) => {
@@ -61,6 +53,29 @@ const AdminSupportDashboard = () => {
     }
   };
 
+  // Real-time ticket updates from Firestore - MUST be declared before any early returns
+  useEffect(() => {
+    if (!isAuthenticated) return; // Don't load tickets until logged in
+    
+    const ticketsRef = collection(db, 'support_tickets');
+    const q = query(ticketsRef, orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const ticketsList = [];
+      snapshot.forEach((doc) => {
+        ticketsList.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setTickets(ticketsList);
+    }, (error) => {
+      console.error('Error fetching tickets:', error);
+    });
+
+    return () => unsubscribe();
+  }, [isAuthenticated]); // Only run when authentication status changes
+
   // Show login screen if not authenticated
   if (!isAuthenticated) {
     return (
@@ -91,27 +106,6 @@ const AdminSupportDashboard = () => {
     );
   }
 
-  // Real-time ticket updates from Firestore
-  useEffect(() => {
-    const ticketsRef = collection(db, 'support_tickets');
-    const q = query(ticketsRef, orderBy('createdAt', 'desc'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const ticketsList = [];
-      snapshot.forEach((doc) => {
-        ticketsList.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      setTickets(ticketsList);
-    }, (error) => {
-      console.error('Error fetching tickets:', error);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   // Filter tickets
   const filteredTickets = tickets.filter(ticket => {
     const statusMatch = filterStatus === 'all' || ticket.status === filterStatus;
@@ -129,6 +123,20 @@ const AdminSupportDashboard = () => {
     if (!replyMessage.trim() || !selectedTicket) return;
 
     setIsSubmitting(true);
+    
+    console.log('🔥 [ADMIN REPLY] Starting reply process...');
+    console.log('🔥 [ADMIN REPLY] auth.currentUser:', auth.currentUser);
+    console.log('🔥 [ADMIN REPLY] auth.currentUser.uid:', auth.currentUser?.uid);
+    console.log('🔥 [ADMIN REPLY] auth.currentUser.email:', auth.currentUser?.email);
+    
+    if (!auth.currentUser) {
+      console.error('❌ [ADMIN REPLY] No authenticated user! Auth state lost.');
+      alert('Authentication expired. Please refresh and login again.');
+      setIsSubmitting(false);
+      setIsAuthenticated(false);
+      return;
+    }
+    
     try {
       const ticketRef = doc(db, 'support_tickets', selectedTicket.id);
       
@@ -150,6 +158,8 @@ const AdminSupportDashboard = () => {
         return;
       }
       
+      console.log('🔥 [ADMIN REPLY] Ticket exists, preparing update...');
+      
       const response = {
         message: replyMessage.trim(),
         adminName: adminName,
@@ -157,11 +167,14 @@ const AdminSupportDashboard = () => {
         isAdmin: true
       };
 
+      console.log('🔥 [ADMIN REPLY] Calling updateDoc...');
       await updateDoc(ticketRef, {
         responses: arrayUnion(response),
         status: 'in_progress',
         updatedAt: serverTimestamp()
       });
+      
+      console.log('✅ [ADMIN REPLY] Update successful!');
 
       // Send email notification to user (non-blocking - don't wait)
       fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/support/reply`, {
@@ -180,8 +193,10 @@ const AdminSupportDashboard = () => {
       setReplyMessage('');
       alert('Reply sent successfully!');
     } catch (error) {
-      console.error('Error sending reply:', error);
-      alert('Failed to send reply. Please try again.');
+      console.error('❌ [ADMIN REPLY] Error sending reply:', error);
+      console.error('❌ [ADMIN REPLY] Error code:', error.code);
+      console.error('❌ [ADMIN REPLY] Error message:', error.message);
+      alert(`Failed to send reply: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

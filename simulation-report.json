@@ -1,0 +1,2027 @@
+{
+  "totalTests": 31,
+  "passed": 31,
+  "failed": 0,
+  "warnings": 0,
+  "issues": [],
+  "dayResults": [
+    {
+      "date": "2025-12-07",
+      "steps": 10000,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Oatmeal with berries",
+            "calories": 350,
+            "protein": 12,
+            "carbs": 58,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1765090800000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1765108800000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Protein bar",
+            "calories": 220,
+            "protein": 20,
+            "carbs": 24,
+            "fat": 8
+          },
+          "time": "15:00",
+          "timestamp": 1765119600000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Beef tacos",
+            "calories": 640,
+            "protein": 38,
+            "carbs": 58,
+            "fat": 28
+          },
+          "time": "19:00",
+          "timestamp": 1765134000000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Running",
+          "duration": 30,
+          "baseMET": 9.8,
+          "emoji": "🏃",
+          "calories": 333,
+          "time": "06:30",
+          "timestamp": 1765089000000
+        }
+      ],
+      "water": 8,
+      "sleep": 7.5,
+      "caloriesConsumed": 1790,
+      "caloriesBurned": 733,
+      "netCalories": 1057
+    },
+    {
+      "date": "2025-12-08",
+      "steps": 9180,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Protein smoothie",
+            "calories": 320,
+            "protein": 28,
+            "carbs": 38,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1765177200000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1765195200000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Grilled fish & rice",
+            "calories": 520,
+            "protein": 46,
+            "carbs": 58,
+            "fat": 12
+          },
+          "time": "19:00",
+          "timestamp": 1765220400000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Cycling",
+          "duration": 45,
+          "baseMET": 7.5,
+          "emoji": "🚴",
+          "calories": 383,
+          "time": "18:00",
+          "timestamp": 1765216800000
+        }
+      ],
+      "water": 8,
+      "sleep": 9.5,
+      "caloriesConsumed": 1420,
+      "caloriesBurned": 750,
+      "netCalories": 670
+    },
+    {
+      "date": "2025-12-09",
+      "steps": 11558,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Protein smoothie",
+            "calories": 320,
+            "protein": 28,
+            "carbs": 38,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1765263600000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1765281600000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1765292400000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Vegetarian curry",
+            "calories": 480,
+            "protein": 18,
+            "carbs": 72,
+            "fat": 14
+          },
+          "time": "19:00",
+          "timestamp": 1765306800000
+        }
+      ],
+      "workouts": [],
+      "water": 6,
+      "sleep": 7,
+      "caloriesConsumed": 1520,
+      "caloriesBurned": 462,
+      "netCalories": 1058
+    },
+    {
+      "date": "2025-12-10",
+      "steps": 7292,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Avocado toast",
+            "calories": 380,
+            "protein": 12,
+            "carbs": 42,
+            "fat": 20
+          },
+          "time": "07:00",
+          "timestamp": 1765350000000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Turkey sandwich",
+            "calories": 520,
+            "protein": 32,
+            "carbs": 58,
+            "fat": 16
+          },
+          "time": "12:00",
+          "timestamp": 1765368000000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1765378800000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Beef tacos",
+            "calories": 640,
+            "protein": 38,
+            "carbs": 58,
+            "fat": 28
+          },
+          "time": "19:00",
+          "timestamp": 1765393200000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Swimming",
+          "duration": 30,
+          "baseMET": 8.3,
+          "emoji": "🏊",
+          "calories": 282,
+          "time": "06:30",
+          "timestamp": 1765348200000
+        }
+      ],
+      "water": 8,
+      "sleep": 9.5,
+      "caloriesConsumed": 1680,
+      "caloriesBurned": 574,
+      "netCalories": 1106
+    },
+    {
+      "date": "2025-12-11",
+      "steps": 13335,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Oatmeal with berries",
+            "calories": 350,
+            "protein": 12,
+            "carbs": 58,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1765436400000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Veggie wrap",
+            "calories": 380,
+            "protein": 16,
+            "carbs": 52,
+            "fat": 12
+          },
+          "time": "12:00",
+          "timestamp": 1765454400000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Steak & sweet potato",
+            "calories": 680,
+            "protein": 52,
+            "carbs": 54,
+            "fat": 26
+          },
+          "time": "19:00",
+          "timestamp": 1765479600000
+        }
+      ],
+      "workouts": [],
+      "water": 8,
+      "sleep": 7.5,
+      "caloriesConsumed": 1410,
+      "caloriesBurned": 533,
+      "netCalories": 877
+    },
+    {
+      "date": "2025-12-12",
+      "steps": 6709,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Oatmeal with berries",
+            "calories": 350,
+            "protein": 12,
+            "carbs": 58,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1765522800000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Pasta with veggies",
+            "calories": 620,
+            "protein": 22,
+            "carbs": 88,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1765540800000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1765551600000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Steak & sweet potato",
+            "calories": 680,
+            "protein": 52,
+            "carbs": 54,
+            "fat": 26
+          },
+          "time": "19:00",
+          "timestamp": 1765566000000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Weights",
+          "duration": 45,
+          "baseMET": 5,
+          "emoji": "🏋️",
+          "calories": 255,
+          "time": "18:00",
+          "timestamp": 1765562400000
+        }
+      ],
+      "water": 8,
+      "sleep": 9,
+      "caloriesConsumed": 1790,
+      "caloriesBurned": 523,
+      "netCalories": 1267
+    },
+    {
+      "date": "2025-12-13",
+      "steps": 6081,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Avocado toast",
+            "calories": 380,
+            "protein": 12,
+            "carbs": 42,
+            "fat": 20
+          },
+          "time": "07:00",
+          "timestamp": 1765609200000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Pasta with veggies",
+            "calories": 620,
+            "protein": 22,
+            "carbs": 88,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1765627200000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Apple & almonds",
+            "calories": 180,
+            "protein": 6,
+            "carbs": 22,
+            "fat": 10
+          },
+          "time": "15:00",
+          "timestamp": 1765638000000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Grilled fish & rice",
+            "calories": 520,
+            "protein": 46,
+            "carbs": 58,
+            "fat": 12
+          },
+          "time": "19:00",
+          "timestamp": 1765652400000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Walking",
+          "duration": 45,
+          "baseMET": 3.8,
+          "emoji": "🚶",
+          "calories": 194,
+          "time": "06:30",
+          "timestamp": 1765607400000
+        }
+      ],
+      "water": 8,
+      "sleep": 7.5,
+      "caloriesConsumed": 1700,
+      "caloriesBurned": 437,
+      "netCalories": 1263
+    },
+    {
+      "date": "2025-12-14",
+      "steps": 14672,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Oatmeal with berries",
+            "calories": 350,
+            "protein": 12,
+            "carbs": 58,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1765695600000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1765713600000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Protein bar",
+            "calories": 220,
+            "protein": 20,
+            "carbs": 24,
+            "fat": 8
+          },
+          "time": "15:00",
+          "timestamp": 1765724400000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Chicken stir-fry",
+            "calories": 560,
+            "protein": 42,
+            "carbs": 62,
+            "fat": 16
+          },
+          "time": "19:00",
+          "timestamp": 1765738800000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Yoga",
+          "duration": 60,
+          "baseMET": 3,
+          "emoji": "🧘",
+          "calories": 204,
+          "time": "06:30",
+          "timestamp": 1765693800000
+        }
+      ],
+      "water": 6,
+      "sleep": 10,
+      "caloriesConsumed": 1710,
+      "caloriesBurned": 791,
+      "netCalories": 919
+    },
+    {
+      "date": "2025-12-15",
+      "steps": 8313,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Protein smoothie",
+            "calories": 320,
+            "protein": 28,
+            "carbs": 38,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1765782000000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Veggie wrap",
+            "calories": 380,
+            "protein": 16,
+            "carbs": 52,
+            "fat": 12
+          },
+          "time": "12:00",
+          "timestamp": 1765800000000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Banana",
+            "calories": 105,
+            "protein": 1,
+            "carbs": 27,
+            "fat": 0
+          },
+          "time": "15:00",
+          "timestamp": 1765810800000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Steak & sweet potato",
+            "calories": 680,
+            "protein": 52,
+            "carbs": 54,
+            "fat": 26
+          },
+          "time": "19:00",
+          "timestamp": 1765825200000
+        }
+      ],
+      "workouts": [],
+      "water": 8,
+      "sleep": 9.5,
+      "caloriesConsumed": 1485,
+      "caloriesBurned": 333,
+      "netCalories": 1152
+    },
+    {
+      "date": "2025-12-16",
+      "steps": 7180,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Scrambled eggs & toast",
+            "calories": 420,
+            "protein": 24,
+            "carbs": 35,
+            "fat": 18
+          },
+          "time": "07:00",
+          "timestamp": 1765868400000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1765886400000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Banana",
+            "calories": 105,
+            "protein": 1,
+            "carbs": 27,
+            "fat": 0
+          },
+          "time": "15:00",
+          "timestamp": 1765897200000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Vegetarian curry",
+            "calories": 480,
+            "protein": 18,
+            "carbs": 72,
+            "fat": 14
+          },
+          "time": "19:00",
+          "timestamp": 1765911600000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Walking",
+          "duration": 45,
+          "baseMET": 3.8,
+          "emoji": "🚶",
+          "calories": 194,
+          "time": "06:30",
+          "timestamp": 1765866600000
+        }
+      ],
+      "water": 7,
+      "sleep": 10.5,
+      "caloriesConsumed": 1585,
+      "caloriesBurned": 481,
+      "netCalories": 1104
+    },
+    {
+      "date": "2025-12-17",
+      "steps": 12856,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Greek yogurt parfait",
+            "calories": 280,
+            "protein": 18,
+            "carbs": 42,
+            "fat": 6
+          },
+          "time": "07:00",
+          "timestamp": 1765954800000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Veggie wrap",
+            "calories": 380,
+            "protein": 16,
+            "carbs": 52,
+            "fat": 12
+          },
+          "time": "12:00",
+          "timestamp": 1765972800000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1765983600000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Steak & sweet potato",
+            "calories": 680,
+            "protein": 52,
+            "carbs": 54,
+            "fat": 26
+          },
+          "time": "19:00",
+          "timestamp": 1765998000000
+        }
+      ],
+      "workouts": [],
+      "water": 7,
+      "sleep": 6.5,
+      "caloriesConsumed": 1480,
+      "caloriesBurned": 514,
+      "netCalories": 966
+    },
+    {
+      "date": "2025-12-18",
+      "steps": 10231,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Oatmeal with berries",
+            "calories": 350,
+            "protein": 12,
+            "carbs": 58,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1766041200000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Turkey sandwich",
+            "calories": 520,
+            "protein": 32,
+            "carbs": 58,
+            "fat": 16
+          },
+          "time": "12:00",
+          "timestamp": 1766059200000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1766070000000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Vegetarian curry",
+            "calories": 480,
+            "protein": 18,
+            "carbs": 72,
+            "fat": 14
+          },
+          "time": "19:00",
+          "timestamp": 1766084400000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Running",
+          "duration": 30,
+          "baseMET": 9.8,
+          "emoji": "🏃",
+          "calories": 333,
+          "time": "18:00",
+          "timestamp": 1766080800000
+        }
+      ],
+      "water": 8,
+      "sleep": 9,
+      "caloriesConsumed": 1490,
+      "caloriesBurned": 742,
+      "netCalories": 748
+    },
+    {
+      "date": "2025-12-19",
+      "steps": 14073,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Avocado toast",
+            "calories": 380,
+            "protein": 12,
+            "carbs": 42,
+            "fat": 20
+          },
+          "time": "07:00",
+          "timestamp": 1766127600000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Pasta with veggies",
+            "calories": 620,
+            "protein": 22,
+            "carbs": 88,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1766145600000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Apple & almonds",
+            "calories": 180,
+            "protein": 6,
+            "carbs": 22,
+            "fat": 10
+          },
+          "time": "15:00",
+          "timestamp": 1766156400000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Beef tacos",
+            "calories": 640,
+            "protein": 38,
+            "carbs": 58,
+            "fat": 28
+          },
+          "time": "19:00",
+          "timestamp": 1766170800000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Yoga",
+          "duration": 60,
+          "baseMET": 3,
+          "emoji": "🧘",
+          "calories": 204,
+          "time": "06:30",
+          "timestamp": 1766125800000
+        }
+      ],
+      "water": 6,
+      "sleep": 8,
+      "caloriesConsumed": 1820,
+      "caloriesBurned": 767,
+      "netCalories": 1053
+    },
+    {
+      "date": "2025-12-20",
+      "steps": 10114,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Scrambled eggs & toast",
+            "calories": 420,
+            "protein": 24,
+            "carbs": 35,
+            "fat": 18
+          },
+          "time": "07:00",
+          "timestamp": 1766214000000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Grilled chicken salad",
+            "calories": 450,
+            "protein": 38,
+            "carbs": 28,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1766232000000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Chicken stir-fry",
+            "calories": 560,
+            "protein": 42,
+            "carbs": 62,
+            "fat": 16
+          },
+          "time": "19:00",
+          "timestamp": 1766257200000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "HIIT",
+          "duration": 25,
+          "baseMET": 12,
+          "emoji": "💪",
+          "calories": 340,
+          "time": "18:00",
+          "timestamp": 1766253600000
+        }
+      ],
+      "water": 7,
+      "sleep": 7.5,
+      "caloriesConsumed": 1430,
+      "caloriesBurned": 745,
+      "netCalories": 685
+    },
+    {
+      "date": "2025-12-21",
+      "steps": 13634,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Scrambled eggs & toast",
+            "calories": 420,
+            "protein": 24,
+            "carbs": 35,
+            "fat": 18
+          },
+          "time": "07:00",
+          "timestamp": 1766300400000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Grilled chicken salad",
+            "calories": 450,
+            "protein": 38,
+            "carbs": 28,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1766318400000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1766329200000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Steak & sweet potato",
+            "calories": 680,
+            "protein": 52,
+            "carbs": 54,
+            "fat": 26
+          },
+          "time": "19:00",
+          "timestamp": 1766343600000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Yoga",
+          "duration": 60,
+          "baseMET": 3,
+          "emoji": "🧘",
+          "calories": 204,
+          "time": "06:30",
+          "timestamp": 1766298600000
+        }
+      ],
+      "water": 8,
+      "sleep": 9.5,
+      "caloriesConsumed": 1690,
+      "caloriesBurned": 749,
+      "netCalories": 941
+    },
+    {
+      "date": "2025-12-22",
+      "steps": 8284,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Scrambled eggs & toast",
+            "calories": 420,
+            "protein": 24,
+            "carbs": 35,
+            "fat": 18
+          },
+          "time": "07:00",
+          "timestamp": 1766386800000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Turkey sandwich",
+            "calories": 520,
+            "protein": 32,
+            "carbs": 58,
+            "fat": 16
+          },
+          "time": "12:00",
+          "timestamp": 1766404800000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Banana",
+            "calories": 105,
+            "protein": 1,
+            "carbs": 27,
+            "fat": 0
+          },
+          "time": "15:00",
+          "timestamp": 1766415600000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Vegetarian curry",
+            "calories": 480,
+            "protein": 18,
+            "carbs": 72,
+            "fat": 14
+          },
+          "time": "19:00",
+          "timestamp": 1766430000000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Walking",
+          "duration": 45,
+          "baseMET": 3.8,
+          "emoji": "🚶",
+          "calories": 194,
+          "time": "06:30",
+          "timestamp": 1766385000000
+        }
+      ],
+      "water": 7,
+      "sleep": 9.5,
+      "caloriesConsumed": 1525,
+      "caloriesBurned": 525,
+      "netCalories": 1000
+    },
+    {
+      "date": "2025-12-23",
+      "steps": 13194,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Avocado toast",
+            "calories": 380,
+            "protein": 12,
+            "carbs": 42,
+            "fat": 20
+          },
+          "time": "07:00",
+          "timestamp": 1766473200000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Turkey sandwich",
+            "calories": 520,
+            "protein": 32,
+            "carbs": 58,
+            "fat": 16
+          },
+          "time": "12:00",
+          "timestamp": 1766491200000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Protein bar",
+            "calories": 220,
+            "protein": 20,
+            "carbs": 24,
+            "fat": 8
+          },
+          "time": "15:00",
+          "timestamp": 1766502000000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Beef tacos",
+            "calories": 640,
+            "protein": 38,
+            "carbs": 58,
+            "fat": 28
+          },
+          "time": "19:00",
+          "timestamp": 1766516400000
+        }
+      ],
+      "workouts": [],
+      "water": 6,
+      "sleep": 9.5,
+      "caloriesConsumed": 1760,
+      "caloriesBurned": 528,
+      "netCalories": 1232
+    },
+    {
+      "date": "2025-12-24",
+      "steps": 10682,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Scrambled eggs & toast",
+            "calories": 420,
+            "protein": 24,
+            "carbs": 35,
+            "fat": 18
+          },
+          "time": "07:00",
+          "timestamp": 1766559600000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Veggie wrap",
+            "calories": 380,
+            "protein": 16,
+            "carbs": 52,
+            "fat": 12
+          },
+          "time": "12:00",
+          "timestamp": 1766577600000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Beef tacos",
+            "calories": 640,
+            "protein": 38,
+            "carbs": 58,
+            "fat": 28
+          },
+          "time": "19:00",
+          "timestamp": 1766602800000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Cycling",
+          "duration": 45,
+          "baseMET": 7.5,
+          "emoji": "🚴",
+          "calories": 383,
+          "time": "18:00",
+          "timestamp": 1766599200000
+        }
+      ],
+      "water": 7,
+      "sleep": 10.5,
+      "caloriesConsumed": 1440,
+      "caloriesBurned": 810,
+      "netCalories": 630
+    },
+    {
+      "date": "2025-12-25",
+      "steps": 12276,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Protein smoothie",
+            "calories": 320,
+            "protein": 28,
+            "carbs": 38,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1766646000000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Pasta with veggies",
+            "calories": 620,
+            "protein": 22,
+            "carbs": 88,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1766664000000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Apple & almonds",
+            "calories": 180,
+            "protein": 6,
+            "carbs": 22,
+            "fat": 10
+          },
+          "time": "15:00",
+          "timestamp": 1766674800000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Chicken stir-fry",
+            "calories": 560,
+            "protein": 42,
+            "carbs": 62,
+            "fat": 16
+          },
+          "time": "19:00",
+          "timestamp": 1766689200000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "HIIT",
+          "duration": 25,
+          "baseMET": 12,
+          "emoji": "💪",
+          "calories": 340,
+          "time": "06:30",
+          "timestamp": 1766644200000
+        }
+      ],
+      "water": 7,
+      "sleep": 8.5,
+      "caloriesConsumed": 1680,
+      "caloriesBurned": 831,
+      "netCalories": 849
+    },
+    {
+      "date": "2025-12-26",
+      "steps": 8172,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Oatmeal with berries",
+            "calories": 350,
+            "protein": 12,
+            "carbs": 58,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1766732400000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Grilled chicken salad",
+            "calories": 450,
+            "protein": 38,
+            "carbs": 28,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1766750400000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Apple & almonds",
+            "calories": 180,
+            "protein": 6,
+            "carbs": 22,
+            "fat": 10
+          },
+          "time": "15:00",
+          "timestamp": 1766761200000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Steak & sweet potato",
+            "calories": 680,
+            "protein": 52,
+            "carbs": 54,
+            "fat": 26
+          },
+          "time": "19:00",
+          "timestamp": 1766775600000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Swimming",
+          "duration": 30,
+          "baseMET": 8.3,
+          "emoji": "🏊",
+          "calories": 282,
+          "time": "18:00",
+          "timestamp": 1766772000000
+        }
+      ],
+      "water": 7,
+      "sleep": 7.5,
+      "caloriesConsumed": 1660,
+      "caloriesBurned": 609,
+      "netCalories": 1051
+    },
+    {
+      "date": "2025-12-27",
+      "steps": 13284,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Scrambled eggs & toast",
+            "calories": 420,
+            "protein": 24,
+            "carbs": 35,
+            "fat": 18
+          },
+          "time": "07:00",
+          "timestamp": 1766818800000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Pasta with veggies",
+            "calories": 620,
+            "protein": 22,
+            "carbs": 88,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1766836800000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Apple & almonds",
+            "calories": 180,
+            "protein": 6,
+            "carbs": 22,
+            "fat": 10
+          },
+          "time": "15:00",
+          "timestamp": 1766847600000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Grilled fish & rice",
+            "calories": 520,
+            "protein": 46,
+            "carbs": 58,
+            "fat": 12
+          },
+          "time": "19:00",
+          "timestamp": 1766862000000
+        }
+      ],
+      "workouts": [],
+      "water": 7,
+      "sleep": 7.5,
+      "caloriesConsumed": 1740,
+      "caloriesBurned": 531,
+      "netCalories": 1209
+    },
+    {
+      "date": "2025-12-28",
+      "steps": 12465,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Avocado toast",
+            "calories": 380,
+            "protein": 12,
+            "carbs": 42,
+            "fat": 20
+          },
+          "time": "07:00",
+          "timestamp": 1766905200000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1766923200000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1766934000000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Vegetarian curry",
+            "calories": 480,
+            "protein": 18,
+            "carbs": 72,
+            "fat": 14
+          },
+          "time": "19:00",
+          "timestamp": 1766948400000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Yoga",
+          "duration": 60,
+          "baseMET": 3,
+          "emoji": "🧘",
+          "calories": 204,
+          "time": "06:30",
+          "timestamp": 1766903400000
+        }
+      ],
+      "water": 6,
+      "sleep": 10,
+      "caloriesConsumed": 1580,
+      "caloriesBurned": 703,
+      "netCalories": 877
+    },
+    {
+      "date": "2025-12-29",
+      "steps": 13953,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Scrambled eggs & toast",
+            "calories": 420,
+            "protein": 24,
+            "carbs": 35,
+            "fat": 18
+          },
+          "time": "07:00",
+          "timestamp": 1766991600000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Veggie wrap",
+            "calories": 380,
+            "protein": 16,
+            "carbs": 52,
+            "fat": 12
+          },
+          "time": "12:00",
+          "timestamp": 1767009600000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Protein bar",
+            "calories": 220,
+            "protein": 20,
+            "carbs": 24,
+            "fat": 8
+          },
+          "time": "15:00",
+          "timestamp": 1767020400000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Chicken stir-fry",
+            "calories": 560,
+            "protein": 42,
+            "carbs": 62,
+            "fat": 16
+          },
+          "time": "19:00",
+          "timestamp": 1767034800000
+        }
+      ],
+      "workouts": [],
+      "water": 7,
+      "sleep": 7.5,
+      "caloriesConsumed": 1580,
+      "caloriesBurned": 558,
+      "netCalories": 1022
+    },
+    {
+      "date": "2025-12-30",
+      "steps": 12024,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Greek yogurt parfait",
+            "calories": 280,
+            "protein": 18,
+            "carbs": 42,
+            "fat": 6
+          },
+          "time": "07:00",
+          "timestamp": 1767078000000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Pasta with veggies",
+            "calories": 620,
+            "protein": 22,
+            "carbs": 88,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1767096000000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1767106800000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Beef tacos",
+            "calories": 640,
+            "protein": 38,
+            "carbs": 58,
+            "fat": 28
+          },
+          "time": "19:00",
+          "timestamp": 1767121200000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Swimming",
+          "duration": 30,
+          "baseMET": 8.3,
+          "emoji": "🏊",
+          "calories": 282,
+          "time": "18:00",
+          "timestamp": 1767117600000
+        }
+      ],
+      "water": 7,
+      "sleep": 9,
+      "caloriesConsumed": 1680,
+      "caloriesBurned": 763,
+      "netCalories": 917
+    },
+    {
+      "date": "2025-12-31",
+      "steps": 14790,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Protein smoothie",
+            "calories": 320,
+            "protein": 28,
+            "carbs": 38,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1767164400000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1767182400000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1767193200000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Steak & sweet potato",
+            "calories": 680,
+            "protein": 52,
+            "carbs": 54,
+            "fat": 26
+          },
+          "time": "19:00",
+          "timestamp": 1767207600000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Cycling",
+          "duration": 45,
+          "baseMET": 7.5,
+          "emoji": "🚴",
+          "calories": 383,
+          "time": "06:30",
+          "timestamp": 1767162600000
+        }
+      ],
+      "water": 8,
+      "sleep": 6,
+      "caloriesConsumed": 1720,
+      "caloriesBurned": 975,
+      "netCalories": 745
+    },
+    {
+      "date": "2026-01-01",
+      "steps": 11275,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Avocado toast",
+            "calories": 380,
+            "protein": 12,
+            "carbs": 42,
+            "fat": 20
+          },
+          "time": "07:00",
+          "timestamp": 1767250800000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Pasta with veggies",
+            "calories": 620,
+            "protein": 22,
+            "carbs": 88,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1767268800000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Greek yogurt",
+            "calories": 140,
+            "protein": 14,
+            "carbs": 10,
+            "fat": 4
+          },
+          "time": "15:00",
+          "timestamp": 1767279600000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Grilled fish & rice",
+            "calories": 520,
+            "protein": 46,
+            "carbs": 58,
+            "fat": 12
+          },
+          "time": "19:00",
+          "timestamp": 1767294000000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Cycling",
+          "duration": 45,
+          "baseMET": 7.5,
+          "emoji": "🚴",
+          "calories": 383,
+          "time": "18:00",
+          "timestamp": 1767290400000
+        }
+      ],
+      "water": 6,
+      "sleep": 9.5,
+      "caloriesConsumed": 1660,
+      "caloriesBurned": 834,
+      "netCalories": 826
+    },
+    {
+      "date": "2026-01-02",
+      "steps": 10301,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Greek yogurt parfait",
+            "calories": 280,
+            "protein": 18,
+            "carbs": 42,
+            "fat": 6
+          },
+          "time": "07:00",
+          "timestamp": 1767337200000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Pasta with veggies",
+            "calories": 620,
+            "protein": 22,
+            "carbs": 88,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1767355200000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Apple & almonds",
+            "calories": 180,
+            "protein": 6,
+            "carbs": 22,
+            "fat": 10
+          },
+          "time": "15:00",
+          "timestamp": 1767366000000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Vegetarian curry",
+            "calories": 480,
+            "protein": 18,
+            "carbs": 72,
+            "fat": 14
+          },
+          "time": "19:00",
+          "timestamp": 1767380400000
+        }
+      ],
+      "workouts": [],
+      "water": 7,
+      "sleep": 7.5,
+      "caloriesConsumed": 1560,
+      "caloriesBurned": 412,
+      "netCalories": 1148
+    },
+    {
+      "date": "2026-01-03",
+      "steps": 10082,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Scrambled eggs & toast",
+            "calories": 420,
+            "protein": 24,
+            "carbs": 35,
+            "fat": 18
+          },
+          "time": "07:00",
+          "timestamp": 1767423600000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Veggie wrap",
+            "calories": 380,
+            "protein": 16,
+            "carbs": 52,
+            "fat": 12
+          },
+          "time": "12:00",
+          "timestamp": 1767441600000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Banana",
+            "calories": 105,
+            "protein": 1,
+            "carbs": 27,
+            "fat": 0
+          },
+          "time": "15:00",
+          "timestamp": 1767452400000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Grilled fish & rice",
+            "calories": 520,
+            "protein": 46,
+            "carbs": 58,
+            "fat": 12
+          },
+          "time": "19:00",
+          "timestamp": 1767466800000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "HIIT",
+          "duration": 25,
+          "baseMET": 12,
+          "emoji": "💪",
+          "calories": 340,
+          "time": "06:30",
+          "timestamp": 1767421800000
+        }
+      ],
+      "water": 6,
+      "sleep": 7,
+      "caloriesConsumed": 1425,
+      "caloriesBurned": 743,
+      "netCalories": 682
+    },
+    {
+      "date": "2026-01-04",
+      "steps": 7688,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Avocado toast",
+            "calories": 380,
+            "protein": 12,
+            "carbs": 42,
+            "fat": 20
+          },
+          "time": "07:00",
+          "timestamp": 1767510000000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Grilled chicken salad",
+            "calories": 450,
+            "protein": 38,
+            "carbs": 28,
+            "fat": 18
+          },
+          "time": "12:00",
+          "timestamp": 1767528000000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Vegetarian curry",
+            "calories": 480,
+            "protein": 18,
+            "carbs": 72,
+            "fat": 14
+          },
+          "time": "19:00",
+          "timestamp": 1767553200000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Yoga",
+          "duration": 60,
+          "baseMET": 3,
+          "emoji": "🧘",
+          "calories": 204,
+          "time": "06:30",
+          "timestamp": 1767508200000
+        }
+      ],
+      "water": 8,
+      "sleep": 7.5,
+      "caloriesConsumed": 1310,
+      "caloriesBurned": 512,
+      "netCalories": 798
+    },
+    {
+      "date": "2026-01-05",
+      "steps": 13688,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Protein smoothie",
+            "calories": 320,
+            "protein": 28,
+            "carbs": 38,
+            "fat": 8
+          },
+          "time": "07:00",
+          "timestamp": 1767596400000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1767614400000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Vegetarian curry",
+            "calories": 480,
+            "protein": 18,
+            "carbs": 72,
+            "fat": 14
+          },
+          "time": "19:00",
+          "timestamp": 1767639600000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Weights",
+          "duration": 45,
+          "baseMET": 5,
+          "emoji": "🏋️",
+          "calories": 255,
+          "time": "18:00",
+          "timestamp": 1767636000000
+        }
+      ],
+      "water": 7,
+      "sleep": 7,
+      "caloriesConsumed": 1380,
+      "caloriesBurned": 803,
+      "netCalories": 577
+    },
+    {
+      "date": "2026-01-06",
+      "steps": 10469,
+      "foodLogs": [
+        {
+          "meal": "Breakfast",
+          "food": {
+            "name": "Avocado toast",
+            "calories": 380,
+            "protein": 12,
+            "carbs": 42,
+            "fat": 20
+          },
+          "time": "07:00",
+          "timestamp": 1767682800000
+        },
+        {
+          "meal": "Lunch",
+          "food": {
+            "name": "Salmon bowl",
+            "calories": 580,
+            "protein": 42,
+            "carbs": 48,
+            "fat": 22
+          },
+          "time": "12:00",
+          "timestamp": 1767700800000
+        },
+        {
+          "meal": "Snack",
+          "food": {
+            "name": "Protein bar",
+            "calories": 220,
+            "protein": 20,
+            "carbs": 24,
+            "fat": 8
+          },
+          "time": "15:00",
+          "timestamp": 1767711600000
+        },
+        {
+          "meal": "Dinner",
+          "food": {
+            "name": "Chicken stir-fry",
+            "calories": 560,
+            "protein": 42,
+            "carbs": 62,
+            "fat": 16
+          },
+          "time": "19:00",
+          "timestamp": 1767726000000
+        }
+      ],
+      "workouts": [
+        {
+          "type": "Weights",
+          "duration": 45,
+          "baseMET": 5,
+          "emoji": "🏋️",
+          "calories": 255,
+          "time": "06:30",
+          "timestamp": 1767681000000
+        }
+      ],
+      "water": 7,
+      "sleep": 9.5,
+      "caloriesConsumed": 1740,
+      "caloriesBurned": 674,
+      "netCalories": 1066
+    }
+  ]
+}

@@ -1,236 +1,120 @@
 {
-  "timestamp": "2025-12-19T14:36:07.631Z",
-  "summary": {
-    "totalTests": 121,
-    "passed": 118,
-    "failed": 3,
-    "warnings": 19,
-    "consistencyRate": "97.5%"
+  "startTime": "2026-01-06T14:39:51.462Z",
+  "totalTests": 10,
+  "passed": 10,
+  "failed": 0,
+  "mismatches": [],
+  "dataPoints": {},
+  "tests": [
+    {
+      "name": "Logged Breakfast",
+      "passed": true,
+      "notes": "450 calories",
+      "timestamp": "2026-01-06T14:40:03.678Z"
+    },
+    {
+      "name": "Logged Water",
+      "passed": true,
+      "notes": "2 cups",
+      "timestamp": "2026-01-06T14:40:09.683Z"
+    },
+    {
+      "name": "Logged Workout",
+      "passed": true,
+      "notes": "35 min",
+      "timestamp": "2026-01-06T14:40:20.729Z"
+    },
+    {
+      "name": "Home Screen - Data Extracted",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T14:40:27.495Z"
+    },
+    {
+      "name": "Progress Modal - Data Extracted",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T14:40:37.658Z"
+    },
+    {
+      "name": "Your Stats Modal - Data Extracted",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T14:40:48.008Z"
+    },
+    {
+      "name": "Full Stats Modal - Data Extracted",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T14:40:59.877Z"
+    },
+    {
+      "name": "Monthly Stats Modal - Data Extracted",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T14:41:12.144Z"
+    },
+    {
+      "name": "Weekly Compare Modal - Data Extracted",
+      "passed": true,
+      "notes": "",
+      "timestamp": "2026-01-06T14:41:24.274Z"
+    },
+    {
+      "name": "Data Consistency - Overall",
+      "passed": true,
+      "notes": "No mismatches found",
+      "timestamp": "2026-01-06T14:41:24.277Z"
+    }
+  ],
+  "endTime": "2026-01-06T14:41:24.277Z",
+  "duration": 92815,
+  "durationSeconds": 92,
+  "modalData": {
+    "progress": {
+      "steps": 128293,
+      "calories": 128293,
+      "water": 128293,
+      "workouts": 128293
+    },
+    "myStats": {},
+    "yourStats": {
+      "steps": 128293,
+      "calories": 128293,
+      "water": 128293,
+      "workouts": 128293
+    },
+    "fullStats": {
+      "steps": 128293,
+      "calories": 128293,
+      "water": 128293,
+      "workouts": 128293
+    },
+    "monthlyStats": {
+      "steps": 128293,
+      "calories": 128293,
+      "water": 128293,
+      "workouts": 128293
+    },
+    "weeklyCompare": {
+      "steps": 128293,
+      "calories": 128293,
+      "water": 128293,
+      "workouts": 128293
+    },
+    "home": {
+      "steps": null,
+      "calories": null,
+      "water": null
+    }
   },
-  "passed": [
-    "Dashboard: Displays step counter: ✓",
-    "StepCounter Modal: Uses stepCounterService for data: ✓",
-    "Step Counter Data Flow: Dashboard + Modal both use stepCounterService ✓",
-    "Step Counter Keys: Consistent storage keys (dailySteps) ✓",
-    "Step Counter: Saves history to Firestore: ✓",
-    "Food Scanner: Stores calorie data: ✓",
-    "Dashboard: Displays total calories: ✓",
-    "Meal Automation: Uses calorie data in meal planning: ✓",
-    "Sync Service: Syncs calorie/nutrition data: ✓",
-    "TensorFlow.js: Installed (@tensorflow/tfjs + pose-detection) ✓",
-    "RepCounter: Imports TensorFlow.js and pose-detection: ✓",
-    "RepCounter: Loads TensorFlow pose detection model: ✓",
-    "RepCounter: Stores counted reps to persistent storage ✓",
-    "Dashboard: Displays rep counter data: ✓",
-    "RepCounter → Gamification: Workout data flows: Data key \"reps|workout\" exists in both ✓",
-    "Brain.js: Installed in package.json ✓",
-    "Gamification Service: Imports Brain.js: ✓",
-    "Gamification Service: Creates and trains neural network: ✓",
-    "Gamification Service: Uses Brain.js predictions for recommendations: ✓",
-    "Gamification Service: Collects and stores AI learning data ✓",
-    "Gamification Service: AI predictions influence app logic: ✓",
-    "Dashboard: Displays AI recommendations: ✓",
-    "StepCounter Modal: Has state, reads data, writes data ✓",
-    "StepCounter Modal: Uses service layer for data operations ✓",
-    "StepCounter Modal: Data sources - localStorage, nativeHealthService, stepCounterService, syncService ✓",
-    "Food Scanner Modal: Has state, reads data, writes data ✓",
-    "Food Scanner Modal: Uses service layer for data operations ✓",
-    "Food Scanner Modal: Data sources - localStorage, aiVisionService, authService, subscriptionService ✓",
-    "Rep Counter Modal: Has state, reads data, writes data ✓",
-    "Rep Counter Modal: Uses service layer for data operations ✓",
-    "Rep Counter Modal: Data sources - Preferences, syncService, gamificationService ✓",
-    "DNA Analysis Modal: Has state, reads data, writes data ✓",
-    "DNA Analysis Modal: Uses service layer for data operations ✓",
-    "DNA Analysis Modal: Data sources - Preferences, syncService, gamificationService ✓",
-    "Social Battle Modal: Has state, reads data, writes data ✓",
-    "Social Battle Modal: Uses service layer for data operations ✓",
-    "Social Battle Modal: Data sources - localStorage, Preferences, syncService, gamificationService ✓",
-    "Meal Automation Modal: Uses service layer for data operations ✓",
-    "Meal Automation Modal: Data sources - localStorage, Preferences, mealAutomationService, subscriptionService ✓",
-    "Breathing Exercise Modal: Has state, reads data, writes data ✓",
-    "Breathing Exercise Modal: Uses service layer for data operations ✓",
-    "Breathing Exercise Modal: Data sources - localStorage, Preferences, syncService, gamificationService ✓",
-    "AR Scanner Modal: Has state, reads data, writes data ✓",
-    "AR Scanner Modal: Uses service layer for data operations ✓",
-    "AR Scanner Modal: Data sources - localStorage, arScannerService, subscriptionService ✓",
-    "Emergency Alert Modal: Has state, reads data, writes data ✓",
-    "Emergency Alert Modal: Uses service layer for data operations ✓",
-    "Emergency Alert Modal: Data sources - localStorage, Preferences, syncService, nativeGPSService ✓",
-    "Dashboard: Step Counter Banner present ✓",
-    "Dashboard: Step Counter Banner uses service layer ✓",
-    "Dashboard: Calorie Counter Banner present ✓",
-    "Dashboard: Calorie Counter Banner uses service layer ✓",
-    "Dashboard: Gamification Points Banner present ✓",
-    "Dashboard: Gamification Points Banner uses service layer ✓",
-    "Dashboard: Streak Counter Banner present ✓",
-    "Dashboard: Streak Counter Banner uses service layer ✓",
-    "Dashboard: Achievement Banner present ✓",
-    "Dashboard: Achievement Banner uses service layer ✓",
-    "Dashboard: Level Progress Banner present ✓",
-    "Dashboard: Level Progress Banner uses service layer ✓",
-    "Dashboard: Workout Summary Banner present ✓",
-    "Dashboard: Workout Summary Banner uses service layer ✓",
-    "Dashboard: Nutrition Summary Banner present ✓",
-    "Dashboard: Nutrition Summary Banner uses service layer ✓",
-    "Dashboard: Uses useEffect to fetch data ✓",
-    "Sync Service: Has sync queue for offline operations ✓",
-    "Sync Service: Step Counter Sync implemented ✓",
-    "Sync Service: Nutrition Data Sync implemented ✓",
-    "Sync Service: Workout Data Sync implemented ✓",
-    "Sync Service: Achievement Sync implemented ✓",
-    "Sync Service: Detects online/offline status ✓",
-    "Sync Service: Auto-syncs on reconnect ✓",
-    "StepCounter: Triggers sync after data changes ✓",
-    "FoodScanner: Triggers sync after data changes ✓",
-    "RepCounter: Triggers sync after data changes ✓",
-    "Step Counter → Gamification: Services communicate ✓",
-    "Gamification → Sync Service: Services communicate ✓",
-    "AI Vision → Sync Service: Services communicate ✓",
-    "Meal Automation → AI Vision: Services communicate ✓",
-    "Rep Counter → Gamification: Services communicate ✓",
-    "Progress Chart Panel: Present in Dashboard.jsx ✓",
-    "Progress Chart Panel: Fetches and renders data ✓",
-    "Recent Activity Panel: Present in Dashboard.jsx ✓",
-    "Recent Activity Panel: Fetches and renders data ✓",
-    "Nutrition Summary Panel: Present in Dashboard.jsx ✓",
-    "Nutrition Summary Panel: Fetches and renders data ✓",
-    "Workout History Panel: Present in Dashboard.jsx ✓",
-    "Workout History Panel: Fetches and renders data ✓",
-    "Storage Key \"dailySteps\": Used consistently across 3 files ✓",
-    "Storage Key \"stepHistory\": Used consistently across 6 files ✓",
-    "Storage Key \"ai_training_data\": Used consistently across 2 files ✓",
-    "Storage Key \"unlocked_achievements\": Used consistently across 2 files ✓",
-    "Storage Key \"user_level\": Used consistently across 2 files ✓",
-    "Storage Key \"user_xp\": Used consistently across 2 files ✓",
-    "Storage Key \"login_streak\": Used consistently across 2 files ✓",
-    "Storage Key \"workout_count\": Used consistently across 2 files ✓",
-    "Storage Key \"meals_logged\": Used consistently across 2 files ✓",
-    "Storage Key \"foodLog\": Used consistently across 4 files ✓",
-    "Storage Key \"foodScans\": Used consistently across 3 files ✓",
-    "Storage Key \"total_scans\": Used consistently across 2 files ✓",
-    "Storage Key \"scans_today\": Used consistently across 2 files ✓",
-    "Storage Key \"calories_tracked\": Used consistently across 2 files ✓",
-    "Storage Key \"recent_scans\": Used consistently across 2 files ✓",
-    "StepCounter: Has local state for steps|stepCount ✓",
-    "StepCounter: Updates state in useEffect ✓",
-    "FoodScanner: Has local state for calories|nutrition ✓",
-    "FoodScanner: Updates state in useEffect ✓",
-    "RepCounter: Has local state for reps|count ✓",
-    "RepCounter: Updates state in useEffect ✓",
-    "GPS Data: Service provides location, Emergency component uses it ✓",
-    "Gemini API: Rate limiting implemented ✓",
-    "Stripe: starter plan defined ✓",
-    "Stripe: premium plan defined ✓",
-    "Stripe: ultimate plan defined ✓",
-    "User Journey: \"User opens app → Dashboard loads\" - Complete ✓",
-    "User Journey: \"User walks 1000 steps → Step counter updates everywhere\" - Complete ✓",
-    "User Journey: \"User does workout → TensorFlow counts reps → Points awarded\" - Complete ✓",
-    "User Journey: \"User completes action → Brain.js learns → Better recommendations\" - Complete ✓"
-  ],
-  "failed": [
-    "Step Counter Service: Stores steps in localStorage/Preferences/Firestore: Missing patterns in src/services/stepCounterService.js",
-    "RepCounter: Uses TensorFlow to detect poses and count reps: Missing patterns in src/components/RepCounter.jsx",
-    "User Journey: \"User scans food → Calories tracked everywhere\" - Incomplete data flow"
-  ],
-  "warnings": [
-    "Calorie Data Flow: Some components may not be tracking calories",
-    "Meal Automation Modal: Missing write operations",
-    "Sync Service: User Profile Sync not found",
-    "MealAutomation: May not trigger sync",
-    "Storage Key \"user_profile\": Only used in syncService.js - may cause isolation",
-    "Storage Key \"user_preferences\": Only used in syncService.js - may cause isolation",
-    "Storage Key \"workoutHistory\": Only used in Dashboard.jsx - may cause isolation",
-    "Firestore: \"users\" collection not found in code",
-    "Firestore: \"steps\" collection not found in code",
-    "Firestore: \"nutrition\" collection not found in code",
-    "Firestore: \"workouts\" collection not found in code",
-    "Firestore: \"achievements\" collection not found in code",
-    "Firestore: \"battles\" collection not found in code",
-    "React: No Context API detected - components may not share state",
-    "React: State managed at component level - may cause prop drilling",
-    "Camera/Vision Data: May not be properly integrated",
-    "Gemini API: Food Analysis may not use geminiService",
-    "Gemini API: Meal Planning may not use geminiService",
-    "Gemini API: DNA Insights may not use geminiService"
-  ],
-  "storageKeys": {
-    "dailySteps": [
-      "stepCounterService.js",
-      "StepCounter.jsx",
-      "Dashboard.jsx"
-    ],
-    "stepHistory": [
-      "stepCounterService.js",
-      "syncService.js",
-      "syncService.js",
-      "syncService.js",
-      "syncService.js",
-      "Dashboard.jsx"
-    ],
-    "ai_training_data": [
-      "gamificationService.js",
-      "gamificationService.js"
-    ],
-    "unlocked_achievements": [
-      "gamificationService.js",
-      "gamificationService.js"
-    ],
-    "user_level": [
-      "gamificationService.js",
-      "gamificationService.js"
-    ],
-    "user_xp": [
-      "gamificationService.js",
-      "gamificationService.js"
-    ],
-    "login_streak": [
-      "gamificationService.js",
-      "gamificationService.js"
-    ],
-    "workout_count": [
-      "gamificationService.js",
-      "gamificationService.js"
-    ],
-    "meals_logged": [
-      "gamificationService.js",
-      "gamificationService.js"
-    ],
-    "foodLog": [
-      "gamificationService.js",
-      "syncService.js",
-      "syncService.js",
-      "Dashboard.jsx"
-    ],
-    "user_profile": [
-      "syncService.js"
-    ],
-    "user_preferences": [
-      "syncService.js"
-    ],
-    "foodScans": [
-      "aiVisionService.js",
-      "aiVisionService.js",
-      "FoodScanner.jsx"
-    ],
-    "total_scans": [
-      "FoodScanner.jsx",
-      "FoodScanner.jsx"
-    ],
-    "scans_today": [
-      "FoodScanner.jsx",
-      "FoodScanner.jsx"
-    ],
-    "calories_tracked": [
-      "FoodScanner.jsx",
-      "FoodScanner.jsx"
-    ],
-    "recent_scans": [
-      "FoodScanner.jsx",
-      "FoodScanner.jsx"
-    ],
-    "workoutHistory": [
-      "Dashboard.jsx"
-    ]
-  },
-  "firestoreCollections": {}
+  "expectedData": {
+    "steps": 5000,
+    "calories": 450,
+    "caloriesBurned": 350,
+    "netCalories": 100,
+    "water": 2,
+    "workouts": 1,
+    "meals": 1
+  }
 }

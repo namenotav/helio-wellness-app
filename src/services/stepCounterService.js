@@ -100,7 +100,27 @@ class StepCounterService {
   async getStepCount() {
     try {
       const result = await StepCounter.getStepCount();
-      return result.steps;
+      const currentCount = result.steps;
+      
+      // 🔥 FIX #10: Detect phone reboot (hardware counter reset)
+      const baseline = parseInt(localStorage.getItem('stepBaseline') || '0');
+      const baselineDate = localStorage.getItem('stepBaselineDate') || '';
+      const today = new Date().toISOString().split('T')[0];
+      
+      // If current count is LESS than baseline, phone rebooted!
+      if (currentCount < baseline && baselineDate === today) {
+        if(import.meta.env.DEV)console.log('🔄 [REBOOT DETECTED] Hardware count:', currentCount, '< Baseline:', baseline);
+        if(import.meta.env.DEV)console.log('📱 Phone rebooted - recalculating baseline...');
+        
+        // Set new baseline to current count
+        localStorage.setItem('stepBaseline', currentCount.toString());
+        if(import.meta.env.DEV)console.log('✅ New baseline set:', currentCount);
+        
+        // Today's steps start from 0 again
+        return 0;
+      }
+      
+      return currentCount;
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Failed to get step count:', error);
       return 0;

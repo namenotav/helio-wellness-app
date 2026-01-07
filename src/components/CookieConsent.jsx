@@ -17,6 +17,8 @@ export default function CookieConsent() {
     localStorage.setItem('cookieConsent', 'accepted');
     localStorage.setItem('cookieConsentDate', new Date().toISOString());
     setVisible(false);
+    // Trigger event so App.jsx can initialize analytics
+    window.dispatchEvent(new Event('cookieConsentChanged'));
   };
 
   const handleDecline = () => {
