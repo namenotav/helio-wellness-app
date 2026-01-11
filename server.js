@@ -912,7 +912,7 @@ app.post('/api/feedback', async (req, res) => {
 
 // Joi validation schemas
 const chatSchema = Joi.object({
-  message: Joi.string().min(1).max(2000).required(),
+  message: Joi.string().min(1).max(5000).required(),  // Increased from 2000 to 5000 for meal automation prompts
   userContext: Joi.object().optional()
 });
 
@@ -1029,9 +1029,52 @@ Provide helpful, safe advice that considers their medical profile, allergies, an
 });
 
 // Backward compatibility: Redirect old /api/chat to /api/v1/chat
-app.post('/api/chat', (req, res) => {
+// Fixed: Use next() middleware pattern instead of _router.handle which breaks error handling
+app.post('/api/chat', (req, res, next) => {
+  // Forward to v1 endpoint by calling it directly
   req.url = '/api/v1/chat';
-  app._router.handle(req, res);
+  req.originalUrl = '/api/v1/chat';
+  next('route');
+});
+
+// Re-register v1 handler for forwarded requests
+app.post('/api/chat', async (req, res) => {
+  // This handler catches forwarded /api/chat requests and processes them like /api/v1/chat
+  try {
+    const { error, value } = chatSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+    
+    const { message } = value;
+    const sanitizedMessage = String(message).trim().slice(0, 5000).replace(/[<>"']/g, '');
+    
+    if (!sanitizedMessage || sanitizedMessage.length < 2) {
+      return res.status(400).json({ error: 'Invalid message format' });
+    }
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: sanitizedMessage }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Gemini API error:', errorText);
+      return res.status(500).json({ error: 'AI service unavailable' });
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated';
+    return res.json({ response: text });
+  } catch (error) {
+    console.error('Chat error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // API v1 - Vision endpoint for food scanning
