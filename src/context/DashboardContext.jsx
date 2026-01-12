@@ -309,19 +309,38 @@ export const DashboardProvider = ({ children }) => {
       setMealsToday(prev => [...prev, meal]);
       console.log('🍽️ [CONTEXT] Meal logged:', meal.name, '(UI updated instantly)');
 
-      // BACKGROUND FIRESTORE SYNC
-      const currentUser = authService.getCurrentUser();
-      const foodLog = currentUser?.profile?.foodLog || [];
+      // ⚡ OPTIMISTIC UI: Save to localStorage FIRST (instant persistence) - FIX: consistent with other log functions
+      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
       foodLog.push({
         ...meal,
         date: today,
         timestamp: Date.now()
       });
-      await authService.updateProfile({ foodLog });
-      console.log('☁️ [CONTEXT] Meal synced to Firestore');
+      localStorage.setItem('foodLog', JSON.stringify(foodLog));
+      console.log('💾 [CONTEXT] Meal saved to localStorage (INSTANT)');
+
+      // 💾 SAVE TO CAPACITOR PREFERENCES (persistent storage) - non-blocking
+      import('@capacitor/preferences').then(({ Preferences }) => {
+        Preferences.set({ key: 'foodLog', value: JSON.stringify(foodLog) })
+          .catch(err => console.warn('⚠️ Preferences save failed:', err));
+      });
+
+      // 🔥 BACKGROUND FIRESTORE SYNC (non-blocking - happens in background)
+      if (userId) {
+        firestoreService.save('foodLog', foodLog, userId)
+          .then(() => console.log('☁️ [CONTEXT] Meal synced to Firestore (background)'))
+          .catch(error => console.warn('⚠️ Meal Firestore sync failed:', error));
+      }
+
+      // Also update authService profile for backward compatibility
+      const currentUser = authService.getCurrentUser();
+      if (currentUser?.profile) {
+        authService.updateProfile({ foodLog })
+          .catch(err => console.warn('⚠️ Profile foodLog update failed:', err));
+      }
 
       // Recalculate wellness score
-      await loadAllData();
+      loadAllData();
     } catch (error) {
       console.error('❌ [CONTEXT] Log meal error:', error);
     }
