@@ -5,6 +5,7 @@ import { Motion } from '@capacitor/motion';
 import { Capacitor } from '@capacitor/core';
 import firestoreService from './firestoreService';
 import authService from './authService';
+import brainLearningService from './brainLearningService';
 
 class SleepTrackingService {
   constructor() {
@@ -324,6 +325,39 @@ class SleepTrackingService {
         if(import.meta.env.DEV)console.log('☁️ Sleep synced to Firebase');
       } catch (e) {
         console.warn('⚠️ Could not sync sleep to Firebase:', e);
+      }
+      
+      // 🧠 BRAIN.JS: Track sleep for AI learning and pattern recognition
+      try {
+        const totalHours = hours + (minutes / 60);
+        
+        // Track sleep data for sleep pattern learning
+        await brainLearningService.trackSleep({
+          hour: new Date(this.sleepSession.startTime).getHours(),
+          duration: totalHours,
+          quality: this.sleepSession.quality || 70,
+          interruptions: this.sleepSession.movements || 0,
+          deepSleepPercent: this.sleepSession.phases?.filter(p => p.phase === 'deep').length / Math.max(this.sleepSession.phases?.length || 1, 1) * 100 || 0,
+          remSleepPercent: this.sleepSession.phases?.filter(p => p.phase === 'rem').length / Math.max(this.sleepSession.phases?.length || 1, 1) * 100 || 0,
+          caffeineToday: false,
+          exerciseToday: false,
+          screenTimeBeforeBed: 0
+        });
+        
+        // Track energy based on sleep quality
+        const energyLevel = Math.min(10, Math.max(1, Math.round((this.sleepSession.quality || 70) / 10)));
+        await brainLearningService.trackEnergy(energyLevel, {
+          recentWorkout: false,
+          recentMeal: false,
+          stressLevel: 3,
+          caffeineConsumed: false,
+          sleepHours: totalHours,
+          sleepQuality: this.sleepSession.quality || 70
+        });
+        
+        if(import.meta.env.DEV)console.log('🧠 [BRAIN.JS] Sleep tracked for AI learning:', totalHours.toFixed(1), 'hours, quality:', this.sleepSession.quality);
+      } catch (brainError) {
+        console.error('❌ [BRAIN.JS] Failed to track sleep:', brainError);
       }
       
       if(import.meta.env.DEV)console.log('✅ Sleep session saved to history');

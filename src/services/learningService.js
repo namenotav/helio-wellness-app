@@ -5,6 +5,8 @@ import geminiService from './geminiService';
 class LearningService {
   constructor() {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    this.API_URL = import.meta.env.VITE_API_URL || 'https://helio-wellness-app-production.up.railway.app';
+    this.rateLimits = { lastCall: {}, callCount: {}, resetTime: {} };
   }
 
   // Analyze eating patterns and symptoms

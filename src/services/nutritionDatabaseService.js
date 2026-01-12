@@ -23,12 +23,12 @@ class NutritionDatabaseService {
       if (this.cache.has(cacheKey)) {
         const cached = this.cache.get(cacheKey);
         if (Date.now() - cached.timestamp < this.cacheExpiry) {
-          if(import.meta.env.DEV)console.log('📦 Returning cached results for:', query);
+          console.log('📦 Returning cached results for:', query);
           return cached.data;
         }
       }
 
-      if(import.meta.env.DEV)console.log('🔍 Searching USDA database:', query);
+      console.log('🔍 Searching USDA database:', query);
 
       const response = await fetch(
         `${this.baseUrl}/foods/search?` + new URLSearchParams({
@@ -77,11 +77,11 @@ class NutritionDatabaseService {
         timestamp: Date.now()
       });
 
-      if(import.meta.env.DEV)console.log(`✅ Found ${foods.length} foods`);
+      console.log(`✅ Found ${foods.length} foods`);
       return result;
 
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ USDA search error:', error);
+      console.error('❌ USDA search error:', error);
       
       // Fallback to local database
       return this.searchLocalDatabase(query);
@@ -102,7 +102,7 @@ class NutritionDatabaseService {
         }
       }
 
-      if(import.meta.env.DEV)console.log('📊 Fetching food details:', fdcId);
+      console.log('📊 Fetching food details:', fdcId);
 
       const response = await fetch(
         `${this.baseUrl}/food/${fdcId}?api_key=${this.apiKey}`
@@ -138,7 +138,7 @@ class NutritionDatabaseService {
       return details;
 
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Food details error:', error);
+      console.error('❌ Food details error:', error);
       throw error;
     }
   }
@@ -244,12 +244,9 @@ class NutritionDatabaseService {
    */
   clearCache() {
     this.cache.clear();
-    if(import.meta.env.DEV)console.log('🗑️ Nutrition database cache cleared');
+    console.log('🗑️ Nutrition database cache cleared');
   }
 }
 
 const nutritionDatabaseService = new NutritionDatabaseService();
 export default nutritionDatabaseService;
-
-
-

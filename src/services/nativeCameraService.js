@@ -18,7 +18,7 @@ export const takeProgressPhoto = async () => {
       path: image.path
     };
   } catch (error) {
-    if(import.meta.env.DEV)console.error('Camera error:', error);
+    console.error('Camera error:', error);
     throw error;
   }
 };
@@ -39,7 +39,7 @@ export const takeFoodPhoto = async () => {
       format: image.format
     };
   } catch (error) {
-    if(import.meta.env.DEV)console.error('Camera error:', error);
+    console.error('Camera error:', error);
     throw error;
   }
 };
@@ -60,7 +60,7 @@ export const pickPhotosFromGallery = async () => {
       path: image.path
     };
   } catch (error) {
-    if(import.meta.env.DEV)console.error('Gallery error:', error);
+    console.error('Gallery error:', error);
     throw error;
   }
 };
@@ -71,6 +71,3 @@ export const dataUrlToFile = async (dataUrl, filename = 'photo.jpg') => {
   const blob = await response.blob();
   return new File([blob], filename, { type: blob.type });
 };
-
-
-

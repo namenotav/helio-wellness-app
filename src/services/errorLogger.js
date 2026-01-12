@@ -40,7 +40,7 @@ class ErrorLogger {
       });
     });
 
-    if(import.meta.env.DEV)console.log('🛡️ Error logging initialized');
+    console.log('🛡️ Error logging initialized');
   }
 
   /**
@@ -66,7 +66,7 @@ class ErrorLogger {
     this.saveErrors();
 
     // Log to console in development
-    if(import.meta.env.DEV)console.error('📛 Error logged:', enrichedError);
+    console.error('📛 Error logged:', enrichedError);
   }
 
   /**
@@ -118,7 +118,7 @@ class ErrorLogger {
         this.errors = JSON.parse(saved);
       }
     } catch (e) {
-      if(import.meta.env.DEV)console.error('Failed to load error logs:', e);
+      console.error('Failed to load error logs:', e);
     }
   }
 
@@ -178,6 +178,3 @@ const errorLogger = new ErrorLogger();
 errorLogger.loadErrors();
 
 export default errorLogger;
-
-
-

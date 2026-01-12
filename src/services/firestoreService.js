@@ -5,7 +5,7 @@
  * Data NEVER lost, even if app uninstalled
  */
 
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { 
   getFirestore, 
   doc, 
@@ -28,11 +28,13 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig, 'firestoreApp');
+// Initialize Firebase (or reuse existing default app)
+// IMPORTANT: Do not create named apps here; it splits Auth/UID context.
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
@@ -149,6 +151,14 @@ class FirestoreService {
         console.error('❌ localStorage fallback failed:', e);
       }
 
+      // Queue save for retry when back online
+      try {
+        this.saveQueue.push({ key, value, userId });
+        console.log(`📥 Queued Firestore save for retry: ${key}`);
+      } catch (e) {
+        console.error('❌ Failed to queue Firestore save:', e);
+      }
+
       return { success: false, error: error.message };
     }
   }
@@ -160,9 +170,18 @@ class FirestoreService {
    */
   async get(key, userId = null) {
     try {
+      const normalizeStepHistory = (value) => {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === 'object') {
+          return Object.values(value).filter((item) => item && item.date);
+        }
+        return value;
+      };
+
       // 1. Check local cache first (instant)
       if (this.cache.has(key)) {
-        return this.cache.get(key);
+        const cached = this.cache.get(key);
+        return key === 'stepHistory' ? normalizeStepHistory(cached) : cached;
       }
 
       // 2. Check localStorage (fast)
@@ -170,7 +189,8 @@ class FirestoreService {
       if (localData) {
         try {
           const parsed = JSON.parse(localData);
-          this.cache.set(key, parsed);
+          const normalized = key === 'stepHistory' ? normalizeStepHistory(parsed) : parsed;
+          this.cache.set(key, normalized);
         } catch (e) {
           // Not JSON, store as-is
           this.cache.set(key, localData);
@@ -194,15 +214,17 @@ class FirestoreService {
         
         if (docSnap.exists()) {
           const data = docSnap.data().value;
-          this.cache.set(key, data);
-          localStorage.setItem(key, JSON.stringify(data)); // Update localStorage
+          const normalized = key === 'stepHistory' ? normalizeStepHistory(data) : data;
+          this.cache.set(key, normalized);
+          localStorage.setItem(key, JSON.stringify(normalized)); // Update localStorage
           console.log(`✅ Firestore loaded: ${key}`);
-          return data;
+          return normalized;
         }
       }
 
       // 4. Return from cache/localStorage if Firestore had nothing
-      return this.cache.get(key) || null;
+      const value = this.cache.get(key) || null;
+      return key === 'stepHistory' ? normalizeStepHistory(value) : value;
 
     } catch (error) {
       console.error(`❌ Firestore get error for ${key}:`, error);
@@ -211,7 +233,8 @@ class FirestoreService {
       const localData = localStorage.getItem(key);
       if (localData) {
         try {
-          return JSON.parse(localData);
+          const parsed = JSON.parse(localData);
+          return key === 'stepHistory' ? normalizeStepHistory(parsed) : parsed;
         } catch (e) {
           return localData;
         }
@@ -265,6 +288,96 @@ class FirestoreService {
   clearCache() {
     this.cache.clear();
     console.log('🗑️ Firestore cache cleared');
+  }
+
+  /**
+   * Save to a top-level Firestore collection (for shared/public data)
+   * @param {string} collectionName - Name of the collection (e.g., 'communityRecipes')
+   * @param {string} documentId - Document ID
+   * @param {any} data - Data to save
+   */
+  async saveToCollection(collectionName, documentId, data) {
+    try {
+      // Ensure auth is initialized
+      if (!this.authInitialized) {
+        await this.initAuth();
+      }
+
+      // Save to top-level collection (not under users/)
+      const docRef = doc(db, collectionName, documentId);
+      await setDoc(docRef, {
+        ...data,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      console.log(`✅ Saved to ${collectionName}/${documentId}`);
+      return { success: true };
+
+    } catch (error) {
+      console.error(`❌ Error saving to ${collectionName}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get document from a top-level collection
+   * @param {string} collectionName - Collection name
+   * @param {string} documentId - Document ID
+   */
+  async getFromCollection(collectionName, documentId) {
+    try {
+      if (!this.authInitialized) {
+        await this.initAuth();
+      }
+
+      const docRef = doc(db, collectionName, documentId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        console.log(`✅ Loaded from ${collectionName}/${documentId}`);
+        return docSnap.data();
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`❌ Error loading from ${collectionName}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Query documents from a collection
+   * @param {string} collectionName - Collection name
+   * @param {Array} queryConstraints - Optional Firestore query constraints
+   */
+  async queryCollection(collectionName, queryConstraints = []) {
+    try {
+      if (!this.authInitialized) {
+        await this.initAuth();
+      }
+
+      const collectionRef = collection(db, collectionName);
+      const q = queryConstraints.length > 0 
+        ? query(collectionRef, ...queryConstraints)
+        : collectionRef;
+
+      const querySnapshot = await getDocs(q);
+      const results = [];
+      
+      querySnapshot.forEach((doc) => {
+        results.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      console.log(`✅ Queried ${collectionName}: ${results.length} results`);
+      return results;
+
+    } catch (error) {
+      console.error(`❌ Error querying ${collectionName}:`, error);
+      return [];
+    }
   }
 
   /**

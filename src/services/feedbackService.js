@@ -30,11 +30,11 @@ class FeedbackService {
       this.saveFeedback();
 
       // In production, would send to server
-      if(import.meta.env.DEV)console.log('📝 Feedback submitted:', feedback);
+      console.log('📝 Feedback submitted:', feedback);
 
       return { success: true, id: feedback.id };
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Feedback submission error:', error);
+      console.error('Feedback submission error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -80,7 +80,7 @@ class FeedbackService {
     try {
       localStorage.setItem('user_feedback', JSON.stringify(this.feedbackItems));
     } catch (e) {
-      if(import.meta.env.DEV)console.error('Failed to save feedback:', e);
+      console.error('Failed to save feedback:', e);
     }
   }
 
@@ -94,7 +94,7 @@ class FeedbackService {
         this.feedbackItems = JSON.parse(saved);
       }
     } catch (e) {
-      if(import.meta.env.DEV)console.error('Failed to load feedback:', e);
+      console.error('Failed to load feedback:', e);
     }
   }
 
@@ -110,6 +110,3 @@ const feedbackService = new FeedbackService();
 feedbackService.loadFeedback();
 
 export default feedbackService;
-
-
-

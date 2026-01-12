@@ -120,7 +120,40 @@ public class StepCounterForegroundService extends Service implements SensorEvent
                 android.util.Log.d("StepService", "📍 Baseline set: " + totalSteps);
                 updateNotification(); // Update notification immediately with 0 steps
             } else {
-                currentStepCount = totalSteps - initialStepCount;
+                // 🔥 FIX: Detect sensor reset (device reboot)
+                // If sensor value is LESS than baseline, the sensor was reset
+                if (totalSteps < initialStepCount) {
+                    android.util.Log.d("StepService", "⚠️ SENSOR RESET DETECTED! Sensor: " + totalSteps + ", Old baseline: " + initialStepCount);
+                    android.util.Log.d("StepService", "🔄 Preserving " + currentStepCount + " steps from before reset");
+                    
+                    // Save the accumulated steps before reset
+                    int stepsBeforeReset = currentStepCount;
+                    prefs.edit().putInt("stepsBeforeReset", stepsBeforeReset).apply();
+                    
+                    // Reset baseline to current sensor value
+                    initialStepCount = totalSteps;
+                    prefs.edit().putInt("initialStepCount", initialStepCount).apply();
+                    
+                    // Continue counting from where we left off
+                    currentStepCount = stepsBeforeReset;
+                    android.util.Log.d("StepService", "✅ New baseline: " + initialStepCount + ", Continuing from: " + currentStepCount + " steps");
+                } else {
+                    // Normal calculation: current sensor - baseline + any steps from before reset
+                    int stepsBeforeReset = prefs.getInt("stepsBeforeReset", 0);
+                    currentStepCount = (totalSteps - initialStepCount) + stepsBeforeReset;
+                }
+                
+                // NEVER allow negative steps
+                if (currentStepCount < 0) {
+                    android.util.Log.e("StepService", "❌ NEGATIVE STEPS DETECTED: " + currentStepCount + " - Resetting to 0");
+                    currentStepCount = 0;
+                    initialStepCount = totalSteps;
+                    prefs.edit()
+                        .putInt("initialStepCount", initialStepCount)
+                        .putInt("stepsBeforeReset", 0)
+                        .putInt("currentStepCount", 0)
+                        .apply();
+                }
                 
                 // Save and update notification every step (for real-time updates)
                 prefs.edit().putInt("currentStepCount", currentStepCount).apply();

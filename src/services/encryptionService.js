@@ -27,10 +27,10 @@ class EncryptionService {
         this.encryptionKey = await this.importKey(keyMaterial);
       }
       
-      if(import.meta.env.DEV)console.log('🔐 Encryption initialized');
+      console.log('🔐 Encryption initialized');
       return true;
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Encryption init error:', error);
+      console.error('Encryption init error:', error);
       return false;
     }
   }
@@ -97,7 +97,7 @@ class EncryptionService {
       
       return this.arrayBufferToBase64(combined);
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Encryption error:', error);
+      console.error('Encryption error:', error);
       return null;
     }
   }
@@ -128,7 +128,7 @@ class EncryptionService {
       
       return JSON.parse(jsonString);
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Decryption error:', error);
+      console.error('Decryption error:', error);
       return null;
     }
   }
@@ -190,6 +190,3 @@ class EncryptionService {
 // Singleton instance
 const encryptionService = new EncryptionService();
 export default encryptionService;
-
-
-

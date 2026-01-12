@@ -2,6 +2,7 @@
 import syncService from './syncService.js';
 import firestoreService from './firestoreService';
 import authService from './authService';
+import brainLearningService from './brainLearningService';
 
 class WorkoutService {
   constructor() {
@@ -21,6 +22,11 @@ class WorkoutService {
    */
   async logWorkout(workoutData) {
     try {
+      // 🔥 FIX: Load existing workouts BEFORE adding new one
+      if (this.workoutHistory.length === 0) {
+        await this.loadWorkoutHistory();
+      }
+
       const workout = {
         ...workoutData,
         id: 'workout_' + Date.now(),
@@ -33,7 +39,32 @@ class WorkoutService {
       // Save to triple storage (localStorage + Preferences + Firebase)
       await this.saveWorkoutHistory();
 
-      if(import.meta.env.DEV)console.log('✅ Workout logged:', workout.type || workout.activity);
+      // 🧠 BRAIN.JS LEARNING - Track workout for AI optimization
+      await brainLearningService.trackWorkout({
+        duration: workoutData.duration || 30,
+        type: workoutData.type || workoutData.activity,
+        intensity: this.calculateIntensity(workoutData),
+        completed: true,
+        energyBefore: 5, // Default, can be updated from user input
+        energyAfter: 7,
+        mood: 'energetic',
+        location: workoutData.location || 'gym'
+      });
+
+      // 🧠 BRAIN.JS LEARNING - Track energy after workout for pattern recognition
+      await brainLearningService.trackEnergy(7, {
+        recentWorkout: true,
+        workoutType: workoutData.type || workoutData.activity,
+        workoutDuration: workoutData.duration || 30,
+        stressLevel: 3 // Workouts reduce stress
+      });
+
+      // 🎯 Update daily challenge (15 Min Workout)
+      if (window.updateDailyChallenge) {
+        window.updateDailyChallenge('workout_15', workoutData.duration || 0);
+      }
+
+      if(import.meta.env.DEV)console.log('✅ Workout logged & learned:', workout.type || workout.activity);
 
       return {
         success: true,
@@ -91,8 +122,10 @@ class WorkoutService {
       // Save to localStorage (backward compatibility)
       localStorage.setItem('workoutHistory', JSON.stringify(recentWorkouts));
 
-      // Save to syncService (Preferences + Firebase)
-      await firestoreService.save('workoutHistory', recentWorkouts, authService.getCurrentUser()?.uid);
+      // Save to syncService (Preferences + Firebase) - background
+      firestoreService.save('workoutHistory', recentWorkouts, authService.getCurrentUser()?.uid)
+        .then(() => console.log('☁️ workoutHistory synced to Firestore (background)'))
+        .catch(err => console.warn('⚠️ workoutHistory sync failed:', err));
 
       if(import.meta.env.DEV)console.log('💾 Workout history saved (localStorage + Preferences + Firebase)');
     } catch (error) {
@@ -125,6 +158,24 @@ class WorkoutService {
       if(import.meta.env.DEV)console.error('Failed to load workout history:', error);
       this.workoutHistory = [];
     }
+  }
+
+  /**
+   * Calculate workout intensity for Brain.js learning
+   */
+  calculateIntensity(workoutData) {
+    // Determine intensity based on activity type and duration
+    const highIntensityTypes = ['hiit', 'running', 'sprinting', 'crossfit', 'boxing'];
+    const moderateIntensityTypes = ['cycling', 'swimming', 'weights', 'strength'];
+    const lowIntensityTypes = ['yoga', 'stretching', 'walking', 'pilates'];
+    
+    const type = (workoutData.type || workoutData.activity || '').toLowerCase();
+    
+    if (highIntensityTypes.some(t => type.includes(t))) return 'high';
+    if (moderateIntensityTypes.some(t => type.includes(t))) return 'moderate';
+    if (lowIntensityTypes.some(t => type.includes(t))) return 'low';
+    
+    return 'moderate'; // default
   }
 
   /**

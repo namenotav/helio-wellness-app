@@ -1,0 +1,176 @@
+.today-overview {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.streak-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  padding: 10px 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.streak-icon {
+  font-size: 20px;
+  animation: flicker 2s infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.streak-text {
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.level-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  padding: 10px 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.level-text {
+  color: #1a1a2e;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.level-icon {
+  font-size: 20px;
+  animation: sparkle 3s infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-10deg) scale(1.1); }
+  75% { transform: rotate(10deg) scale(1.1); }
+}
+
+.xp-progress {
+  margin-bottom: 24px;
+}
+
+.xp-text {
+  display: flex;
+  justify-content: space-between;
+  color: white;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.xp-goal {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.xp-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4cc9f0 0%, #4361ee 100%);
+  border-radius: 8px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+}
+
+.activity-rings {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.rings-svg {
+  width: 200px;
+  height: 200px;
+}
+
+.ring-animated {
+  transition: stroke-dasharray 0.8s ease;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+.ring-labels {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  gap: 12px;
+}
+
+.ring-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.label-icon {
+  font-size: 24px;
+}
+
+.label-text {
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ring-label.move .label-text {
+  color: #ff4d94;
+}
+
+.ring-label.exercise .label-text {
+  color: #00f5a0;
+}
+
+.ring-label.calories .label-text {
+  color: #4cc9f0;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .today-overview {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .rings-svg {
+    width: 160px;
+    height: 160px;
+  }
+
+  .label-icon {
+    font-size: 20px;
+  }
+
+  .label-text {
+    font-size: 11px;
+  }
+}

@@ -15,18 +15,18 @@ class OfflineService {
   setupListeners() {
     window.addEventListener('online', () => {
       this.isOnline = true;
-      if(import.meta.env.DEV)console.log('✅ Connection restored');
+      console.log('✅ Connection restored');
       this.notifyListeners();
       this.processSyncQueue();
     });
 
     window.addEventListener('offline', () => {
       this.isOnline = false;
-      if(import.meta.env.DEV)console.log('⚠️ Connection lost');
+      console.log('⚠️ Connection lost');
       this.notifyListeners();
     });
 
-    if(import.meta.env.DEV)console.log('📡 Offline mode detector initialized');
+    console.log('📡 Offline mode detector initialized');
   }
 
   /**
@@ -58,7 +58,7 @@ class OfflineService {
       return;
     }
 
-    if(import.meta.env.DEV)console.log('🔄 Processing', this.syncQueue.length, 'queued items...');
+    console.log('🔄 Processing', this.syncQueue.length, 'queued items...');
 
     while (this.syncQueue.length > 0) {
       const item = this.syncQueue.shift();
@@ -66,9 +66,9 @@ class OfflineService {
       try {
         // Process sync item
         // In production, would sync to server
-        if(import.meta.env.DEV)console.log('✅ Synced:', item);
+        console.log('✅ Synced:', item);
       } catch (error) {
-        if(import.meta.env.DEV)console.error('Sync failed:', error);
+        console.error('Sync failed:', error);
         // Re-queue if failed
         this.syncQueue.push(item);
         break;
@@ -85,7 +85,7 @@ class OfflineService {
     try {
       localStorage.setItem('sync_queue', JSON.stringify(this.syncQueue));
     } catch (e) {
-      if(import.meta.env.DEV)console.error('Failed to save sync queue:', e);
+      console.error('Failed to save sync queue:', e);
     }
   }
 
@@ -99,7 +99,7 @@ class OfflineService {
         this.syncQueue = JSON.parse(saved);
       }
     } catch (e) {
-      if(import.meta.env.DEV)console.error('Failed to load sync queue:', e);
+      console.error('Failed to load sync queue:', e);
     }
   }
 
@@ -125,7 +125,7 @@ class OfflineService {
       try {
         callback(status);
       } catch (error) {
-        if(import.meta.env.DEV)console.error('Offline listener error:', error);
+        console.error('Offline listener error:', error);
       }
     });
   }
@@ -135,6 +135,3 @@ const offlineService = new OfflineService();
 offlineService.loadSyncQueue();
 
 export default offlineService;
-
-
-

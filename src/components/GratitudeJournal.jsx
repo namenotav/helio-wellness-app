@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Preferences } from '@capacitor/preferences'
 import gamificationService from '../services/gamificationService'
 
 export default function GratitudeJournalModal({ onClose }) {
@@ -22,14 +23,24 @@ export default function GratitudeJournalModal({ onClose }) {
     loadEntries()
   }, [])
 
-  const loadEntries = () => {
-    const saved = localStorage.getItem('wellnessai_gratitude')
+  const loadEntries = async () => {
+    // 🔥 FIX: Read from Preferences first (survives reinstall), localStorage fallback
+    let saved = null
+    try {
+      const { value: prefsVal } = await Preferences.get({ key: 'wellnessai_gratitude' })
+      saved = prefsVal || localStorage.getItem('wellnessai_gratitude')
+    } catch (e) {
+      saved = localStorage.getItem('wellnessai_gratitude')
+    }
     if (saved) {
-      setEntries(JSON.parse(saved))
+      const parsed = JSON.parse(saved)
+      setEntries(parsed)
+      // Sync to localStorage for backwards compatibility
+      localStorage.setItem('wellnessai_gratitude', saved)
     }
   }
 
-  const saveEntry = () => {
+  const saveEntry = async () => {
     if (!currentEntry.trim()) return
 
     const newEntry = {
@@ -41,10 +52,41 @@ export default function GratitudeJournalModal({ onClose }) {
 
     const updatedEntries = [newEntry, ...entries]
     setEntries(updatedEntries)
-    localStorage.setItem('wellnessai_gratitude', JSON.stringify(updatedEntries))
+    // 🔥 FIX: Write to BOTH Preferences (survives reinstall) and localStorage (backwards compat)
+    const entriesJson = JSON.stringify(updatedEntries)
+    await Preferences.set({ key: 'wellnessai_gratitude', value: entriesJson })
+    localStorage.setItem('wellnessai_gratitude', entriesJson)
 
     // Award XP
     gamificationService.addXP(10, 'Gratitude Entry')
+
+    // 🧠 BRAIN.JS: Track gratitude journaling improves mood
+    try {
+      const brainLearningService = (await import('../services/brainLearningService')).default;
+      
+      // Gratitude journaling strongly improves mood (8 = very good mood)
+      await brainLearningService.trackMood(8, {
+        triggers: ['gratitude_journal', currentPrompt],
+        activities: ['journaling', 'reflection', 'gratitude'],
+        socialInteraction: false,
+        sleepQuality: 7,
+        exerciseToday: false,
+        weather: 'indoor'
+      });
+      
+      // Gratitude reduces stress (3 = low-moderate stress)
+      await brainLearningService.trackStress(3, {
+        workRelated: false,
+        personalRelated: false,
+        copingMechanism: 'gratitude_journaling',
+        duration: 5,
+        resolved: true
+      });
+      
+      if(import.meta.env.DEV)console.log('🧠 [BRAIN.JS] Gratitude journal entry tracked for AI learning');
+    } catch (error) {
+      console.error('❌ [BRAIN.JS] Failed to track gratitude journal:', error);
+    }
 
     setCurrentEntry('')
     setView('list')
@@ -53,10 +95,13 @@ export default function GratitudeJournalModal({ onClose }) {
     alert('✨ Gratitude entry saved! +10 XP')
   }
 
-  const deleteEntry = (id) => {
+  const deleteEntry = async (id) => {
     const updatedEntries = entries.filter(e => e.id !== id)
     setEntries(updatedEntries)
-    localStorage.setItem('wellnessai_gratitude', JSON.stringify(updatedEntries))
+    // 🔥 FIX: Write to BOTH Preferences and localStorage
+    const entriesJson = JSON.stringify(updatedEntries)
+    await Preferences.set({ key: 'wellnessai_gratitude', value: entriesJson })
+    localStorage.setItem('wellnessai_gratitude', entriesJson)
     setSelectedEntry(null)
   }
 

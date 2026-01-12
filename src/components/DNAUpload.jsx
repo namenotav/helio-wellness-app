@@ -13,6 +13,9 @@ export default function DNAUpload({ onClose }) {
   const [loading, setLoading] = useState(true);
   const [showPaywall, setShowPaywall] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  const [showReplaceWarning, setShowReplaceWarning] = useState(false);
+  const [replaceConsent1, setReplaceConsent1] = useState(false);
+  const [replaceConsent2, setReplaceConsent2] = useState(false);
 
   // 🔥 Load saved DNA data when component opens
   useEffect(() => {
@@ -97,6 +100,43 @@ export default function DNAUpload({ onClose }) {
     }
   };
 
+  const handleRequestReplace = () => {
+    // Reset consent checkboxes
+    setReplaceConsent1(false);
+    setReplaceConsent2(false);
+    setShowReplaceWarning(true);
+  };
+
+  const handleConfirmReplace = async () => {
+    // Verify both consents are checked
+    if (!replaceConsent1 || !replaceConsent2) {
+      alert('❌ You must accept both statements to proceed');
+      return;
+    }
+
+    try {
+      // Clear existing DNA data
+      const result = await dnaService.clearDNAData();
+      if (!result.success) {
+        alert('⚠️ Error clearing previous DNA data: ' + result.error);
+        return;
+      }
+
+      // Reset UI state
+      setDnaData(null);
+      setAnalysis(null);
+      setShowReplaceWarning(false);
+      setReplaceConsent1(false);
+      setReplaceConsent2(false);
+      
+      // Trigger file input
+      document.getElementById('dna-file-input')?.click();
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Error during replacement:', error);
+      alert('❌ Error preparing for new upload: ' + error.message);
+    }
+  };
+
   const handleExportResults = () => {
     const report = dnaService.getFullDNAReport();
     if (!report) {
@@ -128,6 +168,25 @@ export default function DNAUpload({ onClose }) {
       <div className="dna-modal">
         <button className="dna-close" onClick={onClose}>✕</button>
 
+        {/* Educational Disclaimer Banner */}
+        <div style={{background: 'rgba(255, 68, 68, 0.15)', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '2px solid rgba(255, 68, 68, 0.4)'}}>
+          <div style={{fontSize: '14px', color: 'rgba(255, 68, 68, 0.95)', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px'}}>
+            ⚠️ For Educational & Entertainment Purposes Only
+          </div>
+          <div style={{fontSize: '12px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: '1.6', marginBottom: '12px'}}>
+            This DNA analysis is NOT a medical diagnostic tool and should not be used for medical decisions. Results are educational and based on publicly available genetic research. Always consult qualified healthcare professionals for medical advice.
+          </div>
+          <label style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px', color: 'white'}}>
+            <input 
+              type="checkbox" 
+              checked={disclaimerAccepted} 
+              onChange={(e) => setDisclaimerAccepted(e.target.checked)}
+              style={{width: '18px', height: '18px', cursor: 'pointer'}}
+            />
+            <span>I understand this is for educational purposes only and not medical advice</span>
+          </label>
+        </div>
+
         <h2 className="dna-title">🧬 DNA Personalization</h2>
 
         {loading ? (
@@ -137,28 +196,14 @@ export default function DNAUpload({ onClose }) {
           </div>
         ) : !dnaData ? (
           <div className="dna-upload-section">
-            <div style={{background: 'rgba(255, 107, 107, 0.15)', padding: '14px', borderRadius: '8px', marginBottom: '20px', border: '1px solid rgba(255, 107, 107, 0.3)'}}>
-              <div style={{fontSize: '14px', color: 'rgba(255, 107, 107, 0.95)', fontWeight: '600', marginBottom: '6px'}}>⚠️ For Educational & Entertainment Purposes Only</div>
-              <div style={{fontSize: '12px', color: 'rgba(255, 255, 255, 0.75)', lineHeight: '1.5', marginBottom: '8px'}}>
-                This analysis is NOT diagnostic medical advice. Results are for informational purposes only. Consult healthcare professionals before making health decisions.
-              </div>
-              <label style={{display: 'flex', alignItems: 'center', fontSize: '12px', color: 'rgba(255, 255, 255, 0.85)', cursor: 'pointer', userSelect: 'none'}}>
-                <input 
-                  type="checkbox" 
-                  checked={disclaimerAccepted}
-                  onChange={(e) => setDisclaimerAccepted(e.target.checked)}
-                  style={{marginRight: '8px', cursor: 'pointer'}}
-                />
-                I understand this is not medical advice
-              </label>
-            </div>
             <div className="dna-icon">🧬</div>
             <h3>Upload Your DNA Data</h3>
             <p>Support for 23andMe, AncestryDNA, and more</p>
             
-            <label className="upload-button" style={{opacity: disclaimerAccepted ? 1 : 0.5, cursor: disclaimerAccepted ? 'pointer' : 'not-allowed'}}>
-              {uploading ? '⏳ Analyzing DNA...' : '📁 Choose File'}
+            <label className={`upload-button ${!disclaimerAccepted ? 'disabled' : ''}`}>
+              {uploading ? '⏳ Analyzing DNA...' : disclaimerAccepted ? '📁 Choose File' : '🔒 Accept Disclaimer First'}
               <input
+                id="dna-file-input"
                 type="file"
                 accept=".txt,.csv,.json"
                 onChange={handleFileUpload}
@@ -234,9 +279,14 @@ export default function DNAUpload({ onClose }) {
                   <div className="source-info">
                     🧬 Source: {dnaData.source || 'Unknown'}
                   </div>
-                  <button className="export-btn" onClick={handleExportResults}>
-                    💾 Save Results
-                  </button>
+                  <div className="dna-actions">
+                    <button className="export-btn" onClick={handleExportResults}>
+                      💾 Save Results
+                    </button>
+                    <button className="replace-btn" onClick={handleRequestReplace}>
+                      🔄 Upload New DNA
+                    </button>
+                  </div>
                 </div>
 
                 <h3>Your Genetic Traits</h3>
@@ -526,6 +576,60 @@ export default function DNAUpload({ onClose }) {
           message={subscriptionService.getUpgradeMessage('dnaAnalysis')}
           currentPlan={subscriptionService.getCurrentPlan()}
         />
+      )}
+
+      {/* DNA Replacement Warning Modal */}
+      {showReplaceWarning && (
+        <div className="modal-overlay">
+          <div className="dna-replace-modal">
+            <div className="modal-header orange-alert">
+              <h3>⚠️ Replace DNA Profile</h3>
+              <p>This will delete your current DNA analysis and replace it with a new one</p>
+            </div>
+            
+            <div className="modal-content">
+              <div className="warning-box">
+                <strong>Important:</strong> This action cannot be undone. Your previous DNA analysis will be permanently removed.
+              </div>
+
+              <div className="consent-section">
+                <label className="consent-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={replaceConsent1}
+                    onChange={(e) => setReplaceConsent1(e.target.checked)}
+                  />
+                  <span>I understand this will delete my current DNA profile</span>
+                </label>
+
+                <label className="consent-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={replaceConsent2}
+                    onChange={(e) => setReplaceConsent2(e.target.checked)}
+                  />
+                  <span>I confirm this is my DNA and I want to replace the previous profile</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                className="cancel-btn"
+                onClick={() => setShowReplaceWarning(false)}
+              >
+                ❌ Cancel
+              </button>
+              <button
+                className={`proceed-btn ${(replaceConsent1 && replaceConsent2) ? 'enabled' : 'disabled'}`}
+                onClick={handleConfirmReplace}
+                disabled={!replaceConsent1 || !replaceConsent2}
+              >
+                ✓ Proceed with Upload
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

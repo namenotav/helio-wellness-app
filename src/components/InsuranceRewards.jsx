@@ -44,9 +44,21 @@ export default function InsuranceRewards({ onClose }) {
       <div className="insurance-modal">
         <button className="insurance-close" onClick={onClose}>✕</button>
 
-        <div style={{background: 'rgba(255, 193, 7, 0.15)', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(255, 193, 7, 0.3)'}}>
-          <div style={{fontSize: '13px', color: 'rgba(255, 193, 7, 0.95)', fontWeight: '600', marginBottom: '4px'}}>⚠️ Demo Feature - Coming Soon</div>
-          <div style={{fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', lineHeight: '1.4'}}>Insurance partnerships pending approval. Calculations shown are estimates for demonstration purposes only.</div>
+        {/* BRIGHT VISIBLE WARNING BANNER */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(255, 193, 7, 0.25) 0%, rgba(255, 152, 0, 0.25) 100%)',
+          padding: '16px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          border: '2px solid rgba(255, 193, 7, 0.6)',
+          boxShadow: '0 4px 12px rgba(255, 193, 7, 0.3)'
+        }}>
+          <div style={{fontSize: '16px', color: '#FFC107', fontWeight: '700', marginBottom: '6px', textAlign: 'center'}}>
+            ⚠️ DEMO FEATURE - COMING SOON ⚠️
+          </div>
+          <div style={{fontSize: '13px', color: 'rgba(255, 255, 255, 0.9)', lineHeight: '1.5', textAlign: 'center'}}>
+            Insurance partnerships are pending regulatory approval. All calculations shown are estimates for demonstration purposes only.
+          </div>
         </div>
 
         <h2 className="insurance-title">💰 Insurance Rewards (Preview)</h2>

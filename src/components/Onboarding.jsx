@@ -69,13 +69,23 @@ const Onboarding = ({ onComplete, onSkip }) => {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    // Write to both storages
     localStorage.setItem('onboardingCompleted', 'true');
+    try {
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({ key: 'wellnessai_onboardingCompleted', value: 'true' });
+    } catch (e) { /* localStorage fallback already done */ }
     onComplete();
   };
 
-  const handleSkipNow = () => {
+  const handleSkipNow = async () => {
+    // Write to both storages
     localStorage.setItem('onboardingCompleted', 'true');
+    try {
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({ key: 'wellnessai_onboardingCompleted', value: 'true' });
+    } catch (e) { /* localStorage fallback already done */ }
     onSkip();
   };
 

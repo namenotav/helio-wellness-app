@@ -75,7 +75,7 @@ class LoadingService {
       try {
         callback({ isLoading, loaders });
       } catch (error) {
-        if(import.meta.env.DEV)console.error('Loading listener error:', error);
+        console.error('Loading listener error:', error);
       }
     });
   }
@@ -98,6 +98,3 @@ class LoadingService {
 
 const loadingService = new LoadingService();
 export default loadingService;
-
-
-

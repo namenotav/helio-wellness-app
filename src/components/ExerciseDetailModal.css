@@ -1,0 +1,439 @@
+/* Exercise Detail Modal */
+
+.exercise-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  backdrop-filter: blur(10px);
+}
+
+.exercise-detail-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 25px;
+  padding: 30px;
+  max-width: 600px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: white;
+  box-shadow: 0 25px 70px rgba(139, 95, 232, 0.5);
+}
+
+.exercise-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.exercise-detail-header h2 {
+  font-size: 28px;
+  margin: 0;
+  background: linear-gradient(135deg, #8B5FE8, #C084FC);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  flex: 1;
+  text-align: center;
+}
+
+.close-btn-detail {
+  background: #8B5FE8;
+  border: none;
+  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  font-size: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.close-btn-detail:hover {
+  background: #A78BFA;
+  transform: rotate(90deg);
+}
+
+.exercise-animation-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 30px;
+  background: rgba(139, 95, 232, 0.1);
+  border-radius: 20px;
+  border: 2px solid rgba(139, 95, 232, 0.3);
+}
+
+/* Video & GIF Wrapper Styles */
+.exercise-video-wrapper,
+.exercise-gif-wrapper {
+  width: 100%;
+  max-width: 350px;
+  border-radius: 15px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 3px;
+  box-shadow: 0 10px 30px rgba(139, 95, 232, 0.4);
+  margin-bottom: 15px;
+}
+
+.exercise-video {
+  width: 100%;
+  height: 250px;
+  display: block;
+  border-radius: 12px;
+  background: #000;
+}
+
+.exercise-gif {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  background: #1a1a2e;
+  min-height: 200px;
+  object-fit: cover;
+}
+
+/* CSS Animation Fallback Container */
+.exercise-animation-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.animation-label {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #8B5FE8;
+  font-weight: 600;
+  text-align: center;
+}
+
+.exercise-animation.large {
+  width: 160px;
+  height: 160px;
+}
+
+.exercise-animation.large .exercise-stick-figure {
+  width: 60px;
+  height: 80px;
+}
+
+.exercise-animation.large .exercise-stick-figure::before {
+  width: 20px;
+  height: 20px;
+}
+
+.exercise-animation.large .exercise-stick-figure::after {
+  height: 38px;
+  width: 4px;
+  top: 20px;
+}
+
+.exercise-animation.large .stick-arms {
+  width: 44px;
+  height: 4px;
+  top: 30px;
+}
+
+.exercise-animation.large .stick-leg-left,
+.exercise-animation.large .stick-leg-right {
+  height: 32px;
+  width: 4px;
+}
+
+.exercise-info-section {
+  margin-bottom: 25px;
+}
+
+.exercise-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.exercise-emoji {
+  font-size: 40px;
+}
+
+.exercise-title-row h3 {
+  margin: 0;
+  font-size: 26px;
+  flex: 1;
+}
+.detail-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.detail-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.badge {
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+}
+
+.badge.difficulty {
+  border: 2px solid;
+}
+
+.badge.difficulty.beginner {
+  border-color: #4CAF50;
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.badge.difficulty.intermediate {
+  border-color: #FF9800;
+  color: #FF9800;
+  background: rgba(255, 152, 0, 0.15);
+}
+
+.badge.difficulty.advanced {
+  border-color: #F44336;
+  color: #F44336;
+  background: rgba(244, 67, 54, 0.15);
+}
+
+.badge.equipment {
+  background: rgba(139, 95, 232, 0.25);
+  color: #C084FC;
+  border: 2px solid rgba(139, 95, 232, 0.4);
+}
+
+.badge.calories {
+  background: rgba(255, 152, 0, 0.25);
+  color: #FFB84D;
+  border: 2px solid rgba(255, 152, 0, 0.4);
+}
+
+.muscles-section {
+  margin-bottom: 25px;
+}
+
+.muscles-section h4 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #C084FC;
+}
+
+.muscles-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.muscle-tag {
+  background: linear-gradient(135deg, rgba(139, 95, 232, 0.3), rgba(139, 95, 232, 0.15));
+  border: 1px solid rgba(139, 95, 232, 0.5);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: white;
+}
+
+.instructions-section {
+  margin-bottom: 25px;
+}
+
+.instructions-section h4 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #C084FC;
+}
+
+.instructions-section ol {
+  padding-left: 25px;
+  margin: 0;
+}
+
+.instructions-section li {
+  margin-bottom: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #E5E5E5;
+}
+
+.tips-section {
+  background: rgba(139, 95, 232, 0.15);
+  border-left: 4px solid #8B5FE8;
+  padding: 15px 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.tips-section h4 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #C084FC;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tips-section p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #E5E5E5;
+}
+
+.reps-section {
+  margin-bottom: 25px;
+}
+
+.reps-section h4 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #C084FC;
+}
+
+.reps-section p {
+  margin: 0;
+  font-size: 15px;
+  color: #E5E5E5;
+  font-weight: 600;
+}
+
+.log-workout-section {
+  background: linear-gradient(135deg, rgba(139, 95, 232, 0.2), rgba(139, 95, 232, 0.1));
+  border: 2px solid rgba(139, 95, 232, 0.4);
+  border-radius: 20px;
+  padding: 25px;
+}
+
+.log-workout-section h4 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #C084FC;
+}
+
+.log-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.log-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.log-input-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #C084FC;
+}
+
+.log-input-group input {
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(139, 95, 232, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.log-input-group input:focus {
+  border-color: #8B5FE8;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.log-input-group input::placeholder {
+  color: #666;
+}
+
+.log-workout-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  border: none;
+  border-radius: 15px;
+  color: white;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(139, 95, 232, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+  0%, 100% { box-shadow: 0 8px 25px rgba(139, 95, 232, 0.4); }
+  50% { box-shadow: 0 8px 35px rgba(139, 95, 232, 0.6); }
+}
+
+.log-workout-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(139, 95, 232, 0.7);
+  background: linear-gradient(135deg, #667eea 0%, #f093fb 50%, #764ba2 100%);
+}
+
+.log-workout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .exercise-detail-modal {
+    padding: 20px;
+  }
+  
+  .exercise-detail-header h2 {
+    font-size: 22px;
+  }
+  
+  .exercise-animation-container {
+    padding: 20px;
+  }
+  
+  .exercise-animation.large {
+    width: 130px;
+    height: 130px;
+  }
+  
+  .log-inputs {
+    grid-template-columns: 1fr;
+  }
+}

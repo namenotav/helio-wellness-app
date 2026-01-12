@@ -19,7 +19,7 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
     const contextualPrompt = aiMemoryService.buildContextualPrompt(userMessage);
     
     // Call Railway cloud server (works everywhere!)
-    const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/chat', {
+    const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/v1/chat', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

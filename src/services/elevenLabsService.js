@@ -37,7 +37,7 @@ class ElevenLabsService {
 
   setVoice(voiceType) {
     this.currentVoice = voiceType;
-    if(import.meta.env.DEV)console.log(`🎤 ElevenLabs voice set to: ${this.voices[voiceType].name}`);
+    console.log(`🎤 ElevenLabs voice set to: ${this.voices[voiceType].name}`);
   }
 
   /**
@@ -67,7 +67,7 @@ class ElevenLabsService {
     // Check cache first
     const cacheKey = `${this.currentVoice}-${softText}`;
     if (this.audioCache.has(cacheKey)) {
-      if(import.meta.env.DEV)console.log('✅ Using cached audio');
+      console.log('✅ Using cached audio');
       return this.audioCache.get(cacheKey);
     }
 
@@ -104,11 +104,11 @@ class ElevenLabsService {
       // Cache the URL
       this.audioCache.set(cacheKey, audioUrl);
       
-      if(import.meta.env.DEV)console.log('✅ Generated ultra-realistic voice');
+      console.log('✅ Generated ultra-realistic voice');
       return audioUrl;
       
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ ElevenLabs error:', error);
+      console.error('❌ ElevenLabs error:', error);
       return null;
     }
   }
@@ -117,7 +117,7 @@ class ElevenLabsService {
    * Speak with ultra-realistic healing voice
    */
   async speak(text) {
-    if(import.meta.env.DEV)console.log(`🎤 Speaking with ElevenLabs: "${text}" (${this.voices[this.currentVoice].name})`);
+    console.log(`🎤 Speaking with ElevenLabs: "${text}" (${this.voices[this.currentVoice].name})`);
     
     // Stop any current audio
     this.stop();
@@ -139,25 +139,25 @@ class ElevenLabsService {
         volume: 0.75, // Soft volume
         rate: 0.9, // Slightly slower for calming effect
         onload: () => {
-          if(import.meta.env.DEV)console.log('✅ Ultra-realistic audio loaded');
+          console.log('✅ Ultra-realistic audio loaded');
         },
         onloaderror: (id, error) => {
-          if(import.meta.env.DEV)console.error('❌ Audio load error:', error);
+          console.error('❌ Audio load error:', error);
           this.speakWithNativeTTS(text);
         },
         onplayerror: (id, error) => {
-          if(import.meta.env.DEV)console.error('❌ Audio play error:', error);
+          console.error('❌ Audio play error:', error);
           this.speakWithNativeTTS(text);
         },
         onend: () => {
-          if(import.meta.env.DEV)console.log('✅ Audio finished');
+          console.log('✅ Audio finished');
         }
       });
       
       this.currentAudio.play();
       
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Error speaking:', error);
+      console.error('❌ Error speaking:', error);
       await this.speakWithNativeTTS(text);
     }
   }
@@ -166,7 +166,7 @@ class ElevenLabsService {
    * Fallback to native TTS
    */
   async speakWithNativeTTS(text) {
-    if(import.meta.env.DEV)console.log('⚠️ Falling back to native TTS');
+    console.log('⚠️ Falling back to native TTS');
     
     try {
       await TextToSpeech.speak({
@@ -178,7 +178,7 @@ class ElevenLabsService {
         category: 'ambient'
       });
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Native TTS error:', error);
+      console.error('❌ Native TTS error:', error);
     }
   }
 
@@ -198,7 +198,7 @@ class ElevenLabsService {
    */
   setApiKey(key) {
     this.apiKey = key;
-    if(import.meta.env.DEV)console.log('🔑 ElevenLabs API key set');
+    console.log('🔑 ElevenLabs API key set');
   }
 
   /**
@@ -210,11 +210,8 @@ class ElevenLabsService {
       URL.revokeObjectURL(url);
     }
     this.audioCache.clear();
-    if(import.meta.env.DEV)console.log('🗑️ Audio cache cleared');
+    console.log('🗑️ Audio cache cleared');
   }
 }
 
 export default new ElevenLabsService();
-
-
-

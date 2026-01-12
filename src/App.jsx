@@ -1,46 +1,58 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { useEffect } from 'react'
-import LandingPage from './pages/LandingPage'
+import { useEffect, lazy, Suspense } from 'react'
 import NewDashboard from './pages/NewDashboard'
+const AdminSupportDashboard = lazy(() => import('./pages/AdminSupportDashboard'))
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'))
 import PaymentSuccess from './pages/PaymentSuccess'
 import PaymentCanceled from './pages/PaymentCanceled'
+import Toast from './components/Toast'
+import ErrorBoundary from './components/ErrorBoundary'
 import CookieConsent from './components/CookieConsent'
 import { analytics } from './services/analyticsService'
-import { auth } from './config/firebase'
-import subscriptionService from './services/subscriptionService'
+import { DashboardProvider } from './context/DashboardContext'
 
 function App() {
   useEffect(() => {
-    // Initialize Google Analytics on app start
-    analytics.initGoogleAnalytics();
-    analytics.trackPageView('App_Start');
-
-    // Verify subscription on app launch (if user is logged in)
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        subscriptionService.verifySubscriptionWithServer(user.uid).catch(err => {
-          console.error('Failed to verify subscription on app start:', err);
-        });
+    // GDPR COMPLIANCE: Only initialize analytics if user has consented
+    const checkConsent = () => {
+      const consent = localStorage.getItem('cookieConsent');
+      if (consent === 'accepted') {
+        analytics.initGoogleAnalytics();
+        analytics.trackPageView('App_Start');
       }
-    });
-
-    return () => unsubscribe();
+    };
+    
+    // Check immediately
+    checkConsent();
+    
+    // Listen for consent changes
+    const consentHandler = () => checkConsent();
+    window.addEventListener('cookieConsentChanged', consentHandler);
+    
+    return () => window.removeEventListener('cookieConsentChanged', consentHandler);
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<NewDashboard />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-canceled" element={<PaymentCanceled />} />
-      </Routes>
-      <CookieConsent />
-    </Router>
+    <ErrorBoundary>
+      <DashboardProvider>
+        <Router>
+          <Suspense fallback={<div>Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<NewDashboard />} />
+              <Route path="/dashboard" element={<NewDashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin-support" element={<AdminSupportDashboard />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-canceled" element={<PaymentCanceled />} />
+            </Routes>
+          </Suspense>
+          <Toast />
+          <CookieConsent />
+        </Router>
+      </DashboardProvider>
+    </ErrorBoundary>
   )
 }
 
 export default App
-
-
 

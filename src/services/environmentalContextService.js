@@ -64,7 +64,7 @@ class EnvironmentalContextService {
       // Get current GPS data
       const position = await Geolocation.getCurrentPosition({
         enableHighAccuracy: false, // Low power mode
-        timeout: 5000
+        timeout: 15000
       });
 
       const speed = position.coords.speed || 0;
@@ -256,8 +256,20 @@ class EnvironmentalContextService {
     }
   }
 
-  loadKnownLocations() {
+  async loadKnownLocations() {
     try {
+      // 🔥 FIX: Try Firebase first, then localStorage
+      try {
+        const firestoreService = (await import('./firestoreService.js')).default;
+        const authService = (await import('./authService.js')).default;
+        const cloudLocations = await firestoreService.get('helio_known_locations', authService.getCurrentUser()?.uid);
+        if (cloudLocations && Object.keys(cloudLocations).length > 0) {
+          localStorage.setItem('helio_known_locations', JSON.stringify(cloudLocations));
+          if(import.meta.env.DEV)console.log('📍 Loaded known locations from cloud:', Object.keys(cloudLocations).length);
+          return cloudLocations;
+        }
+      } catch (e) { /* fallback to localStorage */ }
+      
       const saved = localStorage.getItem('helio_known_locations');
       return saved ? JSON.parse(saved) : {};
     } catch (error) {
@@ -266,9 +278,17 @@ class EnvironmentalContextService {
     }
   }
 
-  saveKnownLocations() {
+  async saveKnownLocations() {
     try {
       localStorage.setItem('helio_known_locations', JSON.stringify(this.knownLocations));
+      
+      // 🔥 FIX: Sync to Firebase
+      try {
+        const firestoreService = (await import('./firestoreService.js')).default;
+        const authService = (await import('./authService.js')).default;
+        await firestoreService.save('helio_known_locations', this.knownLocations, authService.getCurrentUser()?.uid);
+      } catch (e) { /* offline mode */ }
+      
       if(import.meta.env.DEV)console.log('💾 Saved', Object.keys(this.knownLocations).length, 'known locations');
     } catch (error) {
       if(import.meta.env.DEV)console.error('Error saving known locations:', error);

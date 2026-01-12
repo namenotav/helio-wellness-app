@@ -32,14 +32,14 @@ class AIMemoryService {
         this.userContext = JSON.parse(contextJson);
       }
 
-      if(import.meta.env.DEV)console.log('AI Memory initialized:', {
+      console.log('AI Memory initialized:', {
         conversations: this.conversationHistory.length,
         preferences: Object.keys(this.userPreferences).length
       });
 
       return true;
     } catch (error) {
-      if(import.meta.env.DEV)console.error('AI Memory initialization error:', error);
+      console.error('AI Memory initialization error:', error);
       return false;
     }
   }
@@ -258,7 +258,7 @@ class AIMemoryService {
         value: JSON.stringify(this.conversationHistory)
       });
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Failed to save conversation history:', error);
+      console.error('Failed to save conversation history:', error);
     }
   }
 
@@ -272,7 +272,7 @@ class AIMemoryService {
         value: JSON.stringify(this.userPreferences)
       });
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Failed to save preferences:', error);
+      console.error('Failed to save preferences:', error);
     }
   }
 
@@ -301,13 +301,10 @@ class AIMemoryService {
     await Preferences.remove({ key: 'ai_user_preferences' });
     await Preferences.remove({ key: 'ai_user_context' });
 
-    if(import.meta.env.DEV)console.log('AI Memory reset');
+    console.log('AI Memory reset');
   }
 }
 
 // Export singleton instance
 export const aiMemoryService = new AIMemoryService();
 export default aiMemoryService;
-
-
-

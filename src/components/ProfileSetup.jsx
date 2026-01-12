@@ -5,6 +5,8 @@ import authService from '../services/authService';
 import syncService from '../services/syncService';
 import firestoreService from '../services/firestoreService';
 import healthAvatarService from '../services/healthAvatarService';
+import dataService from '../services/dataService'; // 🎯 SINGLE SOURCE OF TRUTH
+import { showToast } from './Toast';
 import './ProfileSetup.css';
 
 export default function ProfileSetup({ onComplete }) {
@@ -198,23 +200,24 @@ export default function ProfileSetup({ onComplete }) {
       // Initialize tracking data in cloud + localStorage if empty
       try {
         const userId = authService.getCurrentUser()?.uid;
-        if (!(await firestoreService.get('stepHistory', userId))) {
-      await firestoreService.save('stepHistory', {}, userId);
+        // 🎯 Initialize empty arrays using dataService (4-system architecture)
+        if (!(await dataService.get('stepHistory', userId))) {
+          await dataService.save('stepHistory', [], userId);
+        }
+    if (!(await dataService.get('foodLog', userId))) {
+      await dataService.save('foodLog', [], userId);
     }
-    if (!(await firestoreService.get('foodLog', userId))) {
-      await firestoreService.save('foodLog', [], userId);
+    if (!(await dataService.get('workoutHistory', userId))) {
+      await dataService.save('workoutHistory', [], userId);
     }
-    if (!(await firestoreService.get('workoutHistory', userId))) {
-      await firestoreService.save('workoutHistory', [], userId);
+    if (!(await dataService.get('sleepLog', userId))) {
+      await dataService.save('sleepLog', [], userId);
     }
-    if (!(await firestoreService.get('sleepLog', userId))) {
-      await firestoreService.save('sleepLog', [], userId);
+    if (!(await dataService.get('waterLog', userId))) {
+      await dataService.save('waterLog', [], userId);
     }
-    if (!(await firestoreService.get('waterLog', userId))) {
-      await firestoreService.save('waterLog', [], userId);
-    }
-        if (!(await firestoreService.get('weeklySteps', userId))) {
-          await firestoreService.save('weeklySteps', [], userId);
+        if (!(await dataService.get('weeklySteps', userId))) {
+          await dataService.save('weeklySteps', [], userId);
         }
       } catch (syncError) {
         if(import.meta.env.DEV)console.warn('⚠️ Warning initializing data stores (non-critical):', syncError);

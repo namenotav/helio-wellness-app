@@ -35,7 +35,7 @@ class DarkModeService {
     }
 
     this.applyTheme();
-    if(import.meta.env.DEV)console.log(`🌓 Dark mode initialized: ${this.isDarkMode ? 'dark' : 'light'}`);
+    console.log(`🌓 Dark mode initialized: ${this.isDarkMode ? 'dark' : 'light'}`);
   }
 
   /**
@@ -56,7 +56,7 @@ class DarkModeService {
     this.notifyListeners();
     
     localStorage.setItem('dark_mode', enabled.toString());
-    if(import.meta.env.DEV)console.log(`🌓 Dark mode: ${enabled ? 'enabled' : 'disabled'}`);
+    console.log(`🌓 Dark mode: ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   /**
@@ -119,7 +119,7 @@ class DarkModeService {
       try {
         callback(this.isDarkMode);
       } catch (error) {
-        if(import.meta.env.DEV)console.error('Theme listener error:', error);
+        console.error('Theme listener error:', error);
       }
     });
   }
@@ -138,6 +138,3 @@ class DarkModeService {
 
 const darkModeService = new DarkModeService();
 export default darkModeService;
-
-
-

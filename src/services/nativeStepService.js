@@ -79,7 +79,7 @@ class NativeStepService {
   }
 
   /**
-   * Get current step count from the service
+   * Get current step count from the service (RAW sensor count)
    */
   async getSteps() {
     try {
@@ -92,6 +92,23 @@ class NativeStepService {
       return 0;
     } catch (error) {
       console.error('Error getting steps:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get TODAY's step count (daily steps, not raw sensor count)
+   * This is what the notification shows
+   */
+  async getStepCount() {
+    try {
+      if (window.AndroidStepCounter) {
+        const dailySteps = parseInt(window.AndroidStepCounter.getTodaySteps() || '0');
+        return dailySteps;
+      }
+      return 0;
+    } catch (error) {
+      console.error('Error getting today steps:', error);
       return 0;
     }
   }

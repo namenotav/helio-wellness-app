@@ -63,7 +63,7 @@ class RealVoiceService {
    */
   async speak(text) {
     return new Promise((resolve) => {
-      if(import.meta.env.DEV)console.log(`🎤 Playing real human voice: "${text}"`);
+      console.log(`🎤 Playing real human voice: "${text}"`);
       
       // Stop current audio
       if (this.currentAudio) {
@@ -78,16 +78,16 @@ class RealVoiceService {
         src: [audioFile],
         volume: 1.0,
         onend: () => {
-          if(import.meta.env.DEV)console.log('✅ Real voice completed');
+          console.log('✅ Real voice completed');
           resolve();
         },
         onloaderror: (id, error) => {
-          if(import.meta.env.DEV)console.warn('⚠️ Voice file not found, using TTS:', error);
+          console.warn('⚠️ Voice file not found, using TTS:', error);
           // Fallback to TTS
           this.speakWithTTS(text).then(resolve);
         },
         onplayerror: () => {
-          if(import.meta.env.DEV)console.warn('⚠️ Playback error, using TTS');
+          console.warn('⚠️ Playback error, using TTS');
           this.speakWithTTS(text).then(resolve);
         }
       });
@@ -111,7 +111,7 @@ class RealVoiceService {
         volume: 1.0
       });
     } catch (error) {
-      if(import.meta.env.DEV)console.error('TTS fallback error:', error);
+      console.error('TTS fallback error:', error);
     }
   }
 
@@ -124,6 +124,3 @@ class RealVoiceService {
 
 const realVoiceService = new RealVoiceService();
 export default realVoiceService;
-
-
-

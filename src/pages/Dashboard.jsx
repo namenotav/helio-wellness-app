@@ -7,6 +7,8 @@ import { Capacitor } from '@capacitor/core'
 import devAuthService from '../services/devAuthService'
 import authService from '../services/authService'
 import subscriptionService from '../services/subscriptionService'
+import stepCounterService from '../services/stepCounterService'
+import gamificationService from '../services/gamificationService'
 import DevUnlock from '../components/DevUnlock'
 import StepCounter from '../components/StepCounter'
 import FoodScanner from '../components/FoodScanner'
@@ -19,6 +21,8 @@ import DNAUpload from '../components/DNAUpload'
 import SocialBattles from '../components/SocialBattles'
 import MealAutomation from '../components/MealAutomation'
 import PaywallModal from '../components/PaywallModal'
+import SupportModal from '../components/SupportModal'
+import AIWorkoutGenerator from '../components/AIWorkoutGenerator'
 import '../styles/Dashboard.css'
 import '../styles/AdventureMap.css'
 
@@ -34,7 +38,15 @@ export default function Dashboard() {
     wellnessScore: 78,
     level: 3,
     xp: 450,
-    xpToNext: 600
+    xpToNext: 600,
+    steps: 0,
+    repCount: 0,
+    calories: 0,
+    recommendation: '',
+    progressChart: [],
+    recentActivity: [],
+    nutritionSummary: {},
+    workoutHistory: []
   })
   
   // Developer mode state
@@ -58,6 +70,7 @@ export default function Dashboard() {
   const [showMealAutomation, setShowMealAutomation] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
   const [paywallFeature, setPaywallFeature] = useState('')
+  const [showSupport, setShowSupport] = useState(false)
   
   // Check if user needs to complete profile
   useEffect(() => {
@@ -66,6 +79,70 @@ export default function Dashboard() {
       // New user - show profile setup
       setShowProfileSetup(true)
     }
+    
+    // Initialize services and load data
+    stepCounterService.initialize();
+    
+    // Get AI recommendation
+    const prediction = gamificationService.predictUserBehavior();
+    setUserData(prev => ({ ...prev, recommendation: prediction.recommendation }));
+    
+    // Load progress chart data
+    const loadProgressData = () => {
+      const dailySteps = localStorage.getItem('dailySteps');
+      const stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '{}');
+      const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      
+      if(import.meta.env.DEV)console.log('📊 Loading dashboard data:', { dailySteps, workoutHistory: workoutHistory.length, foodLog: foodLog.length });
+      
+      // Build progress chart data (last 7 days)
+      const chartData = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        chartData.push({
+          date: dateStr,
+          steps: stepHistory.steps || 0,
+          workouts: workoutHistory.filter(w => w.date === dateStr).length,
+          meals: foodLog.filter(m => m.date === dateStr).length
+        });
+      }
+      
+      // Recent activity
+      const recentActivity = [
+        ...workoutHistory.slice(-5).map(w => ({ type: 'workout', ...w })),
+        ...foodLog.slice(-5).map(f => ({ type: 'meal', ...f }))
+      ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+      
+      // Nutrition summary
+      const todayMeals = foodLog.filter(m => m.date === new Date().toISOString().split('T')[0]);
+      const nutritionSummary = {
+        totalCalories: todayMeals.reduce((sum, m) => sum + (m.calories || 0), 0),
+        meals: todayMeals.length,
+        protein: todayMeals.reduce((sum, m) => sum + (m.protein || 0), 0),
+        carbs: todayMeals.reduce((sum, m) => sum + (m.carbs || 0), 0)
+      };
+      
+      setUserData(prev => ({
+        ...prev,
+        progressChart: chartData,
+        recentActivity,
+        nutritionSummary,
+        workoutHistory
+      }));
+    };
+    
+    loadProgressData();
+    
+    // Update step count every second
+    const stepInterval = setInterval(async () => {
+      const steps = await stepCounterService.getStepCount();
+      setUserData(prev => ({ ...prev, steps }));
+    }, 1000);
+    
+    return () => clearInterval(stepInterval);
   }, [])
 
   // Theme configurations
@@ -183,6 +260,7 @@ export default function Dashboard() {
             onOpenDNA={() => setShowDNAUpload(true)}
             onOpenBattles={() => setShowSocialBattles(true)}
             onOpenMeals={() => setShowMealAutomation(true)}
+            onOpenSupport={() => setShowSupport(true)}
           />
         </>
       ) : (
@@ -240,12 +318,20 @@ export default function Dashboard() {
 
       {/* Paywall Modal */}
       {showPaywall && renderPaywall()}
+
+      {/* Support Modal */}
+      {showSupport && (
+        <SupportModal 
+          isOpen={showSupport}
+          onClose={() => setShowSupport(false)}
+        />
+      )}
     </div>
   )
 }
 
 // Adventure Map Component
-function AdventureMap({ userData, theme, currentTheme, themes, onThemeChange, onFeatureSelect, onNavigate, isDevMode, onLogoTap, onOpenFoodScanner, onOpenHealthAvatar, onOpenARScanner, onOpenEmergency, onOpenInsurance, onOpenDNA, onOpenBattles, onOpenMeals }) {
+function AdventureMap({ userData, theme, currentTheme, themes, onThemeChange, onFeatureSelect, onNavigate, isDevMode, onLogoTap, onOpenFoodScanner, onOpenHealthAvatar, onOpenARScanner, onOpenEmergency, onOpenInsurance, onOpenDNA, onOpenBattles, onOpenMeals, onOpenSupport }) {
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const [showKillerFeatures, setShowKillerFeatures] = useState(false)
 
@@ -393,6 +479,27 @@ function AdventureMap({ userData, theme, currentTheme, themes, onThemeChange, on
               <span className="killer-name">Meal Auto</span>
             </button>
           </div>
+          <button 
+            className="support-access-btn" 
+            onClick={() => { 
+              onOpenSupport();
+              setShowKillerFeatures(false);
+            }}
+            style={{ 
+              width: '100%',
+              marginTop: '15px',
+              padding: '12px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              border: 'none',
+              borderRadius: '10px',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            🎧 Support Center
+          </button>
         </div>
       )}
 
@@ -953,6 +1060,31 @@ function AICoachTab() {
             </div>
           )}
         </div>
+        
+        {/* AI Message Counter */}
+        <div style={{
+          padding: '12px 16px',
+          background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+          borderTop: '1px solid #d1d5db',
+          textAlign: 'center',
+          fontSize: '14px',
+          color: '#6b7280',
+          fontWeight: '600'
+        }}>
+          {(() => {
+            const plan = subscriptionService.getCurrentPlan();
+            if (plan.id === 'ultimate' || plan.id === 'vip') {
+              return '🤖 Unlimited AI messages';
+            } else if (plan.id === 'premium') {
+              const limit = subscriptionService.checkLimit('aiMessages');
+              const remaining = limit.remaining || 50;
+              return `💬 ${remaining}/50 messages remaining today`;
+            } else {
+              return '⚡ Upgrade to chat with AI';
+            }
+          })()}
+        </div>
+        
         <div className="chat-input">
           <button 
             onClick={startVoiceInput}
@@ -1228,6 +1360,7 @@ function NutritionTab() {
 function WorkoutTab() {
   const [aiWorkoutPlan, setAiWorkoutPlan] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [showAIGenerator, setShowAIGenerator] = useState(false)
 
   const generatePlan = async (type) => {
     setIsGenerating(true)
@@ -1246,10 +1379,76 @@ function WorkoutTab() {
     }
   }
 
+  if (showAIGenerator) {
+    return (
+      <>
+        <button 
+          onClick={() => setShowAIGenerator(false)} 
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            zIndex: 100,
+            background: 'rgba(0,0,0,0.1)',
+            border: '2px solid rgba(102,126,234,0.3)',
+            borderRadius: '12px',
+            padding: '10px 20px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          ← Back to Workouts
+        </button>
+        <AIWorkoutGenerator />
+      </>
+    )
+  }
+
   return (
     <div className="tab-content">
       <h2>💪 Workout Programs</h2>
       <p className="subtitle">Personalized exercise routines that evolve with your fitness level</p>
+      
+      {/* Beta Feature Highlight */}
+      <div 
+        className="beta-feature-banner"
+        onClick={() => setShowAIGenerator(true)}
+        style={{
+          background: 'linear-gradient(135deg, rgba(138, 116, 249, 0.2), rgba(255, 215, 0, 0.2))',
+          border: '2px solid #FFD700',
+          borderRadius: '16px',
+          padding: '20px',
+          marginBottom: '24px',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+        onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '32px' }}>🔬</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span style={{
+                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                color: 'white',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 'bold'
+              }}>
+                BETA
+              </span>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>AI Workout Generator</h3>
+            </div>
+            <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+              Generate custom workout plans with AI • Premium plan exclusive
+            </p>
+          </div>
+          <span style={{ fontSize: '24px' }}>→</span>
+        </div>
+      </div>
       
       {aiWorkoutPlan && (
         <div className="ai-workout-plan">

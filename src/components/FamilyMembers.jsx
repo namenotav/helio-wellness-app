@@ -97,7 +97,7 @@ const FamilyMembers = ({ user, planType }) => {
         <div style={{ fontSize: '48px', marginBottom: '15px' }}>👨‍👩‍👧‍👦</div>
         <h3 style={{ fontSize: '24px', marginBottom: '10px', color: 'white' }}>Family Members</h3>
         <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', marginBottom: '20px' }}>
-          Track health for your entire family. Upgrade to Premium or Ultimate to unlock this feature.
+          Track health for your entire family. Upgrade to Premium to unlock this feature.
         </p>
         <button
           onClick={() => window.location.href = '/#pricing'}

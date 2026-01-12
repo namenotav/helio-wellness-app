@@ -8,12 +8,15 @@ import multiSensorService from './multiSensorService.js';
 import motionListenerService from './motionListenerService.js';
 import firestoreService from './firestoreService';
 import authService from './authService';
+import brainLearningService from './brainLearningService.js';
 
 class NativeHealthService {
   constructor() {
     this.stepCount = 0;
     this.stepGoal = 10000;
     this.lastStepUpdate = Date.now();
+    this.initialized = false;
+    this.intervals = [];
     this.healthData = {
       steps: 0,
       calories: 0,
@@ -54,6 +57,12 @@ class NativeHealthService {
 
   async initialize() {
     try {
+      // Prevent multiple initializations
+      if (this.initialized) {
+        if(import.meta.env.DEV)console.log('✅ Health service already initialized, skipping...');
+        return true;
+      }
+      
       if(import.meta.env.DEV)console.log('🌟 Initializing MULTI-SENSOR Health Service...');
       if(import.meta.env.DEV)console.log('📱 Device Platform:', Capacitor.getPlatform());
       if(import.meta.env.DEV)console.log('📱 Is Native Platform:', Capacitor.isNativePlatform());
@@ -90,17 +99,17 @@ class NativeHealthService {
               this.stepCount = steps;
               this.healthData.steps = steps;
               this.healthData.calories = Math.round(steps * 0.04);
-              this.healthData.distance = (steps * 0.0008).toFixed(2);
+              this.healthData.distance = (steps * 0.0008);
               
               // Poll for updates every 30 seconds
-              setInterval(async () => {
+              const healthConnectInterval = setInterval(async () => {
                 try {
                   const currentSteps = await healthConnectService.getTodaySteps();
                   if (currentSteps !== this.stepCount) {
                     this.stepCount = currentSteps;
                     this.healthData.steps = currentSteps;
                     this.healthData.calories = Math.round(currentSteps * 0.04);
-                    this.healthData.distance = (currentSteps * 0.0008).toFixed(2);
+                    this.healthData.distance = (currentSteps * 0.0008);
                     this.notifyStepListeners();
                     this.saveHealthData().catch(err => console.error('Save error:', err));
                   }
@@ -108,6 +117,7 @@ class NativeHealthService {
                   console.error('❌ Failed to poll Health Connect:', error);
                 }
               }, 30000);
+              this.intervals.push(healthConnectInterval);
               
               return true;
             } else {
@@ -147,7 +157,7 @@ class NativeHealthService {
             this.stepCount = steps;
             this.healthData.steps = steps;
             this.healthData.calories = Math.round(steps * 0.04);
-            this.healthData.distance = (steps * 0.0008).toFixed(2);
+            this.healthData.distance = (steps * 0.0008);
             
             if (steps % 10 === 0) {
               this.saveHealthData().catch(err => { if(import.meta.env.DEV)console.error('Save error:', err); });
@@ -182,7 +192,7 @@ class NativeHealthService {
               this.stepCount = steps;
               this.healthData.steps = steps;
               this.healthData.calories = Math.round(steps * 0.04);
-              this.healthData.distance = (steps * 0.0008).toFixed(2);
+              this.healthData.distance = (steps * 0.0008);
               
               // Start periodic sync (every 30 seconds)
               this.googleFitSyncInterval = setInterval(async () => {
@@ -192,7 +202,7 @@ class NativeHealthService {
                     this.stepCount = latestSteps;
                     this.healthData.steps = latestSteps;
                     this.healthData.calories = Math.round(latestSteps * 0.04);
-                    this.healthData.distance = (latestSteps * 0.0008).toFixed(2);
+                    this.healthData.distance = (latestSteps * 0.0008);
                     this.notifyStepListeners();
                     await this.saveHealthData();
                   }
@@ -200,6 +210,7 @@ class NativeHealthService {
                   console.error('Google Fit sync error:', error);
                 }
               }, 30000); // 30 seconds
+              this.intervals.push(this.googleFitSyncInterval);
               
               return true;
             }
@@ -261,6 +272,7 @@ class NativeHealthService {
         if(import.meta.env.DEV)console.warn('⚠️ All auto-detection failed, manual mode only:', error);
       }
       
+      this.initialized = true;
       return true;
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Failed to initialize health service:', error);
@@ -353,6 +365,7 @@ class NativeHealthService {
       this.debugInterval = setInterval(() => {
         if(import.meta.env.DEV)console.log(`📊 Status - Events: ${this.totalEventsReceived}, Steps: ${this.stepCount}, Magnitude: ${this.lastMagnitude.toFixed(2)}`);
       }, 10000);
+      this.intervals.push(this.debugInterval);
       
       return true;
     } catch (error) {
@@ -379,7 +392,7 @@ class NativeHealthService {
           this.stepCount++;
           this.healthData.steps = this.stepCount;
           this.healthData.calories = Math.round(this.stepCount * 0.04);
-          this.healthData.distance = (this.stepCount * 0.0008).toFixed(2);
+          this.healthData.distance = (this.stepCount * 0.0008);
           
           if (this.stepCount % 10 === 0) {
             this.saveHealthData().catch(err => { if(import.meta.env.DEV)console.error('Save error:', err); });
@@ -434,7 +447,7 @@ class NativeHealthService {
         
         // Update derived metrics
         this.healthData.calories = Math.round(this.stepCount * 0.04);
-        this.healthData.distance = (this.stepCount * 0.0008).toFixed(2);
+        this.healthData.distance = (this.stepCount * 0.0008);
         
         // Save periodically (every 10 steps to avoid too many writes)
         if (this.stepCount % 10 === 0) {
@@ -482,8 +495,12 @@ class NativeHealthService {
           date: todayDate
         };
         
-        // Save to Firebase
-        await firestoreService.save('weeklySteps', weeklyStepsData, authService.getCurrentUser()?.uid);
+        // Save to Firebase (localStorage-first pattern - INSTANT UI)
+        localStorage.setItem('wellnessai_weeklySteps', JSON.stringify(weeklyStepsData));
+        Preferences.set({ key: 'wellnessai_weeklySteps', value: JSON.stringify(weeklyStepsData) })
+          .catch(err => console.error('Preferences save failed:', err));
+        firestoreService.save('weeklySteps', weeklyStepsData, authService.getCurrentUser()?.uid)
+          .catch(err => console.error('Firestore sync failed:', err));
       } catch (error) {
         // Silent fail - don't spam console
       }
@@ -521,7 +538,7 @@ class NativeHealthService {
       this.stepCount += amount;
       this.healthData.steps = this.stepCount;
       this.healthData.calories = Math.round(this.stepCount * 0.04);
-      this.healthData.distance = (this.stepCount * 0.0008).toFixed(2);
+      this.healthData.distance = (this.stepCount * 0.0008);
       
       await this.saveHealthData();
       this.notifyStepListeners();
@@ -815,7 +832,7 @@ class NativeHealthService {
         unit: 'kcal'
       },
       distance: {
-        traveled: this.healthData.distance.toFixed(2),
+        traveled: Number(this.healthData.distance || 0).toFixed(2),
         unit: 'km'
       },
       activeTime: {
@@ -881,8 +898,12 @@ class NativeHealthService {
         date: yesterdayDate
       };
       
-      // Save to Firebase
-      await firestoreService.save('weeklySteps', weeklyStepsData, authService.getCurrentUser()?.uid);
+      // Save to Firebase (localStorage-first pattern - INSTANT UI)
+      localStorage.setItem('wellnessai_weeklySteps', JSON.stringify(weeklyStepsData));
+      Preferences.set({ key: 'wellnessai_weeklySteps', value: JSON.stringify(weeklyStepsData) })
+        .catch(err => console.error('Preferences save failed:', err));
+      firestoreService.save('weeklySteps', weeklyStepsData, authService.getCurrentUser()?.uid)
+        .catch(err => console.error('Firestore sync failed:', err));
       if(import.meta.env.DEV)console.log('✅ Firebase updated: weeklySteps[' + yesterdayIndex + '] = ' + yesterdaySteps + ' steps');
       
     } catch (error) {
@@ -894,7 +915,7 @@ class NativeHealthService {
     this.healthData = {
       steps: 0,
       calories: 0,
-      distance: 0,
+      distance: 0.0,
       activeMinutes: 0,
       heartRate: this.healthData.heartRate,
       weight: this.healthData.weight,
@@ -955,7 +976,12 @@ class NativeHealthService {
         if (rawSteps < stepBaseline && baselineDate === todayDate) {
           console.log('💾 SAVE: Sensor reset detected, resetting baseline');
           stepBaseline = rawSteps;
-          await firestoreService.save('stepBaseline', rawSteps.toString(), authService.getCurrentUser()?.uid);
+          // localStorage-first pattern - INSTANT UI
+          localStorage.setItem('wellnessai_stepBaseline', rawSteps.toString());
+          Preferences.set({ key: 'wellnessai_stepBaseline', value: rawSteps.toString() })
+            .catch(err => console.error('Preferences save failed:', err));
+          firestoreService.save('stepBaseline', rawSteps.toString(), authService.getCurrentUser()?.uid)
+            .catch(err => console.error('Firestore sync failed:', err));
         }
         
         if (baselineDate === todayDate) {
@@ -1023,9 +1049,18 @@ class NativeHealthService {
       
       localStorage.setItem('stepHistory', JSON.stringify(stepHistory));
       
-      // Save to syncService (Preferences + Firebase) - already imported above
-      await firestoreService.save('health_data', healthData, authService.getCurrentUser()?.uid);
-      await firestoreService.save('stepHistory', stepHistory, authService.getCurrentUser()?.uid);
+      // Save to syncService (localStorage-first pattern - INSTANT UI)
+      localStorage.setItem('wellnessai_health_data', JSON.stringify(healthData));
+      Preferences.set({ key: 'wellnessai_health_data', value: JSON.stringify(healthData) })
+        .catch(err => console.error('Preferences save failed:', err));
+      firestoreService.save('health_data', healthData, authService.getCurrentUser()?.uid)
+        .catch(err => console.error('Firestore sync failed:', err));
+      
+      localStorage.setItem('wellnessai_stepHistory', JSON.stringify(stepHistory));
+      Preferences.set({ key: 'wellnessai_stepHistory', value: JSON.stringify(stepHistory) })
+        .catch(err => console.error('Preferences save failed:', err));
+      firestoreService.save('stepHistory', stepHistory, authService.getCurrentUser()?.uid)
+        .catch(err => console.error('Firestore sync failed:', err));
       
       console.log('💾 Saved to syncService (Preferences + Firebase)');
       
@@ -1113,6 +1148,17 @@ class NativeHealthService {
     }
     
     this.stepListeners.forEach(callback => callback(this.getHealthData()));
+    
+    // 🧠 BRAIN.JS LEARNING - Track steps for AI movement pattern analysis
+    // Only track if steps > 0 to avoid spam
+    if (this.stepCount > 0) {
+      brainLearningService.trackSteps(this.stepCount, {
+        activeMinutes: this.healthData.activeMinutes || 0,
+        energyLevel: 5
+      }).catch(err => {
+        if(import.meta.env.DEV)console.warn('Brain.js step tracking failed:', err);
+      });
+    }
   }
 
   watchStepCount(callback) {
@@ -1129,6 +1175,30 @@ class NativeHealthService {
     }
     
     this.saveHealthData();
+  }
+
+  shutdown() {
+    // Clear all polling intervals
+    this.intervals.forEach(interval => clearInterval(interval));
+    this.intervals = [];
+    
+    // Clear individual tracked intervals
+    if (this.googleFitSyncInterval) {
+      clearInterval(this.googleFitSyncInterval);
+      this.googleFitSyncInterval = null;
+    }
+    if (this.debugInterval) {
+      clearInterval(this.debugInterval);
+      this.debugInterval = null;
+    }
+    
+    // Stop motion tracking
+    this.stopStepCounting();
+    
+    // Reset initialization flag
+    this.initialized = false;
+    
+    if(import.meta.env.DEV)console.log('🛑 Health service shut down, all intervals cleared');
   }
 
   getAchievements() {

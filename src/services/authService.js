@@ -5,6 +5,7 @@ import { Preferences } from '@capacitor/preferences';
 import firebaseService from './firebaseService.js';
 import syncService from './syncService.js';
 import firestoreService from './firestoreService.js';
+import brainLearningService from './brainLearningService.js';
 
 class AuthService {
   constructor() {
@@ -30,7 +31,7 @@ class AuthService {
             this.currentUser = profile;
             localStorage.setItem('wellnessai_user', JSON.stringify(this.currentUser));
             await syncService.onUserLogin(firebaseUser.uid);
-            this.notifyAuthStateChanged();
+            // Don't notify during init - prevents React loops
             return;
           }
         }
@@ -60,7 +61,7 @@ class AuthService {
             }
           }
           
-          this.notifyAuthStateChanged();
+          // Don't notify during init - prevents React loops
         } catch (error) {
           if(import.meta.env.DEV)console.error('Error loading saved session:', error);
           await Preferences.remove({ key: 'wellnessai_user' });
@@ -220,8 +221,9 @@ class AuthService {
         throw new Error('No account found with this email');
       }
 
-      const hashedPassword = this.hashPassword(password);
-      if (user.password !== hashedPassword) {
+      // Verify password using secure PBKDF2
+      const isPasswordValid = await this.verifyPasswordSecure(password, user.password);
+      if (!isPasswordValid) {
         throw new Error('Incorrect password');
       }
 
@@ -263,6 +265,16 @@ class AuthService {
   // Check if user is logged in
   isLoggedIn() {
     return this.currentUser !== null;
+  }
+
+  // Safe check for authentication status (prevents null reference errors)
+  isAuthenticated() {
+    try {
+      return this.currentUser !== null && this.currentUser !== undefined;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Error checking auth status:', error);
+      return false;
+    }
   }
 
   // Update user profile
@@ -584,22 +596,73 @@ class AuthService {
     };
     foodLog.push(logEntry);
     
-    // 💾 SAVE TO CAPACITOR PREFERENCES (persistent storage)
-    const { value: foodLogJson } = await Preferences.get({ key: 'foodLog' });
-    const dashboardFoodLog = foodLogJson ? JSON.parse(foodLogJson) : [];
+    // 🎯 OPTIMISTIC UI: Save via dataService (handles all 4 systems)
+    const dashboardFoodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
     dashboardFoodLog.push({
       name: foodItem.name || 'Food item',
       calories: foodItem.calories || 0,
       timestamp: Date.now(),
       date: new Date().toISOString().split('T')[0]
     });
-    await Preferences.set({ key: 'foodLog', value: JSON.stringify(dashboardFoodLog) });
     
-    // Also keep localStorage for backwards compatibility
-    localStorage.setItem('foodLog', JSON.stringify(dashboardFoodLog));
-    if(import.meta.env.DEV)console.log('✅ Meal saved to persistent storage');
+    // Import dataService dynamically
+    const { default: dataService } = await import('./dataService');
+    dataService.save('foodLog', dashboardFoodLog, this.currentUser.uid);
+    if(import.meta.env.DEV)console.log('✅ Meal saved via dataService (all 4 systems)');
     
-    return this.updateProfile({ foodLog });
+    // 🧠 BRAIN.JS LEARNING - Track meal for AI nutrition optimization
+    try {
+      await brainLearningService.trackMeal({
+        hour: new Date().getHours(),
+        dayOfWeek: new Date().getDay(),
+        mealType: 'meal',
+        calories: foodItem.calories || 0,
+        protein: foodItem.protein || 0,
+        carbs: foodItem.carbs || 0,
+        fats: foodItem.fats || 0,
+        healthy: foodItem.safety !== 'danger' && foodItem.safetyLevel !== 'danger',
+        energyAfter: 5,
+        satisfaction: foodItem.healthy ? 7 : 5,
+        digestiveComfort: foodItem.safety === 'safe' || foodItem.safetyLevel === 'safe' ? 8 : 5
+      });
+      if(import.meta.env.DEV)console.log('🧠 Meal tracked for AI learning');
+    } catch (err) {
+      if(import.meta.env.DEV)console.warn('Brain.js meal tracking failed:', err);
+    }
+    
+    // ⭐ GAMIFICATION: Log meal activity (centralized for all meal types)
+    try {
+      const gamificationService = await import('./gamificationService');
+      await gamificationService.default.logActivity('meal');
+      if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Meal activity logged');
+    } catch (error) {
+      // Don't block meal logging if gamification fails
+      if(import.meta.env.DEV)console.error('❌ [GAMIFICATION] Failed to log meal activity:', error);
+    }
+    
+    // 🎯 DAILY CHALLENGE: Update "Log 3 Meals" challenge progress
+    if (window.updateDailyChallenge) {
+      window.updateDailyChallenge('log_meal', 1);
+      if(import.meta.env.DEV)console.log('🎯 [DAILY CHALLENGE] Meal logged - updated challenge progress');
+    }
+    
+    // 🔥 BACKGROUND FIRESTORE SYNC (non-blocking - happens in background)
+    if (this.useFirebase && this.currentUser?.uid) {
+      // Don't await - let it sync in background
+      firestoreService.save('foodLog', dashboardFoodLog, this.currentUser.uid)
+        .then(() => {
+          if(import.meta.env.DEV)console.log('☁️ foodLog synced to Firestore (background)')
+        })
+        .catch(error => {
+          console.warn('⚠️ foodLog Firestore sync failed (will retry later):', error)
+        })
+    }
+    
+    // Update profile in background too
+    this.updateProfile({ foodLog })
+    
+    // Return immediately so UI shows data instantly
+    return { success: true, data: logEntry }
   }
 
   async logSymptom(symptom) {

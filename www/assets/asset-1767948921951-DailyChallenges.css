@@ -1,0 +1,131 @@
+.daily-challenges {
+  background: rgba(74, 63, 107, 0.15);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.challenges-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.challenges-icon {
+  font-size: 24px;
+}
+
+.challenges-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.challenges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.challenge-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.challenge-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(138, 116, 249, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.challenge-item:hover::before {
+  transform: translateX(100%);
+}
+
+.challenge-item.completed {
+  background: linear-gradient(135deg, rgba(67, 233, 123, 0.2) 0%, rgba(56, 249, 215, 0.2) 100%);
+  border: 1px solid rgba(67, 233, 123, 0.5);
+}
+
+.challenge-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.challenge-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.challenge-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.challenge-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.challenge-xp {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffd93d;
+  background: rgba(255, 217, 61, 0.1);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.challenge-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.challenge-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd93d 0%, #ff6b6b 50%, #8a74f9 100%);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.challenge-counter {
+  font-size: 12px;
+  color: #b8b5d1;
+  font-weight: 600;
+}
+
+.challenge-check {
+  font-size: 24px;
+  color: #43e97b;
+  flex-shrink: 0;
+  animation: checkPop 0.4s ease-out;
+}
+
+@keyframes checkPop {
+  0% { transform: scale(0) rotate(-45deg); }
+  50% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}

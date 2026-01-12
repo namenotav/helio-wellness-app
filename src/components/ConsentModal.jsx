@@ -9,11 +9,16 @@ export default function ConsentModal({ onAccept }) {
   const [acceptedHealth, setAcceptedHealth] = useState(false);
 
   useEffect(() => {
-    // Check if user has given consent
-    const hasConsented = localStorage.getItem('user_consent');
-    if (!hasConsented) {
-      setShowModal(true);
-    }
+    // Check if user has given consent - Preferences first, localStorage fallback
+    const checkConsent = async () => {
+      const { Preferences } = await import('@capacitor/preferences');
+      const { value: prefsConsent } = await Preferences.get({ key: 'wellnessai_user_consent' });
+      const hasConsented = prefsConsent || localStorage.getItem('user_consent');
+      if (!hasConsented) {
+        setShowModal(true);
+      }
+    };
+    checkConsent();
   }, []);
 
   const handleAccept = () => {
@@ -30,7 +35,11 @@ export default function ConsentModal({ onAccept }) {
       version: '1.0'
     };
 
+    // Save to both localStorage and Preferences (dual-storage pattern)
     localStorage.setItem('user_consent', JSON.stringify(consent));
+    import('@capacitor/preferences').then(({ Preferences }) => {
+      Preferences.set({ key: 'wellnessai_user_consent', value: JSON.stringify(consent) });
+    });
     setShowModal(false);
     
     if (onAccept) {

@@ -2,6 +2,7 @@
 // Supports Bluetooth heart rate monitors (Polar, Garmin, Apple Watch, etc.)
 
 import { Capacitor } from '@capacitor/core';
+import syncService from './syncService.js';
 
 class HeartRateService {
   constructor() {
@@ -52,8 +53,8 @@ class HeartRateService {
 
       this.isMonitoring = true;
       
-      // Save device info
-      localStorage.setItem('hr_device_name', this.device.name || 'Unknown Device');
+      // Save device info using syncService
+      await syncService.saveData('hr_device_name', this.device.name || 'Unknown Device');
       
       return {
         success: true,
@@ -145,6 +146,150 @@ class HeartRateService {
   }
 
   /**
+   * Measure heart rate using phone camera (photoplethysmography)
+   */
+  async measureWithCamera(onProgress) {
+    try {
+      // Request camera access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' } // Back camera
+      });
+
+      // Enable flashlight if supported
+      const track = stream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+      if (capabilities.torch) {
+        await track.applyConstraints({ advanced: [{ torch: true }] });
+      }
+
+      // Create video element for processing
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+
+      // Wait for video to be ready
+      await new Promise(resolve => {
+        video.onloadedmetadata = resolve;
+      });
+
+      // Create canvas for frame analysis
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Collect red channel values (blood flow)
+      const redValues = [];
+      const sampleDuration = 10000; // 10 seconds
+      const sampleRate = 30; // 30 FPS
+      const startTime = Date.now();
+
+      return new Promise((resolve, reject) => {
+        const interval = setInterval(() => {
+          // Draw current frame
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Get center region (finger should be here)
+          const centerX = canvas.width / 2;
+          const centerY = canvas.height / 2;
+          const sampleSize = 50;
+          const imageData = ctx.getImageData(
+            centerX - sampleSize / 2,
+            centerY - sampleSize / 2,
+            sampleSize,
+            sampleSize
+          );
+
+          // Calculate average red value
+          let redSum = 0;
+          for (let i = 0; i < imageData.data.length; i += 4) {
+            redSum += imageData.data[i]; // Red channel
+          }
+          const avgRed = redSum / (imageData.data.length / 4);
+          redValues.push(avgRed);
+
+          // Update progress
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min((elapsed / sampleDuration) * 100, 100);
+          if (onProgress) onProgress(Math.round(progress));
+
+          // Stop after sample duration
+          if (elapsed >= sampleDuration) {
+            clearInterval(interval);
+
+            // Clean up
+            stream.getTracks().forEach(track => track.stop());
+
+            // Calculate BPM from red values
+            const bpm = this.calculateBPMFromSignal(redValues, sampleRate);
+
+            // Save reading
+            const reading = {
+              bpm,
+              timestamp: Date.now(),
+              source: 'camera'
+            };
+            this.currentHeartRate = bpm;
+            this.heartRateHistory.push(reading);
+            this.saveHistory();
+
+            resolve({ bpm, confidence: 0.75 });
+          }
+        }, 1000 / sampleRate);
+
+        // Timeout after 12 seconds
+        setTimeout(() => {
+          clearInterval(interval);
+          stream.getTracks().forEach(track => track.stop());
+          reject(new Error('Measurement timeout'));
+        }, 12000);
+      });
+    } catch (error) {
+      console.error('❌ Camera heart rate error:', error);
+      throw new Error('Camera access denied or not supported');
+    }
+  }
+
+  /**
+   * Calculate BPM from signal using peak detection
+   */
+  calculateBPMFromSignal(signal, sampleRate) {
+    // Remove DC component (normalize)
+    const mean = signal.reduce((a, b) => a + b, 0) / signal.length;
+    const normalized = signal.map(v => v - mean);
+
+    // Find peaks (blood pulses)
+    const peaks = [];
+    const threshold = Math.max(...normalized) * 0.6;
+
+    for (let i = 1; i < normalized.length - 1; i++) {
+      if (
+        normalized[i] > threshold &&
+        normalized[i] > normalized[i - 1] &&
+        normalized[i] > normalized[i + 1]
+      ) {
+        peaks.push(i);
+      }
+    }
+
+    // Calculate average time between peaks
+    if (peaks.length < 2) {
+      return 0; // Not enough peaks detected
+    }
+
+    const intervals = [];
+    for (let i = 1; i < peaks.length; i++) {
+      intervals.push(peaks[i] - peaks[i - 1]);
+    }
+
+    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    const bpm = Math.round((60 * sampleRate) / avgInterval);
+
+    // Sanity check (typical heart rate range)
+    return bpm >= 40 && bpm <= 200 ? bpm : 75; // Default to 75 if out of range
+  }
+
+  /**
    * Get current heart rate
    */
   getCurrentHeartRate() {
@@ -224,28 +369,46 @@ class HeartRateService {
   }
 
   /**
-   * Save history to localStorage
+   * Save history to cloud (Preferences + Firebase)
    */
-  saveHistory() {
+  async saveHistory() {
     try {
-      localStorage.setItem('heart_rate_history', JSON.stringify(this.heartRateHistory));
+      await syncService.saveData('heart_rate_history', this.heartRateHistory);
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to save heart rate history:', error);
     }
   }
 
   /**
-   * Load history from localStorage
+   * Load history from cloud/localStorage
    */
-  loadHistory() {
+  async loadHistory() {
     try {
+      // 🔥 FIX: Try to load from syncService (Preferences → Firebase → localStorage)
+      const syncService = (await import('./syncService.js')).default;
+      const cloudHistory = await syncService.getData('heart_rate_history');
+      if (cloudHistory && cloudHistory.length > 0) {
+        this.heartRateHistory = cloudHistory;
+        localStorage.setItem('heart_rate_history', JSON.stringify(cloudHistory));
+        if(import.meta.env.DEV)console.log(`✅ Loaded ${this.heartRateHistory.length} heart rate readings from cloud`);
+        return;
+      }
+      
+      // Fallback to localStorage
       const saved = localStorage.getItem('heart_rate_history');
       if (saved) {
         this.heartRateHistory = JSON.parse(saved);
-        if(import.meta.env.DEV)console.log(`✅ Loaded ${this.heartRateHistory.length} heart rate readings`);
+        if(import.meta.env.DEV)console.log(`✅ Loaded ${this.heartRateHistory.length} heart rate readings from localStorage`);
       }
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to load heart rate history:', error);
+      // Final fallback
+      try {
+        const saved = localStorage.getItem('heart_rate_history');
+        if (saved) {
+          this.heartRateHistory = JSON.parse(saved);
+        }
+      } catch (e) { /* ignore */ }
     }
   }
 

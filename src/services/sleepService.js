@@ -2,6 +2,7 @@
 import syncService from './syncService.js';
 import firestoreService from './firestoreService';
 import authService from './authService';
+import brainLearningService from './brainLearningService';
 
 class SleepService {
   constructor() {
@@ -21,6 +22,11 @@ class SleepService {
    */
   async logSleep(sleepData) {
     try {
+      // 🔥 FIX: Load existing sleep logs BEFORE adding new one
+      if (this.sleepLog.length === 0) {
+        await this.loadSleepLog();
+      }
+
       const sleep = {
         ...sleepData,
         id: 'sleep_' + Date.now(),
@@ -33,7 +39,32 @@ class SleepService {
       // Save to triple storage (localStorage + Preferences + Firebase)
       await this.saveSleepLog();
 
-      if(import.meta.env.DEV)console.log('✅ Sleep logged:', sleep.duration || sleep.hours, 'hours');
+      // 🧠 BRAIN.JS LEARNING - Track sleep for AI optimization
+      const bedtimeHour = sleepData.bedtime ? parseInt(sleepData.bedtime.split(':')[0]) : 22;
+      const wakeTimeHour = sleepData.wakeTime ? parseInt(sleepData.wakeTime.split(':')[0]) : 6;
+      await brainLearningService.trackSleep({
+        bedtime: bedtimeHour,
+        wakeTime: wakeTimeHour,
+        duration: sleepData.duration || sleepData.hours || 8,
+        quality: sleepData.quality || 7,
+        energyNextDay: 7, // Can be updated from morning check-in
+        mood: 'rested',
+        dreams: sleepData.dreams || false,
+        interruptions: sleepData.interruptions || 0
+      });
+
+      // 🧠 BRAIN.JS LEARNING - Track morning energy based on sleep quality
+      const sleepQuality = sleepData.quality || 7;
+      const sleepDuration = sleepData.duration || sleepData.hours || 8;
+      // Calculate morning energy: better sleep = higher energy
+      const morningEnergy = Math.min(10, Math.max(1, Math.round((sleepQuality + sleepDuration) / 2)));
+      await brainLearningService.trackEnergy(morningEnergy, {
+        hoursSlept: sleepDuration,
+        recentWorkout: false,
+        stressLevel: sleepQuality > 6 ? 2 : 5 // Good sleep = lower stress
+      });
+
+      if(import.meta.env.DEV)console.log('✅ Sleep logged & learned:', sleep.duration || sleep.hours, 'hours');
 
       return {
         success: true,
@@ -93,8 +124,10 @@ class SleepService {
       // Save to localStorage (backward compatibility)
       localStorage.setItem('sleepLog', JSON.stringify(recentSleep));
 
-      // Save to syncService (Preferences + Firebase)
-      await firestoreService.save('sleepLog', recentSleep, authService.getCurrentUser()?.uid);
+      // Save to syncService (Preferences + Firebase) - background
+      firestoreService.save('sleepLog', recentSleep, authService.getCurrentUser()?.uid)
+        .then(() => console.log('☁️ sleepLog synced to Firestore (background)'))
+        .catch(err => console.warn('⚠️ sleepLog sync failed:', err));
 
       if(import.meta.env.DEV)console.log('💾 Sleep log saved (localStorage + Preferences + Firebase)');
     } catch (error) {

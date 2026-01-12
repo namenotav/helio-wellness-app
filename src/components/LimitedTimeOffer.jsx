@@ -6,14 +6,30 @@ const LimitedTimeOffer = ({ onAccept, onDecline }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if user has seen offer before
-    const offerSeen = localStorage.getItem('limitedOfferSeen');
-    const visitCount = parseInt(localStorage.getItem('visitCount') || '0');
-    
-    // Show after 3 visits or when they hit usage limits
-    if (!offerSeen && visitCount >= 3) {
-      setTimeout(() => setIsVisible(true), 5000); // Show after 5 seconds
-    }
+    // Check if user has seen offer before - read from Preferences first
+    const checkOfferStatus = async () => {
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        const { value: prefsOfferSeen } = await Preferences.get({ key: 'wellnessai_limitedOfferSeen' });
+        const { value: prefsVisitCount } = await Preferences.get({ key: 'wellnessai_visitCount' });
+        
+        const offerSeen = prefsOfferSeen || localStorage.getItem('limitedOfferSeen');
+        const visitCount = parseInt(prefsVisitCount || localStorage.getItem('visitCount') || '0');
+        
+        // Show after 3 visits or when they hit usage limits
+        if (!offerSeen && visitCount >= 3) {
+          setTimeout(() => setIsVisible(true), 5000); // Show after 5 seconds
+        }
+      } catch (e) {
+        // Fallback to localStorage
+        const offerSeen = localStorage.getItem('limitedOfferSeen');
+        const visitCount = parseInt(localStorage.getItem('visitCount') || '0');
+        if (!offerSeen && visitCount >= 3) {
+          setTimeout(() => setIsVisible(true), 5000);
+        }
+      }
+    };
+    checkOfferStatus();
 
     // Countdown timer
     if (isVisible && timeLeft > 0) {
@@ -30,14 +46,24 @@ const LimitedTimeOffer = ({ onAccept, onDecline }) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
+    // Write to both storages
     localStorage.setItem('limitedOfferSeen', 'true');
+    try {
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({ key: 'wellnessai_limitedOfferSeen', value: 'true' });
+    } catch (e) { /* localStorage fallback already done */ }
     onAccept();
     setIsVisible(false);
   };
 
-  const handleDecline = () => {
+  const handleDecline = async () => {
+    // Write to both storages
     localStorage.setItem('limitedOfferSeen', 'true');
+    try {
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({ key: 'wellnessai_limitedOfferSeen', value: 'true' });
+    } catch (e) { /* localStorage fallback already done */ }
     onDecline();
     setIsVisible(false);
   };
@@ -134,24 +160,16 @@ const LimitedTimeOffer = ({ onAccept, onDecline }) => {
           marginBottom: '25px',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '20px', marginBottom: '15px', color: 'white' }}>
-            Get your <strong>first month</strong> for only
+          <div style={{ fontSize: '24px', marginBottom: '15px', color: 'white', fontWeight: 'bold' }}>
+            🎉 Start Your <strong>30-Day FREE Trial</strong>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '15px' }}>
-            <div style={{
-              fontSize: '32px',
-              textDecoration: 'line-through',
-              opacity: 0.5,
-              color: 'rgba(255,255,255,0.6)'
-            }}>
-              £4.99
-            </div>
             <div style={{
               fontSize: '56px',
               fontWeight: 'bold',
               color: '#10b981'
             }}>
-              £3.99
+              £0.00
             </div>
           </div>
           <div style={{
@@ -163,7 +181,7 @@ const LimitedTimeOffer = ({ onAccept, onDecline }) => {
             fontWeight: 'bold',
             color: '#10b981'
           }}>
-            💰 Save 20% (£12/year)
+            Then £6.99/month • Cancel anytime
           </div>
         </div>
 
@@ -202,7 +220,7 @@ const LimitedTimeOffer = ({ onAccept, onDecline }) => {
             onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
             onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
           >
-            🚀 Claim Offer - £3.99 for First Month
+            🚀 Start 30-Day FREE Trial
           </button>
           <button
             onClick={handleDecline}

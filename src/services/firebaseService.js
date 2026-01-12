@@ -1,5 +1,5 @@
 // Firebase Service - Cloud Database & Authentication
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { getDatabase, ref, set, get, update, remove, onValue, push } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -42,8 +42,9 @@ class FirebaseService {
         return false;
       }
 
-      // Initialize Firebase app
-      this.app = initializeApp(firebaseConfig);
+      // Initialize Firebase app (or reuse existing default app)
+      // IMPORTANT: The app must be singleton across the codebase.
+      this.app = getApps().length ? getApp() : initializeApp(firebaseConfig);
       this.auth = getAuth(this.app);
       this.database = getDatabase(this.app);
       this.storage = getStorage(this.app);
@@ -372,10 +373,14 @@ class FirebaseService {
   // ========================================
   // UTILITY METHODS
   // ========================================
-
-  // Check if user is authenticated
+  // Check if user is authenticated - with null safety
   isAuthenticated() {
-    return this.auth.currentUser !== null;
+    try {
+      return this.auth && this.auth.currentUser !== null;
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Error checking firebase auth status:', error);
+      return false;
+    }
   }
 
   // Get user email

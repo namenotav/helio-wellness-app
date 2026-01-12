@@ -1,0 +1,731 @@
+/* CRITICAL: Make EVERYTHING transparent when barcode scanning is active */
+/* This allows the native camera feed to show through from behind the webview */
+
+html.barcode-scanning-active,
+body.barcode-scanning-active {
+  background: transparent !important;
+  --background: transparent !important;
+  --ion-background-color: transparent !important;
+  opacity: 1 !important;
+}
+
+/* Make all container elements transparent */
+body.barcode-scanning-active * {
+  background: transparent !important;
+}
+
+body.barcode-scanning-active .barcode-scanner-modal {
+  background: transparent !important;
+}
+
+body.barcode-scanning-active ion-app,
+body.barcode-scanning-active #root,
+body.barcode-scanning-active .app-container,
+body.barcode-scanning-active .dashboard,
+body.barcode-scanning-active .scanner-content {
+  background: transparent !important;
+  opacity: 1 !important;
+}
+
+/* Only show the scanning UI overlay with visible elements */
+body.barcode-scanning-active .scanning-state {
+  background: transparent !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 999999 !important;
+}
+
+body.barcode-scanning-active .scanning-state p {
+  background: rgba(0, 0, 0, 0.7) !important;
+  color: white !important;
+  padding: 15px 30px !important;
+  border-radius: 10px !important;
+  font-size: 18px !important;
+  text-align: center !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* TAP-TO-CANCEL OVERLAY APPROACH */
+/* Native camera shows through body opacity 0, overlay visible via gradient backgrounds */
+
+/* Fullscreen tap-to-cancel overlay - positioned above native camera */
+.scanner-tap-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent !important;
+  pointer-events: auto !important;
+}
+
+/* Visible info bar at top with semi-transparent gradient */
+.scanner-info-bar {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    transparent 100%
+  ) !important;
+  padding: 20px 20px 30px 20px !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  pointer-events: auto !important;
+}
+
+.scanner-info-content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 15px !important;
+}
+
+.scan-title {
+  color: white !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.9) !important;
+}
+
+.scan-countdown {
+  background: rgba(255, 59, 48, 0.95) !important;
+  color: white !important;
+  padding: 10px 20px !important;
+  border-radius: 25px !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  min-width: 70px !important;
+  text-align: center !important;
+  box-shadow: 0 5px 20px rgba(255, 59, 48, 0.6) !important;
+  border: 3px solid white !important;
+}
+
+.tap-hint {
+  color: rgba(255, 255, 255, 0.98) !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  animation: pulse 2s ease-in-out infinite !important;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.9) !important;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.08); }
+}
+
+/* Scanning frame in center - smaller and less obtrusive */
+.scanner-frame-center {
+  position: relative !important;
+  width: 250px !important;
+  height: 250px !important;
+  margin: 0 auto !important;
+  pointer-events: none !important;
+}
+
+.corner {
+  position: absolute !important;
+  width: 40px !important;
+  height: 40px !important;
+  border: 4px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5) !important;
+}
+
+.corner-tl {
+  top: 0 !important;
+  left: 0 !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-top-left-radius: 10px !important;
+}
+
+.corner-tr {
+  top: 0 !important;
+  right: 0 !important;
+  border-left: none !important;
+  border-bottom: none !important;
+  border-top-right-radius: 10px !important;
+}
+
+.corner-bl {
+  bottom: 0 !important;
+  left: 0 !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom-left-radius: 10px !important;
+}
+
+.corner-br {
+  bottom: 0 !important;
+  right: 0 !important;
+  border-left: none !important;
+  border-top: none !important;
+  border-bottom-right-radius: 10px !important;
+}
+
+.scan-line-animated {
+  position: absolute !important;
+  top: 0 !important;
+  left: 10% !important;
+  right: 10% !important;
+  height: 4px !important;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 59, 48, 0.98),
+    rgba(255, 255, 255, 0.98),
+    rgba(255, 59, 48, 0.98),
+    transparent
+  ) !important;
+  box-shadow: 0 0 20px rgba(255, 59, 48, 0.9) !important;
+  animation: scan 2.5s ease-in-out infinite !important;
+}
+
+@keyframes scan {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(250px); }
+}
+
+/* Instructions at bottom */
+.scanner-instructions-bottom {
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.5) 30%,
+    transparent 100%
+  ) !important;
+  padding: 30px 20px 20px 20px !important;
+  text-align: center !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  pointer-events: auto !important;
+}
+
+.scanner-instructions-bottom p {
+  color: white !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Barcode Scanner Styles */
+.barcode-scanner-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Make background transparent during scan to show camera feed */
+.barcode-scanner-modal.scanning-active {
+  background: transparent !important;
+}
+
+.scanner-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 24px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Make content transparent during scan to show camera feed */
+.scanner-content.scanning-active {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  padding: 0;
+  max-width: 100%;
+  width: 100%;
+  max-height: 100vh;
+}
+
+.scanner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Hide header during scanning */
+.scanner-content.scanning-active .scanner-header {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10002;
+  width: auto;
+  margin-bottom: 24px;
+}
+
+.scanner-header h2 {
+  color: white;
+  font-size: 24px;
+  margin: 0;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.scanner-instructions {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.barcode-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.scanner-instructions h3 {
+  color: white;
+  font-size: 24px;
+  margin: 0 0 12px 0;
+}
+
+.scanner-instructions p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  margin: 8px 0;
+}
+
+.hint {
+  font-size: 14px !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.scan-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 24px;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.scan-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.scan-btn:active {
+  transform: translateY(0);
+}
+
+.error-message {
+  background: rgba(255, 59, 48, 0.2);
+  color: #ff3b30;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+  border: 1px solid rgba(255, 59, 48, 0.3);
+}
+
+/* Fixed Top Bar - Always visible with solid background (top 25% of screen) */
+.scanner-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 15vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  z-index: 2147483647 !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.scanner-top-bar h3 {
+  color: white;
+  font-size: 22px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.cancel-btn-top {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.5);
+}
+
+.cancel-btn-top:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.7);
+}
+
+.cancel-btn-top:active {
+  transform: scale(0.95);
+}
+
+.scanning-state {
+  position: fixed;
+  top: 15vh;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  background: transparent !important;
+}
+
+.scanner-frame {
+  width: 280px;
+  height: 280px;
+  max-width: 80vw;
+  max-height: 80vw;
+  border: 4px solid #11998e;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: 0 0 40px rgba(17, 153, 142, 0.6), inset 0 0 20px rgba(17, 153, 142, 0.2);
+}
+
+.scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #11998e, transparent);
+  animation: scanAnimation 2s linear infinite;
+  box-shadow: 0 0 10px #11998e;
+}
+
+@keyframes scanAnimation {
+  0% { top: 0; }
+  50% { top: calc(100% - 3px); }
+  100% { top: 0; }
+}
+
+.scan-instructions {
+  color: white;
+  font-size: 15px;
+  margin: 24px 0;
+  line-height: 1.8;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px 24px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  max-width: 90vw;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.stop-scan-btn {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border: none;
+  padding: 16px 40px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 24px;
+  box-shadow: 0 4px 20px rgba(231, 76, 60, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.stop-scan-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.scanning-state p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+}
+
+.scan-result {
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.food-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.scan-result h3 {
+  color: white;
+  font-size: 22px;
+  margin: 0 0 8px 0;
+}
+
+.brand {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  margin: 0 0 20px 0;
+}
+
+.nutrition-info {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.nutrition-info h4 {
+  color: white;
+  font-size: 16px;
+  margin: 0 0 12px 0;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.nutrition-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.nutrition-item .label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.nutrition-item .value {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.ingredients {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.ingredients h4 {
+  color: white;
+  font-size: 16px;
+  margin: 0 0 8px 0;
+}
+
+.ingredients p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.add-btn, .rescan-btn {
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 239, 125, 0.4);
+}
+
+.rescan-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.rescan-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.source {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  margin: 12px 0 0 0;
+}
+
+/* Scanner UI Overlay */
+.scanner-ui {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.scanner-ui.active {
+  display: block;
+}
+
+.scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.scanner-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 250px;
+  border: 3px solid #00ff00;
+  border-radius: 12px;
+  box-shadow: 
+    0 0 0 9999px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(0, 255, 0, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { border-color: #00ff00; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 255, 0, 0.5); }
+  50% { border-color: #00cc00; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 255, 0, 0.7); }
+}
+
+.scanner-ui .scanner-instructions {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+
+/* Make body transparent when scanning */
+body.scanner-active {
+  --background: transparent;
+  --ion-background-color: transparent;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .scanner-content {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .nutrition-grid {
+    grid-template-columns: 1fr;
+  }
+}

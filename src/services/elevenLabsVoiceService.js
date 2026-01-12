@@ -11,7 +11,7 @@ class ElevenLabsVoiceService {
     
     // Auto-enable if API key is present
     if (this.apiKey) {
-      if(import.meta.env.DEV)console.log('✅ ElevenLabs API key loaded from environment');
+      console.log('✅ ElevenLabs API key loaded from environment');
     }
   }
 
@@ -20,7 +20,7 @@ class ElevenLabsVoiceService {
    */
   setApiKey(apiKey) {
     this.apiKey = apiKey;
-    if(import.meta.env.DEV)console.log('✅ ElevenLabs API key set');
+    console.log('✅ ElevenLabs API key set');
   }
 
   /**
@@ -28,18 +28,18 @@ class ElevenLabsVoiceService {
    */
   async generateSpeech(text) {
     if (!this.apiKey) {
-      if(import.meta.env.DEV)console.error('❌ ElevenLabs API key not set');
+      console.error('❌ ElevenLabs API key not set');
       return null;
     }
 
     // Check cache first
     if (this.audioCache.has(text)) {
-      if(import.meta.env.DEV)console.log(`📦 Using cached audio for: "${text}"`);
+      console.log(`📦 Using cached audio for: "${text}"`);
       return this.audioCache.get(text);
     }
 
     try {
-      if(import.meta.env.DEV)console.log(`🎤 Generating ElevenLabs voice for: "${text}"`);
+      console.log(`🎤 Generating ElevenLabs voice for: "${text}"`);
 
       const response = await fetch(`${this.baseUrl}/text-to-speech/${this.voiceId}`, {
         method: 'POST',
@@ -71,11 +71,11 @@ class ElevenLabsVoiceService {
       // Cache the audio URL
       this.audioCache.set(text, audioUrl);
 
-      if(import.meta.env.DEV)console.log(`✅ Generated voice for: "${text}"`);
+      console.log(`✅ Generated voice for: "${text}"`);
       return audioUrl;
 
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ ElevenLabs voice generation error:', error);
+      console.error('❌ ElevenLabs voice generation error:', error);
       return null;
     }
   }
@@ -93,13 +93,13 @@ class ElevenLabsVoiceService {
       'complete'
     ];
 
-    if(import.meta.env.DEV)console.log('🎤 Pre-generating all breathing phrases...');
+    console.log('🎤 Pre-generating all breathing phrases...');
 
     const promises = phrases.map(phrase => this.generateSpeech(phrase));
     const results = await Promise.all(promises);
 
     const successCount = results.filter(url => url !== null).length;
-    if(import.meta.env.DEV)console.log(`✅ Generated ${successCount}/${phrases.length} phrases`);
+    console.log(`✅ Generated ${successCount}/${phrases.length} phrases`);
 
     return successCount === phrases.length;
   }
@@ -128,10 +128,10 @@ class ElevenLabsVoiceService {
               directory: Directory.Data
             });
 
-            if(import.meta.env.DEV)console.log(`✅ Saved audio file: ${filename}`);
+            console.log(`✅ Saved audio file: ${filename}`);
             resolve(result.uri);
           } catch (error) {
-            if(import.meta.env.DEV)console.error('❌ Error saving audio file:', error);
+            console.error('❌ Error saving audio file:', error);
             reject(error);
           }
         };
@@ -141,7 +141,7 @@ class ElevenLabsVoiceService {
       });
 
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Error downloading audio:', error);
+      console.error('❌ Error downloading audio:', error);
       return null;
     }
   }
@@ -153,11 +153,8 @@ class ElevenLabsVoiceService {
     // Revoke all object URLs to free memory
     this.audioCache.forEach(url => URL.revokeObjectURL(url));
     this.audioCache.clear();
-    if(import.meta.env.DEV)console.log('🗑️ ElevenLabs audio cache cleared');
+    console.log('🗑️ ElevenLabs audio cache cleared');
   }
 }
 
 export default new ElevenLabsVoiceService();
-
-
-

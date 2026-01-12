@@ -150,7 +150,7 @@ IMPORTANT: Generate ALL ${days} days. Each day needs breakfast, lunch, and dinne
     
     try {
       // Call Railway server (like Voice AI does)
-      const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/chat', {
+      const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/v1/chat', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -378,7 +378,7 @@ Current plan summary: ${this.activeMealPlan.days.length} days
 Return ONLY valid JSON with modified days.`;
 
     try {
-      const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/chat', {
+      const response = await fetch('https://helio-wellness-app-production.up.railway.app/api/v1/chat', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

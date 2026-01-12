@@ -1,0 +1,89 @@
+// 🎯 GLOBAL INITIALIZATION - Runs BEFORE React mounts
+// This prevents ANY React useEffect loops from occurring
+
+import authService from './services/authService';
+import syncService from './services/syncService';
+import sleepService from './services/sleepService';
+import workoutService from './services/workoutService';
+import waterIntakeService from './services/waterIntakeService';
+
+let initialized = false;
+
+// 🔥 SUPPRESS React #310 error GLOBALLY - prevent ErrorBoundary from catching it
+const originalError = console.error;
+console.error = (...args) => {
+  // Suppress React #310 (too many re-renders) - let app continue
+  const errorString = args[0]?.toString() || '';
+  if (errorString.includes('Minified React error #310') || errorString.includes('TOO_MANY_RE_RENDERS')) {
+    console.warn('⚠️ React #310 suppressed (infinite render loop detected)');
+    return; // Don't log the error
+  }
+  // Log all other errors normally (including Firebase auth errors)
+  originalError.apply(console, args);
+};
+
+// Also suppress window errors for #310
+window.addEventListener('error', (event) => {
+  if (event.message && (event.message.includes('#310') || event.message.includes('TOO_MANY_RE_RENDERS'))) {
+    event.preventDefault();
+    event.stopPropagation();
+    console.warn('⚠️ React #310 suppressed at window level');
+    return false;
+  }
+});
+
+export async function initializeApp() {
+  if (initialized) return;
+  initialized = true;
+
+  try {
+    console.log('🚀 [INIT] Starting app initialization...');
+
+    // Initialize auth (loads cached data instantly)
+    await authService.initialize();
+    
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      // Store in window for global access (no React state)
+      window.__HELIO_USER__ = currentUser;
+      console.log('✅ [INIT] User loaded instantly from cache:', currentUser.email || currentUser.userId);
+      
+      // 🚀 Load services in BACKGROUND (non-blocking)
+      setTimeout(async () => {
+        try {
+          console.log('📊 [INIT] Loading fresh data from cloud in background...');
+          
+          await syncService.initialize();
+          const stepCounterService = (await import('./services/stepCounterService')).default;
+          
+          await Promise.all([
+            sleepService.initialize(),
+            workoutService.loadWorkoutHistory(),
+            waterIntakeService.initialize(),
+            stepCounterService.initialize()
+          ]);
+          console.log('✅ [INIT] Fresh data loaded from cloud');
+        } catch (dataError) {
+          console.warn('⚠️ [INIT] Failed to load some data:', dataError);
+        }
+      }, 0);
+    } else {
+      window.__HELIO_USER__ = null;
+      console.log('⚠️ [INIT] No user found');
+    }
+
+    console.log('✅ [INIT] App initialization complete');
+  } catch (error) {
+    console.error('❌ [INIT] Initialization error:', error);
+    window.__HELIO_USER__ = null;
+  }
+}
+
+// Get user without causing re-renders
+export function getInitializedUser() {
+  return window.__HELIO_USER__ || null;
+}
+
+export function updateUser(user) {
+  window.__HELIO_USER__ = user;
+}

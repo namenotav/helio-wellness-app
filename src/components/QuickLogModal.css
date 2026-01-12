@@ -1,0 +1,314 @@
+.quick-log-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.quick-log-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 25px;
+  padding: 30px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: white;
+  box-shadow: 0 20px 60px rgba(139, 95, 232, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+.quick-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.quick-log-header h2 {
+  font-size: 28px;
+  margin: 0;
+  background: linear-gradient(135deg, #8B5FE8, #C084FC);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.close-btn {
+  background: #8B5FE8;
+  border: none;
+  color: white;
+  font-size: 32px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: #A78BFA;
+  transform: rotate(90deg);
+}
+
+.quick-log-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.log-option {
+  background: linear-gradient(135deg, rgba(139, 95, 232, 0.2), rgba(139, 95, 232, 0.05));
+  border: 2px solid rgba(139, 95, 232, 0.3);
+  border-radius: 20px;
+  padding: 25px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.log-option:hover {
+  transform: translateY(-5px);
+  border-color: #8B5FE8;
+  box-shadow: 0 15px 40px rgba(139, 95, 232, 0.4);
+  background: linear-gradient(135deg, rgba(139, 95, 232, 0.3), rgba(139, 95, 232, 0.1));
+}
+
+.log-option.water { border-color: rgba(79, 195, 247, 0.5); }
+.log-option.water:hover { border-color: #4FC3F7; box-shadow: 0 15px 40px rgba(79, 195, 247, 0.4); }
+
+.log-option.sleep { border-color: rgba(156, 39, 176, 0.5); }
+.log-option.sleep:hover { border-color: #9C27B0; box-shadow: 0 15px 40px rgba(156, 39, 176, 0.4); }
+
+.log-option.workout { border-color: rgba(255, 152, 0, 0.5); }
+.log-option.workout:hover { border-color: #FF9800; box-shadow: 0 15px 40px rgba(255, 152, 0, 0.4); }
+
+.log-icon {
+  font-size: 48px;
+  animation: iconFloat 3s ease-in-out infinite;
+}
+
+.log-label {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.log-form {
+  animation: slideIn 0.3s ease;
+}
+
+.log-form h3 {
+  font-size: 24px;
+  margin: 0 0 10px 0;
+  color: white;
+}
+
+.log-description {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 25px;
+}
+
+.water-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.water-btn {
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.2), rgba(79, 195, 247, 0.05));
+  border: 2px solid rgba(79, 195, 247, 0.3);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.water-btn:hover {
+  transform: scale(1.05);
+  border-color: #4FC3F7;
+  box-shadow: 0 10px 30px rgba(79, 195, 247, 0.4);
+}
+
+.water-amount {
+  font-size: 22px;
+  font-weight: 700;
+  color: #4FC3F7;
+}
+
+.water-label {
+  font-size: 13px;
+  color: #999;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #C084FC;
+}
+
+.sleep-input,
+.workout-input,
+.workout-select {
+  width: 100%;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(139, 95, 232, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.sleep-input:focus,
+.workout-input:focus,
+.workout-select:focus {
+  border-color: #8B5FE8;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.workout-select option {
+  background: #1a1a2e;
+  color: white;
+}
+
+.quality-stars {
+  display: flex;
+  gap: 10px;
+}
+
+.star-btn {
+  background: transparent;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  filter: grayscale(100%);
+  opacity: 0.4;
+}
+
+.star-btn.active {
+  filter: grayscale(0%);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.back-btn {
+  flex: 1;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.submit-btn {
+  flex: 2;
+  padding: 15px;
+  background: linear-gradient(135deg, #8B5FE8, #C084FC);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(139, 95, 232, 0.4);
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(139, 95, 232, 0.6);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.success-message {
+  padding: 15px;
+  background: rgba(76, 175, 80, 0.2);
+  border: 2px solid rgba(76, 175, 80, 0.4);
+  border-radius: 12px;
+  color: #4CAF50;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}

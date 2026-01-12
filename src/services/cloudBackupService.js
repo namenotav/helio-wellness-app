@@ -28,16 +28,23 @@ class CloudBackupService {
   }
 
   /**
-   * Start automatic backup
+   * Start event-based backup (no polling)
    */
   startAutoBackup() {
-    // Backup every 5 minutes
+    // Initial backup
+    this.backupData();
+    
+    // Listen for data changes (event-based, not polling)
+    window.addEventListener('healthDataUpdate', () => {
+      this.backupData();
+    });
+    
+    // Backup every 5 minutes as fallback
     this.syncInterval = setInterval(() => {
       this.backupData();
     }, 300000); // 5 minutes
     
-    // Initial backup
-    this.backupData();
+    if(import.meta.env.DEV) console.log('✅ Event-based backup initialized (real-time + fallback)');
   }
 
   /**

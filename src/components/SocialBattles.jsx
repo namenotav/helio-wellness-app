@@ -1,8 +1,11 @@
 // Social Battles Component - Competitive Health Challenges (PRO)
 import { useState, useEffect } from 'react';
+import { Preferences } from '@capacitor/preferences';
 import './SocialBattles.css';
 import socialBattlesService from '../services/socialBattlesService';
 import gamificationService from '../services/gamificationService';
+import subscriptionService from '../services/subscriptionService';
+import authService from '../services/authService';
 
 export default function SocialBattles({ onClose }) {
   const [view, setView] = useState('list'); // list, create, leaderboard, global, teams, history, rewards
@@ -28,6 +31,12 @@ export default function SocialBattles({ onClose }) {
   });
 
   useEffect(() => {
+    // Check if user has access to social battles (Premium+ required)
+    if (!subscriptionService.hasAccess('socialBattles')) {
+      // Don't load battles, show upgrade prompt instead
+      return;
+    }
+
     try {
       loadBattles();
       loadStats();
@@ -93,7 +102,7 @@ export default function SocialBattles({ onClose }) {
       const history = (completed || [])
         .filter(battle => battle && battle.config) // Skip null/undefined battles
         .map(battle => {
-          const user = { id: 'current-user' }; // Would get from auth
+          const user = authService.getCurrentUser() || { id: 'current-user' };
           const isWinner = battle.results?.winner?.userId === user.id;
           const opponent = isWinner 
             ? battle.results?.loser?.userName || 'Opponent'
@@ -126,9 +135,11 @@ export default function SocialBattles({ onClose }) {
     }
   };
 
-  const loadDailyChallenges = () => {
+  const loadDailyChallenges = async () => {
     try {
-      const stored = localStorage.getItem('daily_battle_challenges');
+      // Read from Preferences first, fallback to localStorage
+      const { value: prefsData } = await Preferences.get({ key: 'wellnessai_daily_battle_challenges' });
+      const stored = prefsData || localStorage.getItem('daily_battle_challenges');
       const today = new Date().toDateString();
       
       if (stored) {
@@ -162,7 +173,9 @@ export default function SocialBattles({ onClose }) {
         }
       ];
       
-      localStorage.setItem('daily_battle_challenges', JSON.stringify({ date: today, challenges }));
+      const challengeData = JSON.stringify({ date: today, challenges });
+      localStorage.setItem('daily_battle_challenges', challengeData);
+      await Preferences.set({ key: 'wellnessai_daily_battle_challenges', value: challengeData });
       setDailyChallenges(challenges);
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to load daily challenges:', error);
@@ -170,9 +183,11 @@ export default function SocialBattles({ onClose }) {
     }
   };
 
-  const loadBattleStreak = () => {
+  const loadBattleStreak = async () => {
     try {
-      const stored = localStorage.getItem('battle_streak');
+      // Read from Preferences first, fallback to localStorage
+      const { value: prefsData } = await Preferences.get({ key: 'wellnessai_battle_streak' });
+      const stored = prefsData || localStorage.getItem('battle_streak');
       if (stored) {
         const data = JSON.parse(stored);
         const multiplier = 1.0 + (data.current * 0.1); // +10% per win streak
@@ -183,9 +198,11 @@ export default function SocialBattles({ onClose }) {
     }
   };
 
-  const updateBattleStreak = (won) => {
+  const updateBattleStreak = async (won) => {
     try {
-      const stored = localStorage.getItem('battle_streak') || '{"current": 0}';
+      // Read from Preferences first, fallback to localStorage
+      const { value: prefsData } = await Preferences.get({ key: 'wellnessai_battle_streak' });
+      const stored = prefsData || localStorage.getItem('battle_streak') || '{"current": 0}';
       const data = JSON.parse(stored);
       
       if (won) {
@@ -194,7 +211,9 @@ export default function SocialBattles({ onClose }) {
         data.current = 0;
       }
       
-      localStorage.setItem('battle_streak', JSON.stringify(data));
+      const streakData = JSON.stringify(data);
+      localStorage.setItem('battle_streak', streakData);
+      await Preferences.set({ key: 'wellnessai_battle_streak', value: streakData });
       const multiplier = 1.0 + (data.current * 0.1);
       setBattleStreak({ current: data.current, multiplier });
       
@@ -356,10 +375,14 @@ export default function SocialBattles({ onClose }) {
         expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
       };
       
-      const stored = localStorage.getItem('active_powerups') || '[]';
+      // Read from Preferences first, fallback to localStorage
+      const { value: prefsData } = await Preferences.get({ key: 'wellnessai_active_powerups' });
+      const stored = prefsData || localStorage.getItem('active_powerups') || '[]';
       const powerUps = JSON.parse(stored);
       powerUps.push(powerUp);
-      localStorage.setItem('active_powerups', JSON.stringify(powerUps));
+      const powerUpsData = JSON.stringify(powerUps);
+      localStorage.setItem('active_powerups', powerUpsData);
+      await Preferences.set({ key: 'wellnessai_active_powerups', value: powerUpsData });
       
       setActivePowerUps(powerUps);
       
@@ -379,6 +402,42 @@ export default function SocialBattles({ onClose }) {
 
         <h2 className="battles-title">⚔️ Social Health Battles</h2>
 
+        {/* Show paywall if no access */}
+        {!subscriptionService.hasAccess('socialBattles') ? (
+          <div className="paywall-notice" style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '80px', marginBottom: '20px' }}>🔒</div>
+            <h3 style={{ fontSize: '24px', marginBottom: '10px' }}>Unlock Social Battles</h3>
+            <p style={{ color: '#888', marginBottom: '30px' }}>Compete with friends and climb the leaderboards!</p>
+            <ul style={{ listStyle: 'none', padding: 0, marginBottom: '30px', textAlign: 'left', maxWidth: '400px', margin: '0 auto 30px' }}>
+              <li style={{ padding: '8px 0' }}>✅ Challenge friends to health battles</li>
+              <li style={{ padding: '8px 0' }}>✅ Join global leaderboards</li>
+              <li style={{ padding: '8px 0' }}>✅ Earn rewards and badges</li>
+              <li style={{ padding: '8px 0' }}>✅ Track your battle history</li>
+            </ul>
+            <p style={{ fontSize: '18px', marginBottom: '10px' }}>Starting at <strong>£16.99/month</strong></p>
+            <p style={{ fontSize: '20px', color: '#10b981', fontWeight: 'bold', marginBottom: '20px' }}>🎉 30 DAYS FREE - Cancel anytime</p>
+            <button 
+              style={{ 
+                padding: '15px 40px',
+                fontSize: '18px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+              onClick={() => {
+                import('../services/stripeService').then(({ checkoutPremium }) => {
+                  checkoutPremium();
+                });
+              }}
+            >
+              ⭐ Start Free Trial
+            </button>
+          </div>
+        ) : (
+          <>
         {/* View Navigation */}
         <div className="battles-nav">
           <button 
@@ -615,7 +674,10 @@ export default function SocialBattles({ onClose }) {
                     {participant.rank > 3 && `#${participant.rank}`}
                   </div>
                   <div className="participant-info">
-                    <div className="participant-name">{participant.userId}</div>
+                    <div className="participant-name">
+                      {participant.userId}
+                      {participant.isVIP && ' 👑'}
+                    </div>
                     <div className="participant-progress">
                       Progress: {participant.progress}%
                     </div>
@@ -673,7 +735,10 @@ export default function SocialBattles({ onClose }) {
                   </div>
                   <div className="user-avatar">{user.profilePic}</div>
                   <div className="user-details">
-                    <div className="user-name">{user.username}</div>
+                    <div className="user-name">
+                      {user.username}
+                      {user.isVIP && ' 👑'}
+                    </div>
                     <div className="user-level">Level {user.level}</div>
                   </div>
                   <div className="user-stat">
@@ -760,6 +825,8 @@ export default function SocialBattles({ onClose }) {
               ))}
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

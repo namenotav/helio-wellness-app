@@ -41,10 +41,10 @@ class DeviceStateService {
 
   async initialize() {
     try {
-      if(import.meta.env.DEV)console.log('📱 Initializing Device State Service (100% Accuracy Mode)...');
+      console.log('📱 Initializing Device State Service (100% Accuracy Mode)...');
       
       if (!Capacitor.isNativePlatform()) {
-        if(import.meta.env.DEV)console.warn('⚠️ Not on native platform, limited state detection');
+        console.warn('⚠️ Not on native platform, limited state detection');
         return false;
       }
 
@@ -57,10 +57,10 @@ class DeviceStateService {
       // Initialize charging detection
       await this.initializeChargingDetection();
       
-      if(import.meta.env.DEV)console.log('✅ Device State Service initialized (GPS + Accel + Gyro + Screen)');
+      console.log('✅ Device State Service initialized (GPS + Accel + Gyro + Screen)');
       return true;
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Device State Service initialization failed:', error);
+      console.error('❌ Device State Service initialization failed:', error);
       return false;
     }
   }
@@ -73,9 +73,9 @@ class DeviceStateService {
         this.lastScreenChangeTime = Date.now();
         
         if (state.isActive) {
-          if(import.meta.env.DEV)console.log('📱 Screen turned ON - blocking steps for 2 seconds');
+          console.log('📱 Screen turned ON - blocking steps for 2 seconds');
         } else {
-          if(import.meta.env.DEV)console.log('📱 Screen turned OFF - steps enabled');
+          console.log('📱 Screen turned OFF - steps enabled');
         }
         
         this.notifyListeners();
@@ -85,9 +85,9 @@ class DeviceStateService {
       const state = await App.getState();
       this.screenActive = state.isActive;
       
-      if(import.meta.env.DEV)console.log('✅ Screen detection initialized (active:', this.screenActive, ')');
+      console.log('✅ Screen detection initialized (active:', this.screenActive, ')');
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Screen detection error:', error);
+      console.error('Screen detection error:', error);
     }
   }
 
@@ -215,7 +215,7 @@ class DeviceStateService {
     const isWalking = hasModerateMotion && hasRhythmicVariance && hasCadence && hasVerticalDominance && peakConsistency;
     
     if (isWalking && this.sustainedGaitDuration % 2000 < 500) {
-      if(import.meta.env.DEV)console.log('🚶 Walking gait: Y-axis=' + (yAxisRatio * 100).toFixed(0) + '%, peaks=' + peakCount + ', duration=' + this.sustainedGaitDuration + 'ms');
+      console.log('🚶 Walking gait: Y-axis=' + (yAxisRatio * 100).toFixed(0) + '%, peaks=' + peakCount + ', duration=' + this.sustainedGaitDuration + 'ms');
     }
     
     return isWalking;
@@ -247,7 +247,7 @@ class DeviceStateService {
         this.lastTouchTime = Date.now();
       }, { passive: true });
 
-      if(import.meta.env.DEV)console.log('✅ Touch detection initialized');
+      console.log('✅ Touch detection initialized');
     }
   }
 
@@ -267,21 +267,21 @@ class DeviceStateService {
           
           if (battery.charging) {
             this.chargingStartTime = Date.now();
-            if(import.meta.env.DEV)console.log('🔌 Phone charging - smart block after 30s');
+            console.log('🔌 Phone charging - smart block after 30s');
           } else {
             this.chargingStartTime = 0;
-            if(import.meta.env.DEV)console.log('🔋 Phone unplugged - steps enabled');
+            console.log('🔋 Phone unplugged - steps enabled');
           }
           
           this.notifyListeners();
         });
 
-        if(import.meta.env.DEV)console.log('✅ Charging detection initialized (charging:', this.isCharging, ')');
+        console.log('✅ Charging detection initialized (charging:', this.isCharging, ')');
       } else {
-        if(import.meta.env.DEV)console.warn('⚠️ Battery API not available');
+        console.warn('⚠️ Battery API not available');
       }
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Charging detection error:', error);
+      console.error('Charging detection error:', error);
     }
   }
 
@@ -463,7 +463,7 @@ class DeviceStateService {
       try {
         listener(state);
       } catch (error) {
-        if(import.meta.env.DEV)console.error('Error in state listener:', error);
+        console.error('Error in state listener:', error);
       }
     });
   }
@@ -472,11 +472,8 @@ class DeviceStateService {
     // Remove Capacitor listeners
     App.removeAllListeners();
     
-    if(import.meta.env.DEV)console.log('✅ Device State Service stopped');
+    console.log('✅ Device State Service stopped');
   }
 }
 
 export default new DeviceStateService();
-
-
-

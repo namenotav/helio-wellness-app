@@ -21,6 +21,15 @@ class TensorFlowService {
       'workout'
     ];
     
+    // User context for personalized detection
+    this.userContext = {
+      age: null,
+      fitnessLevel: null,
+      injuries: [],
+      weight: null,
+      height: null
+    };
+    
     // Exercise rep counter state
     this.repCounterState = {
       exercise: null,
@@ -41,6 +50,9 @@ class TensorFlowService {
     try {
       if(import.meta.env.DEV)console.log('Initializing TensorFlow.js...');
       
+      // Load user profile first
+      await this.loadUserProfile();
+      
       // Wait for TensorFlow backend to be ready
       await tf.ready();
       if(import.meta.env.DEV)console.log('TensorFlow.js backend:', tf.getBackend());
@@ -55,6 +67,29 @@ class TensorFlowService {
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to initialize TensorFlow:', error);
       return false;
+    }
+  }
+  
+  /**
+   * Load user profile for personalized activity detection
+   */
+  async loadUserProfile() {
+    try {
+      const authService = (await import('./authService.js')).default;
+      const user = authService.getCurrentUser();
+      
+      if (user && user.profile) {
+        this.userContext = {
+          age: user.profile.age,
+          fitnessLevel: user.profile.fitnessLevel,
+          injuries: user.profile.injuries || [],
+          weight: user.profile.weight,
+          height: user.profile.height
+        };
+        if(import.meta.env.DEV)console.log('✅ TensorFlow loaded user profile');
+      }
+    } catch (error) {
+      if(import.meta.env.DEV)console.warn('⚠️ Could not load user profile for TensorFlow:', error);
     }
   }
 

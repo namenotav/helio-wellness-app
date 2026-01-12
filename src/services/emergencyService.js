@@ -381,6 +381,15 @@ class EmergencyService {
     const history = JSON.parse(localStorage.getItem('emergencyHistory') || '[]');
     history.push(emergencyRecord);
     localStorage.setItem('emergencyHistory', JSON.stringify(history));
+    
+    // 🔥 FIX: Sync emergency history to Firebase
+    try {
+      const firestoreService = (await import('./firestoreService.js')).default;
+      const authService = (await import('./authService.js')).default;
+      await firestoreService.save('emergencyHistory', history, authService.getCurrentUser()?.uid);
+    } catch (e) {
+      if(import.meta.env.DEV)console.warn('Could not sync emergency history to Firebase');
+    }
 
     return results;
   }
@@ -541,6 +550,39 @@ class EmergencyService {
   // Fall Detection using device accelerometer
   async startFallDetection(onFallDetected) {
     try {
+      // TRY NATIVE FALL DETECTION SERVICE FIRST (24/7 background)
+      if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+        try {
+          const nativeFallService = (await import('./nativeFallDetectionService.js')).default;
+          
+          // Check if native bridge is available
+          if (window.AndroidFallDetection) {
+            if(import.meta.env.DEV)console.log('🚀 Starting NATIVE fall detection service (24/7)...');
+            
+            // Start native foreground service
+            await nativeFallService.start();
+            
+            // Listen for fall events from native service
+            nativeFallService.addListener((fallData) => {
+              if(import.meta.env.DEV)console.log('⚠️ Native fall detected:', fallData);
+              this.handleFallDetected(onFallDetected);
+            });
+            
+            this.fallDetectionActive = true;
+            this.fallDetectionCallback = onFallDetected;
+            await this.saveEmergencyData();
+            
+            if(import.meta.env.DEV)console.log('✅ NATIVE fall detection active - works 24/7 even when app closed!');
+            return { success: true, native: true };
+          }
+        } catch (nativeError) {
+          if(import.meta.env.DEV)console.warn('⚠️ Native fall detection unavailable, using JS fallback:', nativeError);
+        }
+      }
+      
+      // FALLBACK: JavaScript-based fall detection (only when app is open)
+      if(import.meta.env.DEV)console.log('⚠️ Using JavaScript fall detection (only works when app open)');
+      
       // Start background runner for continuous fall detection
       const backgroundRunnerService = (await import('./backgroundRunnerService.js')).default;
       await backgroundRunnerService.start();
@@ -550,13 +592,27 @@ class EmergencyService {
       this.fallDetectionCallback = onFallDetected; // Store callback
       // Save state to storage
       await this.saveEmergencyData();
-      if(import.meta.env.DEV)console.log('🤕 Fall detection started');
+      if(import.meta.env.DEV)console.log('🤕 Fall detection started (JS mode)');
+      
+      // 🔴 FIX #7: ENHANCED FALL DETECTION WITH G-FORCE MATH
+      // Initialize fall detection tracking variables
+      if (!this.fallDetectionState) {
+        this.fallDetectionState = {
+          accelHistory: [],
+          maxHistoryLength: 20, // Keep last 20 readings (200ms at 100Hz)
+          fallThreshold: 2.5, // 2.5G drop from normal
+          impactThreshold: 3.0, // 3G impact
+          isFreeFalling: false,
+          freeQFallStartTime: null,
+          lastImpactTime: null
+        };
+      }
       
       // Subscribe to centralized motion listener
       this.fallMotionSubscription = await motionListenerService.subscribe((event) => {
         if (!this.fallDetectionActive) return;
         
-        // Use accelerationIncludingGravity (raw sensor data)
+        // Use accelerationIncludingGravity (raw sensor data with gravity)
         const accel = event.accelerationIncludingGravity || event.acceleration;
         if (!accel) {
           if(import.meta.env.DEV)console.warn('No acceleration data available');
@@ -565,18 +621,70 @@ class EmergencyService {
         
         const { x, y, z } = accel;
         const totalAccel = Math.sqrt(x*x + y*y + z*z);
+        const state = this.fallDetectionState;
+        
+        // Store acceleration in history
+        state.accelHistory.push({
+          total: totalAccel,
+          x, y, z,
+          time: Date.now()
+        });
+        if (state.accelHistory.length > state.maxHistoryLength) {
+          state.accelHistory.shift();
+        }
         
         // Debug: Log every 2 seconds to avoid spam
         if (!this.lastAccelLog || Date.now() - this.lastAccelLog > 2000) {
-          if(import.meta.env.DEV)console.log('📊 Current acceleration:', totalAccel.toFixed(2), 'm/s²');
+          if(import.meta.env.DEV)console.log('📊 Fall detection - G-force:', (totalAccel/9.81).toFixed(2), 'G, Free fall:', state.isFreeFalling);
           this.lastAccelLog = Date.now();
         }
         
-        // Detect sudden acceleration spike (shake/fall)
-        // Normal: ~10 m/s² (gravity), Hard shake/fall: >25 m/s²
-        if (totalAccel > 25) {
-          if(import.meta.env.DEV)console.log('⚠️ FALL/SHAKE DETECTED! Acceleration:', totalAccel.toFixed(2), 'm/s²');
-          this.handleFallDetected(this.fallDetectionCallback);
+        // ALGORITHM: Detect 3-phase fall pattern
+        // Phase 1: Free fall (acceleration drops below ~5 m/s² = ~0.5G)
+        if (totalAccel < 5 && !state.isFreeFalling) {
+          state.isFreeFalling = true;
+          state.freeQFallStartTime = Date.now();
+          if(import.meta.env.DEV)console.log('📉 [FALL] Phase 1: Free fall detected (low G-force)');
+        }
+        
+        // Phase 2: Free fall duration check (must last 150-500ms to be real fall)
+        if (state.isFreeFalling && state.freeQFallStartTime) {
+          const freeFallDuration = Date.now() - state.freeQFallStartTime;
+          
+          // End free fall if normal gravity returns (false alarm)
+          if (totalAccel > 10) {
+            state.isFreeFalling = false;
+            state.freeQFallStartTime = null;
+            return; // Not a fall
+          }
+          
+          // Wait for impact after free fall (150-500ms window)
+          if (freeFallDuration >= 150) {
+            // Phase 3: Detect impact (sudden acceleration > 3G)
+            if (totalAccel > 3 * 9.81) { // 3G = 29.43 m/s²
+              if(import.meta.env.DEV)console.log('⚠️ [FALL] Phase 3: IMPACT DETECTED! G-force:', (totalAccel/9.81).toFixed(2), 'G');
+              
+              // FALL CONFIRMED: Free fall + impact pattern detected
+              state.isFreeFalling = false;
+              state.freeQFallStartTime = null;
+              state.lastImpactTime = Date.now();
+              
+              // Trigger fall alert
+              this.handleFallDetected(this.fallDetectionCallback);
+            } else if (freeFallDuration > 500) {
+              // Free fall window closed without impact (false alarm)
+              state.isFreeFalling = false;
+              state.freeQFallStartTime = null;
+            }
+          }
+        } else if (!state.isFreeFalling && totalAccel > 4 * 9.81) {
+          // ALTERNATIVE: Direct impact detection (> 4G sudden spike)
+          // This catches falls where acceleration data doesn't show clear free-fall phase
+          if (!state.lastImpactTime || Date.now() - state.lastImpactTime > 10000) {
+            if(import.meta.env.DEV)console.log('⚠️ [FALL] Direct impact: HEAVY ACCELERATION:', (totalAccel/9.81).toFixed(2), 'G');
+            state.lastImpactTime = Date.now();
+            this.handleFallDetected(this.fallDetectionCallback);
+          }
         }
       }, 'FallDetection');
       
@@ -591,10 +699,23 @@ class EmergencyService {
   // Stop fall detection
   async stopFallDetection() {
     try {
+      // Stop native service if running
+      if (Capacitor.isNativePlatform() && window.AndroidFallDetection) {
+        try {
+          const nativeFallService = (await import('./nativeFallDetectionService.js')).default;
+          await nativeFallService.stop();
+          if(import.meta.env.DEV)console.log('✅ Native fall detection service stopped');
+        } catch (error) {
+          if(import.meta.env.DEV)console.warn('Could not stop native service:', error);
+        }
+      }
+      
+      // Stop JS fallback if running
       if (this.fallMotionSubscription) {
         this.fallMotionSubscription.unsubscribe();
         this.fallMotionSubscription = null;
       }
+      
       this.fallDetectionActive = false;
       // Save state to storage
       await this.saveEmergencyData();

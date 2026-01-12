@@ -53,6 +53,17 @@ class SocialBattlesService {
 
       this.initialized = true;
       if(import.meta.env.DEV) console.log('✅ Battles loaded:', this.activeBattles.length, 'active,', this.completedBattles.length, 'completed');
+      
+      // Dispatch event so UI components can update
+      if (typeof window !== 'undefined' && this.activeBattles.length > 0) {
+        window.dispatchEvent(new CustomEvent('battles-loaded', { 
+          detail: { 
+            active: this.activeBattles, 
+            completed: this.completedBattles,
+            stats: this.userStats 
+          } 
+        }));
+      }
     } catch (error) {
       if(import.meta.env.DEV) console.error('Failed to load battles:', error);
       this.initialized = true;
@@ -93,15 +104,15 @@ class SocialBattlesService {
       id: battleId,
       creator: {
         id: user.id,
-        name: user.name,
+        name: user.name || user.email?.split('@')[0] || 'Anonymous',
         avatar: user.profile?.avatar || '👤'
       },
       participants: [user.id],
       config: {
         duration: battleConfig.duration || 30, // days
-        goal: battleConfig.goal, // 'steps', 'weight-loss', 'health-score'
-        target: battleConfig.target,
-        stakes: battleConfig.stakes, // 'bragging-rights', 'money', 'subscription'
+        goal: battleConfig.goal || 'steps', // 'steps', 'weight-loss', 'health-score'
+        target: battleConfig.target || 10000,
+        stakes: battleConfig.stakes || 'bragging-rights', // 'bragging-rights', 'money', 'subscription'
         stakeAmount: battleConfig.stakeAmount || 0
       },
       startDate: null,
@@ -354,14 +365,30 @@ class SocialBattlesService {
     const battle = this.activeBattles.find(b => b.id === battleId);
     if (!battle) return null;
 
+    // Add VIP badge flag to leaderboard participants
+    const leaderboardWithVIP = battle.leaderboard.map(participant => ({
+      ...participant,
+      isVIP: this.checkUserVIPStatus(participant.userId)
+    }));
+
     return {
       battleId: battle.id,
       status: battle.status,
       daysRemaining: this.calculateDaysRemaining(battle.endDate),
-      leaderboard: battle.leaderboard,
+      leaderboard: leaderboardWithVIP,
       stakes: battle.config.stakes,
       stakeAmount: battle.config.stakeAmount
     };
+  }
+
+  // Check if user has VIP badge (Ultimate plan)
+  checkUserVIPStatus(userId) {
+    try {
+      const { default: subscriptionService } = require('./subscriptionService');
+      return subscriptionService.hasAccess('vipBadge');
+    } catch (error) {
+      return false;
+    }
   }
 
   // Calculate days remaining

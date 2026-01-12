@@ -145,7 +145,7 @@ class AmbientSoundService {
     if (this.isPlaying) return;
     
     try {
-      if(import.meta.env.DEV)console.log('🎵 Starting ambient healing sounds...');
+      console.log('🎵 Starting ambient healing sounds...');
       
       // Try to use real meditation audio first
       if (this.useRealAudio) {
@@ -168,10 +168,10 @@ class AmbientSoundService {
           }, 100);
           
           this.isPlaying = true;
-          if(import.meta.env.DEV)console.log('✅ Real meditation audio playing');
+          console.log('✅ Real meditation audio playing');
           return;
         } catch (audioError) {
-          if(import.meta.env.DEV)console.warn('⚠️ Real audio not available, using synthetic sounds:', audioError);
+          console.warn('⚠️ Real audio not available, using synthetic sounds:', audioError);
           // Fall back to synthetic sounds
         }
       }
@@ -203,10 +203,10 @@ class AmbientSoundService {
       this.gainNodes.push(ocean.gainNode);
       
       this.isPlaying = true;
-      if(import.meta.env.DEV)console.log('✅ Ambient sounds playing (synthetic)');
+      console.log('✅ Ambient sounds playing (synthetic)');
       
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Error starting ambient sounds:', error);
+      console.error('❌ Error starting ambient sounds:', error);
     }
   }
 
@@ -234,7 +234,7 @@ class AmbientSoundService {
         }, 100);
         
         this.isPlaying = false;
-        if(import.meta.env.DEV)console.log('🔇 Real meditation audio stopped');
+        console.log('🔇 Real meditation audio stopped');
         return;
       }
       
@@ -262,14 +262,14 @@ class AmbientSoundService {
           this.oscillators = [];
           this.gainNodes = [];
           
-          if(import.meta.env.DEV)console.log('🔇 Ambient sounds stopped');
+          console.log('🔇 Ambient sounds stopped');
         }, fadeTime * 1000);
       }
       
       this.isPlaying = false;
       
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Error stopping ambient sounds:', error);
+      console.error('❌ Error stopping ambient sounds:', error);
     }
   }
 
@@ -285,6 +285,3 @@ class AmbientSoundService {
 const ambientSoundService = new AmbientSoundService();
 
 export default ambientSoundService;
-
-
-

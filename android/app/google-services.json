@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "863551474584",
+    "project_id": "wellnessai-app-e01be",
+    "storage_bucket": "wellnessai-app-e01be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863551474584:android:a34f3f77742b7be4e7f9ed",
+        "android_client_info": {
+          "package_name": "com.helio.wellness"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUv69QXH4MNNR2wkr_wcVH_cbsYrc3wjo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

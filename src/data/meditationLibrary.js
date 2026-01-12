@@ -321,6 +321,3 @@ export const getMeditationsByDuration = (maxMinutes) => {
 export const getBeginnerMeditations = () => {
   return meditationLibrary.filter(med => med.difficulty === 'Beginner')
 }
-
-
-

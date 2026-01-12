@@ -228,7 +228,9 @@ Return format: Just the barcode number (e.g., "012345678901")`;
       if(import.meta.env.DEV)console.log('Looking up barcode:', barcode);
 
       // Try OpenFoodFacts first (free, extensive database)
-      const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+      const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`, {
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
       const data = await response.json();
 
       if (data.status === 1 && data.product) {
@@ -255,22 +257,23 @@ Return format: Just the barcode number (e.g., "012345678901")`;
         };
       }
 
-      // Fallback: Try USDA FoodData Central (if API key available)
-      if (this.apiKey && this.apiKey !== 'DEMO_KEY') {
-        return await this.lookupUSDAByBarcode(barcode);
-      }
-
-      return {
-        success: false,
-        message: 'Product not found in database'
-      };
+      // 🔴 FIX #8: FALLBACK TO USDA IF OPENFOODFACTS FAILS
+      if(import.meta.env.DEV)console.log('⚠️ OpenFoodFacts returned empty, trying USDA...');
+      return await this.lookupUSDAByBarcode(barcode);
 
     } catch (error) {
       if(import.meta.env.DEV)console.error('Barcode lookup error:', error);
-      return {
-        success: false,
-        message: 'Failed to lookup product'
-      };
+      
+      // 🔴 FIX #8: FALLBACK TO USDA ON ERROR
+      if(import.meta.env.DEV)console.log('⚠️ OpenFoodFacts failed, trying USDA fallback...');
+      try {
+        return await this.lookupUSDAByBarcode(barcode);
+      } catch (usdaError) {
+        return {
+          success: false,
+          message: 'Product not found in any database'
+        };
+      }
     }
   }
 
@@ -279,8 +282,51 @@ Return format: Just the barcode number (e.g., "012345678901")`;
    */
   async lookupUSDAByBarcode(barcode) {
     try {
-      // USDA doesn't have direct barcode search, so we return not found
-      // This is a placeholder for future USDA barcode mapping
+      if (!this.apiKey || this.apiKey === 'DEMO_KEY') {
+        if(import.meta.env.DEV)console.log('⚠️ USDA API key not configured');
+        return {
+          success: false,
+          message: 'USDA lookup unavailable (no API key)'
+        };
+      }
+
+      // Search USDA for barcode
+      const response = await fetch(
+        `https://api.nal.usda.gov/fdc/v1/foods/search?query=${barcode}&pageSize=1&api_key=${this.apiKey}`,
+        { signal: AbortSignal.timeout(5000) }
+      );
+      const data = await response.json();
+
+      if (data.foods && data.foods.length > 0) {
+        const food = data.foods[0];
+        const nutrients = food.foodNutrients || [];
+        
+        const getNutrient = (name) => {
+          const nutrient = nutrients.find(n => n.nutrientName?.includes(name));
+          return nutrient ? Math.round(nutrient.value || 0) : 0;
+        };
+
+        return {
+          success: true,
+          food: {
+            name: food.description || 'Unknown Product',
+            brand: food.brandOwner || '',
+            barcode: barcode,
+            calories: getNutrient('Energy'),
+            protein: getNutrient('Protein'),
+            carbs: getNutrient('Carbohydrate'),
+            fat: getNutrient('Total lipid'),
+            fiber: getNutrient('Fiber'),
+            sugar: getNutrient('Sugars'),
+            sodium: getNutrient('Sodium'),
+            servingSize: food.servingSize ? `${food.servingSize} ${food.servingSizeUnit}` : '100g',
+            image: '',
+            ingredients: food.ingredients || '',
+            source: 'USDA FoodData Central'
+          }
+        };
+      }
+
       return {
         success: false,
         message: 'Product not found in USDA database'

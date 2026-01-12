@@ -1,6 +1,7 @@
 // Gamification Service - Streaks, XP, Levels, Achievements
 import firestoreService from './firestoreService';
 import authService from './authService';
+import * as brain from 'brain.js';
 
 const GAMIFICATION_STORAGE_KEY = 'wellnessai_gamification'
 
@@ -105,7 +106,125 @@ const ACHIEVEMENTS = {
 class GamificationService {
   constructor() {
     this.syncService = null; // Will be injected
-    this.loadData()
+    this.neuralNetwork = null; // Brain.js neural network
+    this.trainingData = [];
+    this.loadData();
+    this.initializeAI();
+  }
+  
+  // Initialize Brain.js neural network for AI predictions
+  async initializeAI() {
+    try {
+      this.neuralNetwork = new brain.NeuralNetwork({
+        hiddenLayers: [4, 3],
+        activation: 'sigmoid'
+      });
+      
+      // Load training data from storage
+      const storedData = localStorage.getItem('ai_training_data');
+      if (storedData) {
+        this.trainingData = JSON.parse(storedData);
+        
+        // Train network if we have enough data
+        if (this.trainingData.length >= 10) {
+          await this.trainNetwork();
+        }
+      }
+      
+      if(import.meta.env.DEV)console.log('✅ Brain.js neural network initialized');
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to initialize Brain.js:', error);
+    }
+  }
+  
+  // Train neural network on user behavior
+  async trainNetwork() {
+    if (!this.neuralNetwork || this.trainingData.length < 10) {
+      return;
+    }
+    
+    try {
+      // Normalize training data
+      const normalizedData = this.trainingData.map(d => ({
+        input: {
+          dayOfWeek: d.dayOfWeek / 7,
+          hourOfDay: d.hourOfDay / 24,
+          currentStreak: d.currentStreak / 30,
+          avgDailySteps: d.avgDailySteps / 10000
+        },
+        output: {
+          willComplete: d.didComplete ? 1 : 0
+        }
+      }));
+      
+      // Train the network
+      this.neuralNetwork.train(normalizedData, {
+        iterations: 1000,
+        errorThresh: 0.005
+      });
+      
+      if(import.meta.env.DEV)console.log('🧠 Neural network trained on', this.trainingData.length, 'samples');
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to train neural network:', error);
+    }
+  }
+  
+  // Get AI prediction for user behavior
+  predictUserBehavior(context) {
+    if (!this.neuralNetwork) {
+      return { willComplete: 0.5, confidence: 0 };
+    }
+    
+    try {
+      const input = {
+        dayOfWeek: new Date().getDay() / 7,
+        hourOfDay: new Date().getHours() / 24,
+        currentStreak: this.data.streak / 30,
+        avgDailySteps: (this.data.stats.totalSteps / Math.max(this.data.stats.totalWorkouts, 1)) / 10000
+      };
+      
+      const output = this.neuralNetwork.run(input);
+      const prediction = output.willComplete || output;
+      
+      return {
+        willComplete: prediction,
+        confidence: Math.abs(prediction - 0.5) * 2,
+        recommendation: prediction > 0.7 ? 'High motivation - perfect time for a workout!' :
+                       prediction > 0.5 ? 'Good time to exercise' :
+                       prediction > 0.3 ? 'Try a light activity' :
+                       'Rest day recommended'
+      };
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Prediction error:', error);
+      return { willComplete: 0.5, confidence: 0 };
+    }
+  }
+  
+  // Record user behavior for training
+  recordBehavior(didComplete) {
+    const dataPoint = {
+      dayOfWeek: new Date().getDay(),
+      hourOfDay: new Date().getHours(),
+      currentStreak: this.data.streak,
+      avgDailySteps: this.data.stats.totalSteps / Math.max(this.data.stats.totalWorkouts, 1),
+      didComplete,
+      timestamp: Date.now()
+    };
+    
+    this.trainingData.push(dataPoint);
+    
+    // Keep only last 100 data points
+    if (this.trainingData.length > 100) {
+      this.trainingData.shift();
+    }
+    
+    // Save training data
+    localStorage.setItem('ai_training_data', JSON.stringify(this.trainingData));
+    
+    // Retrain network every 10 new data points
+    if (this.trainingData.length % 10 === 0) {
+      this.trainNetwork();
+    }
   }
 
   // Set sync service dependency
@@ -129,8 +248,9 @@ class GamificationService {
       this.data = JSON.parse(localStored);
       // Migrate to new system
       if (this.syncService) {
-        await firestoreService.save('gamification_data', this.data, authService.getCurrentUser()?.uid);
-        if(import.meta.env.DEV)console.log('⬆️ Migrated gamification data to Preferences');
+        firestoreService.save('gamification_data', this.data, authService.getCurrentUser()?.uid)
+          .then(() => console.log('☁️ gamification_data synced to Firestore (background)'))
+          .catch(err => console.warn('⚠️ gamification_data sync failed:', err));
       }
       return;
     }
@@ -154,12 +274,126 @@ class GamificationService {
         perfectDays: 0
       }
     };
+    
+    // 🔄 MIGRATION: Import old ProfileTabRedesign localStorage keys
+    await this.migrateOldData();
+    
+    // 🔄 SYNC COUNTERS: Always recalculate from source of truth (real data arrays)
+    try {
+      const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      const waterLog = JSON.parse(localStorage.getItem('waterLog') || '[]');
+      const meditationLog = JSON.parse(localStorage.getItem('meditationLog') || '[]');
+      const stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '[]');
+      const totalScans = parseInt(localStorage.getItem('total_scans') || '0');
+      
+      // Update counters to match reality
+      this.data.stats.totalWorkouts = workoutHistory.length;
+      this.data.stats.totalMeals = foodLog.length;
+      this.data.stats.totalWater = waterLog.reduce((sum, w) => sum + (w.cups || 1), 0);
+      this.data.stats.totalMeditations = meditationLog.length;
+      this.data.stats.totalSteps = stepHistory.reduce((sum, s) => sum + (s.steps || 0), 0);
+      this.data.stats.totalScans = totalScans;
+      
+      await this.saveData();
+      
+      if(import.meta.env.DEV)console.log('🔄 Synced gamification counters with real data:', {
+        workouts: this.data.stats.totalWorkouts,
+        meals: this.data.stats.totalMeals,
+        water: this.data.stats.totalWater,
+        meditations: this.data.stats.totalMeditations,
+        steps: this.data.stats.totalSteps,
+        scans: this.data.stats.totalScans
+      });
+    } catch (error) {
+      console.error('❌ Failed to sync counters:', error);
+    }
+  }
+
+  // 🔄 Migrate old localStorage keys from ProfileTabRedesign
+  async migrateOldData() {
+    try {
+      const oldAchievements = JSON.parse(localStorage.getItem('unlocked_achievements') || '[]');
+      const oldLevel = parseInt(localStorage.getItem('user_level') || '0');
+      const oldXP = parseInt(localStorage.getItem('user_xp') || '0');
+      const oldStreak = parseInt(localStorage.getItem('login_streak') || '0');
+      const oldWorkoutCount = parseInt(localStorage.getItem('workout_count') || '0');
+      const oldMealsLogged = parseInt(localStorage.getItem('meals_logged') || '0');
+      
+      // 🍽️ Count ACTUAL meals from foodLog array (the real meal storage)
+      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      const actualMealCount = foodLog.length;
+      
+      // Check if any old data exists
+      const hasOldData = oldAchievements.length > 0 || oldLevel > 0 || oldXP > 0 || oldStreak > 0 || oldWorkoutCount > 0 || oldMealsLogged > 0 || actualMealCount > 0;
+      
+      if (hasOldData) {
+        if(import.meta.env.DEV)console.log('🔄 [MIGRATION] Found old gamification data, migrating...');
+        
+        // Merge into new system (keep higher values to preserve progress)
+        if (oldLevel > this.data.level) {
+          this.data.level = oldLevel;
+          if(import.meta.env.DEV)console.log('  ↳ Level:', oldLevel);
+        }
+        if (oldXP > this.data.totalXP) {
+          this.data.totalXP = oldXP;
+          this.data.xp = oldXP;
+          if(import.meta.env.DEV)console.log('  ↳ XP:', oldXP);
+        }
+        if (oldStreak > this.data.streak) {
+          this.data.streak = oldStreak;
+          this.data.longestStreak = oldStreak;
+          if(import.meta.env.DEV)console.log('  ↳ Streak:', oldStreak);
+        }
+        if (oldWorkoutCount > this.data.stats.totalWorkouts) {
+          this.data.stats.totalWorkouts = oldWorkoutCount;
+          if(import.meta.env.DEV)console.log('  ↳ Workouts:', oldWorkoutCount);
+        }
+        // 🍽️ Use ACTUAL meal count from foodLog (higher value wins)
+        const finalMealCount = Math.max(oldMealsLogged, actualMealCount);
+        if (finalMealCount > this.data.stats.totalMeals) {
+          this.data.stats.totalMeals = finalMealCount;
+          if(import.meta.env.DEV)console.log('  ↳ Meals:', finalMealCount, '(from foodLog:', actualMealCount, ', old key:', oldMealsLogged, ')');
+        }
+        
+        // Migrate old achievements
+        if (oldAchievements.length > 0) {
+          oldAchievements.forEach(id => {
+            if (!this.hasAchievement(id)) {
+              this.data.achievements.push({
+                id: id,
+                unlockedAt: new Date().toISOString()
+              });
+            }
+          });
+          if(import.meta.env.DEV)console.log('  ↳ Achievements:', oldAchievements.length);
+        }
+        
+        // Save migrated data
+        await this.saveData();
+        
+        // Clear old localStorage keys
+        localStorage.removeItem('unlocked_achievements');
+        localStorage.removeItem('user_level');
+        localStorage.removeItem('user_xp');
+        localStorage.removeItem('login_streak');
+        localStorage.removeItem('workout_count');
+        localStorage.removeItem('meals_logged');
+        
+        if(import.meta.env.DEV)console.log('✅ [MIGRATION] Complete! Old keys cleared.');
+      }
+    } catch (error) {
+      console.error('❌ [MIGRATION] Error migrating old data:', error);
+      // Don't throw - continue with default data if migration fails
+    }
   }
 
   // Save gamification data via syncService (Preferences + Firebase + localStorage)
-  async saveData() {
+  saveData() {
     if (this.syncService) {
-      await firestoreService.save('gamification_data', this.data, authService.getCurrentUser()?.uid);
+      firestoreService.save('gamification_data', this.data, authService.getCurrentUser()?.uid)
+        .then(() => console.log('☁️ gamification_data synced to Firestore (background)'))
+        .catch(err => console.warn('⚠️ gamification_data sync failed:', err));
     } else {
       // Fallback to localStorage
       localStorage.setItem(GAMIFICATION_STORAGE_KEY, JSON.stringify(this.data));
@@ -517,9 +751,22 @@ class GamificationService {
       }
     })
     
-    // Add rank
+    // Add rank and VIP badge flag
     leaderboardData.forEach((user, idx) => {
-      user.rank = idx + 1
+      user.rank = idx + 1;
+      
+      // Add VIP badge for Ultimate users (randomly for demo users, real check for current user)
+      if (user.isCurrentUser) {
+        try {
+          const { default: subscriptionService } = require('./subscriptionService');
+          user.isVIP = subscriptionService.hasAccess('vipBadge');
+        } catch (error) {
+          user.isVIP = false;
+        }
+      } else {
+        // Demo users - 20% chance of VIP badge for realism
+        user.isVIP = Math.random() < 0.2;
+      }
     })
     
     return leaderboardData.slice(0, limit)

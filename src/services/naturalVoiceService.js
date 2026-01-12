@@ -28,7 +28,7 @@ class NaturalVoiceService {
 
   setVoice(voiceType) {
     this.currentVoice = voiceType;
-    if(import.meta.env.DEV)console.log(`🎤 Voice set to: ${voiceType}`);
+    console.log(`🎤 Voice set to: ${voiceType}`);
   }
 
   /**
@@ -73,7 +73,7 @@ class NaturalVoiceService {
    * Speak with ultra-natural voice
    */
   async speak(text) {
-    if(import.meta.env.DEV)console.log(`🎤 Speaking: "${text}" (${this.currentVoice})`);
+    console.log(`🎤 Speaking: "${text}" (${this.currentVoice})`);
     
     // Stop any current audio
     this.stop();
@@ -96,27 +96,27 @@ class NaturalVoiceService {
         volume: 0.7, // Lower volume for softer, less commanding tone
         rate: 0.85, // Slightly slower playback for gentler delivery
         onload: () => {
-          if(import.meta.env.DEV)console.log(`✅ Audio loaded: ${text}`);
+          console.log(`✅ Audio loaded: ${text}`);
         },
         onloaderror: (id, error) => {
-          if(import.meta.env.DEV)console.error('❌ Audio load error:', error);
+          console.error('❌ Audio load error:', error);
           // Fallback to native TTS
           this.speakWithNativeTTS(text);
         },
         onplayerror: (id, error) => {
-          if(import.meta.env.DEV)console.error('❌ Audio play error:', error);
+          console.error('❌ Audio play error:', error);
           // Fallback to native TTS
           this.speakWithNativeTTS(text);
         },
         onend: () => {
-          if(import.meta.env.DEV)console.log('✅ Audio finished');
+          console.log('✅ Audio finished');
         }
       });
       
       this.currentAudio.play();
       
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Error speaking:', error);
+      console.error('❌ Error speaking:', error);
       // Fallback to native TTS
       await this.speakWithNativeTTS(text);
     }
@@ -126,7 +126,7 @@ class NaturalVoiceService {
    * Fallback to native TTS if audio fails
    */
   async speakWithNativeTTS(text) {
-    if(import.meta.env.DEV)console.log('⚠️ Falling back to native TTS');
+    console.log('⚠️ Falling back to native TTS');
     
     try {
       const config = {
@@ -140,7 +140,7 @@ class NaturalVoiceService {
       
       await TextToSpeech.speak(config);
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Native TTS error:', error);
+      console.error('❌ Native TTS error:', error);
     }
   }
 
@@ -159,7 +159,7 @@ class NaturalVoiceService {
    * Preload audio for smoother playback
    */
   async preload(texts) {
-    if(import.meta.env.DEV)console.log('📦 Preloading audio...');
+    console.log('📦 Preloading audio...');
     
     for (const text of texts) {
       const cacheKey = `${this.currentVoice}-${text}`;
@@ -169,7 +169,7 @@ class NaturalVoiceService {
       }
     }
     
-    if(import.meta.env.DEV)console.log('✅ Audio preloaded');
+    console.log('✅ Audio preloaded');
   }
 
   /**
@@ -177,11 +177,8 @@ class NaturalVoiceService {
    */
   clearCache() {
     this.audioCache.clear();
-    if(import.meta.env.DEV)console.log('🗑️ Audio cache cleared');
+    console.log('🗑️ Audio cache cleared');
   }
 }
 
 export default new NaturalVoiceService();
-
-
-

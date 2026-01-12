@@ -2,6 +2,7 @@
 // Priority: Preferences (permanent) → Firebase (cloud) → localStorage (cache)
 import firebaseService from './firebaseService.js';
 import { Preferences } from '@capacitor/preferences';
+import { getDatabase, ref, get, set } from 'firebase/database';
 
 class SyncService {
   constructor() {
@@ -12,120 +13,98 @@ class SyncService {
     this.retryTimer = null;
     this.authCheckInterval = null;
     this.maxRetries = 10;
+    this.database = null; // Firebase database instance
     
-    // Critical data keys that MUST survive app updates/uninstalls
+    // Critical data keys that MUST survive app updates/uninstalls.
+    // This is the master list for what gets backed up to the cloud.
     this.criticalKeys = [
-      // ===== STEP TRACKING =====
-      'stepBaseline',
-      'stepBaselineDate', 
-      'weeklySteps',
-      'todaySteps',
+      // --- Core User Data ---
+      'user_profile',
+      'profile_data', // Legacy, but keep for migration
+      'user_preferences',
+      'loginHistory',
+      'onboardingCompleted',
+      'themeSettings',
+      'notificationSettings',
+
+      // --- Health & Wellness Data ---
       'stepHistory',
-      'step_counter_baseline',
-      'step_counter_date',
-      
-      // ===== WATER TRACKING =====
-      'water_daily_goal',
-      'water_today_intake',
-      'water_intake_history',
-      'water_reminders',
+      'weeklySteps',
+      'wellnessai_todaySteps', // 🔥 FIX: Android native service key
+      'wellnessai_stepBaseline', // 🔥 FIX: Android native service key
+      'wellnessai_stepBaselineDate', // 🔥 FIX: Android native service key
       'waterLog',
-      
-      // ===== MEALS & FOOD =====
+      'water_intake_history',
+      'water_daily_goal',
+      'water_reminders',
       'foodLog',
-      'meal_plans',
-      'meal_preferences',
-      'saved_recipes',
-      
-      // ===== WORKOUTS & EXERCISE =====
       'workoutHistory',
-      'workoutLog',
-      'activityLog',
-      'rep_history',
-      'exercise_preferences',
-      
-      // ===== HEART RATE =====
-      'heart_rate_history',
-      'hr_device_name',
-      'heartRateData',
-      
-      // ===== SLEEP TRACKING =====
+      'activityLog', // For detected activities like walking/running
       'sleepLog',
-      'sleep_history',
-      'current_sleep_session',
-      
-      // ===== MENTAL HEALTH =====
       'meditationLog',
-      'meditation_history',
+      'meditation_stats', // ZenTabRedesign stats: minutesToday, totalSessions, streak
+      'mood_data', // ZenTabRedesign mood tracking
       'gratitudeLog',
       'journalEntries',
-      'gratitude_entries',
       'stressLog',
       'mood_history',
+      'healthMetrics', // General container for misc health data
       
-      // ===== PROFILE & USER DATA =====
-      'user_profile',
-      'profile_data',
-      'user_preferences',
-      'allergens',
-      'dietary_restrictions',
-      'health_goals',
-      
-      // ===== HEALTH AVATAR =====
+      // --- 🔥 NEW: Previously Missing Data ---
+      'breathing_history', // Breathing exercise sessions
+      'heart_rate_history', // Heart rate measurements
+      'aiChatHistory', // AI conversation history
+      'saved_recipes', // User's saved recipes
+      'voice_gender', // Voice preference
+      'voice_speed', // Voice speed preference
+      'recent_scans', // Food scanner history
+      'ml_user_patterns', // ML learned patterns
+      'helio_known_locations', // Known location patterns
+      'helio_pattern_learning', // Pattern learning data
+
+      // --- Feature-Specific Data ---
       'health_avatar_data',
-      'avatar_predictions',
-      'avatar_history',
-      
-      // ===== EMERGENCY =====
       'emergency_data',
       'emergency_contacts',
       'emergencyHistory',
-      'medical_info',
-      
-      // ===== DNA ANALYSIS =====
       'dnaAnalysis',
-      'dnaRawData',
-      'dna_last_tip',
-      'dna_last_tip_date',
-      'genetic_predictions',
-      
-      // ===== SOCIAL BATTLES =====
+      'dnaRawData', // Reference to stored file
+      'dna_genetic_data',
+      'dna_analysis',
+      'dna_tip_history',
       'battles_data',
       'battle_history',
-      'battle_stats',
-      
-      // ===== MEAL AUTOMATION =====
       'meal_automation_settings',
-      'automated_meals',
-      'meal_schedule',
-      
-      // ===== AUTHENTICATION =====
-      'loginHistory',
-      'social_login_provider',
-      'social_login_data',
-      'user_credentials',
-      
-      // ===== GAMIFICATION =====
+      'mealPlan',
+      'ai_memory_data', // For personalizing AI interactions
+      'progressPhotos', // List of photo metadata
+
+      // --- Gamification & Subscription ---
       'gamification_data',
       'achievements',
+      'unlocked_achievements', // AchievementUnlock component
       'level_data',
       'xp_history',
       'streaks',
-      
-      // ===== GENERAL HEALTH =====
-      'healthMetrics',
-      'health_data',
-      'health_history',
-      'ml_user_patterns',
-      
-      // ===== SETTINGS =====
-      'notificationSettings',
-      'themeSettings',
-      'dark_mode',
-      'dark_mode_auto',
-      'onboardingCompleted',
+      'daily_challenges',
       'subscription_plan',
-      'paywall_interactions'
+      'subscription_status',
+      'voiceStats',
+
+      // --- Settings & Metadata ---
+      'last_backup_timestamp',
+      'paywall_interactions',
+      
+      // --- Deprecated / Legacy (keep for migration) ---
+      'step_counter_baseline',
+      'step_counter_date',
+      'water_today_intake',
+      'total_scans',
+      'scans_today',
+      'calories_tracked',
+      'hr_device_name',
+      'heartRateData',
+      'dark_mode'
     ];
     
     // Listen for online/offline events
@@ -143,9 +122,14 @@ class SyncService {
     console.log('⚡ SYNC SERVICE: Auth checker started (checks every 2s)');
     
     this.authCheckInterval = setInterval(async () => {
-      if (firebaseService.isAuthenticated() && this.syncQueue.length > 0) {
-        console.log('✅ SYNC SERVICE: Auth ready! Processing', this.syncQueue.length, 'queued items');
-        await this.processSyncQueue();
+      try {
+        if (firebaseService.isAuthenticated() && this.syncQueue.length > 0) {
+          console.log('✅ SYNC SERVICE: Auth ready! Processing', this.syncQueue.length, 'queued items');
+          await this.processSyncQueue();
+        }
+      } catch (error) {
+        if(import.meta.env.DEV)console.error('Error in auth checker:', error);
+        // Continue checking, don't break the interval
       }
     }, 2000); // Check every 2 seconds
   }
@@ -171,11 +155,30 @@ class SyncService {
       }
 
       console.log('🔄 SYNC SERVICE: Firebase initialized');
+      
+      // Get Firebase database instance for direct access
+      this.database = getDatabase();
+
+      // RUN MIGRATION ONCE (for all users - anonymous and logged-in)
+      try {
+        const { value: migrationDone } = await Preferences.get({ key: 'wellnessai_migration_v1' });
+        if (!migrationDone) {
+          console.log('🚀 First app start after update, running data migration...');
+          const user = firebaseService.getCurrentUser();
+          await this.migrateStepDataToAndroidKeys(user?.uid || null);
+          await Preferences.set({ key: 'wellnessai_migration_v1', value: 'true' });
+          console.log('✅ Migration flag set, will not run again');
+        } else {
+          console.log('✓ Migration already completed, skipping');
+        }
+      } catch (migrationError) {
+        console.error('⚠️ Migration failed but continuing:', migrationError);
+      }
 
       // Check if user is authenticated
       const user = firebaseService.getCurrentUser();
       if (user) {
-        console.log('✅ SYNC SERVICE: Initialized for user:', user.email);
+        console.log('✅ SYNC SERVICE: Initialized for user:', user.email || user.uid);
         console.log('📋 SYNC SERVICE: Queue has', this.syncQueue.length, 'pending items');
         
         // Sync pending data if online
@@ -208,6 +211,77 @@ class SyncService {
   handleOffline() {
     if(import.meta.env.DEV)console.log('📴 Device is OFFLINE - data will be saved locally');
     this.isOnline = false;
+  }
+
+  // ========================================
+  // SPECIFIC SYNC METHODS (NEW)
+  // ========================================
+  
+  // Sync step counter data
+  async syncSteps(stepData) {
+    try {
+      await this.saveData('stepHistory', stepData);
+      await this.saveData('todaySteps', stepData.steps);
+      console.log('✅ Step data synced');
+    } catch (error) {
+      console.error('Failed to sync steps:', error);
+    }
+  }
+  
+  // Sync nutrition/calorie data
+  async syncNutrition(nutritionData) {
+    try {
+      await this.saveData('foodLog', nutritionData);
+      await this.saveData('dailyCalories', nutritionData.calories);
+      console.log('✅ Nutrition data synced');
+    } catch (error) {
+      console.error('Failed to sync nutrition:', error);
+    }
+  }
+  
+  // Sync workout data
+  async syncWorkout(workoutData) {
+    try {
+      await this.saveData('workoutHistory', workoutData);
+      console.log('✅ Workout data synced');
+    } catch (error) {
+      console.error('Failed to sync workout:', error);
+    }
+  }
+  
+  // Sync achievement data
+  async syncAchievements(achievements) {
+    try {
+      await this.saveData('achievements', achievements);
+      await this.saveData('gamification_data', achievements);
+      console.log('✅ Achievement data synced');
+    } catch (error) {
+      console.error('Failed to sync achievements:', error);
+    }
+  }
+  
+  // Sync user profile
+  async syncUserProfile(profileData) {
+    try {
+      // Save profile to all storage locations
+      localStorage.setItem('user_profile', JSON.stringify(profileData));
+      await this.saveData('user_profile', profileData);
+      await this.saveData('profile_data', profileData);
+      console.log('✅ Profile data synced');
+    } catch (error) {
+      console.error('Failed to sync profile:', error);
+    }
+  }
+  
+  // Sync user preferences
+  async syncUserPreferences(preferences) {
+    try {
+      localStorage.setItem('user_preferences', JSON.stringify(preferences));
+      await this.saveData('user_preferences', preferences);
+      console.log('✅ User preferences synced');
+    } catch (error) {
+      console.error('Failed to sync preferences:', error);
+    }
   }
 
   // ========================================
@@ -688,25 +762,39 @@ class SyncService {
         return;
       }
 
-      if(import.meta.env.DEV)console.log('⬇️ Pulling data from Firebase...');
+      console.log('⬇️ RESTORATION: Pulling all data from Firebase cloud...');
       
+      // STEP 1: Pull user profile
       const profile = await firebaseService.getUserProfile(userId);
-      if (!profile) {
-        return;
+      if (profile) {
+        Object.keys(profile).forEach(key => {
+          if (typeof profile[key] !== 'object' || Array.isArray(profile[key])) {
+            localStorage.setItem(key, JSON.stringify(profile[key]));
+          }
+        });
       }
 
-      // Update localStorage with Firebase data
-      let updatedCount = 0;
-      Object.keys(profile).forEach(key => {
-        if (typeof profile[key] !== 'object' || Array.isArray(profile[key])) {
-          localStorage.setItem(key, JSON.stringify(profile[key]));
-          updatedCount++;
+      // STEP 2: Pull all critical keys from Firebase Realtime Database
+      let pulledCount = 0;
+      for (const key of this.criticalKeys) {
+        try {
+          // Read directly from Firebase Realtime Database path: users/{userId}/{key}
+          const dataRef = ref(this.database, `users/${userId}/${key}`);
+          const snapshot = await get(dataRef);
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            localStorage.setItem(key, JSON.stringify(data));
+            console.log(`☁️ Pulled from Firebase: ${key}`);
+            pulledCount++;
+          }
+        } catch (error) {
+          // Silently continue if key doesn't exist in Firebase
         }
-      });
+      }
 
-      if(import.meta.env.DEV)console.log(`✅ Pulled ${updatedCount} items from Firebase`);
+      console.log(`✅ RESTORATION: Pulled ${pulledCount} items from Firebase cloud`);
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Pull from Firebase failed:', error);
+      console.error('❌ RESTORATION: Pull from Firebase failed:', error);
     }
   }
 
@@ -714,20 +802,114 @@ class SyncService {
   // USER AUTHENTICATION HELPERS
   // ========================================
 
+  // Migrate step data from old keys to wellnessai_ prefixed keys (Android bridge)
+  async migrateStepDataToAndroidKeys(userId) {
+    try {
+      console.log('🔄 MIGRATION: Starting step data migration to Android keys...');
+      
+      // 1. Read OLD data from localStorage/Firebase (historical data)
+      let oldHistory = [];
+      try {
+        const localData = localStorage.getItem('stepHistory');
+        if (localData) {
+          oldHistory = JSON.parse(localData);
+          console.log(`📦 Found ${oldHistory.length} entries in localStorage`);
+        }
+      } catch (e) {
+        console.warn('⚠️ Could not read old stepHistory from localStorage');
+      }
+      
+      // 2. Read NEW data from Android's CapacitorStorage (recent data)
+      let newHistory = [];
+      try {
+        const { value: newHistoryJson } = await Preferences.get({ key: 'wellnessai_stepHistory' });
+        if (newHistoryJson) {
+          newHistory = JSON.parse(newHistoryJson);
+          console.log(`📱 Found ${newHistory.length} entries in Android CapacitorStorage`);
+        }
+      } catch (e) {
+        console.warn('⚠️ Could not read wellnessai_stepHistory from Preferences');
+      }
+      
+      // 3. MERGE: Start with old data, then overwrite/add from new data
+      const merged = [...oldHistory];
+      let updatedCount = 0;
+      let addedCount = 0;
+      
+      for (const newEntry of newHistory) {
+        const existingIndex = merged.findIndex(e => e.date === newEntry.date);
+        if (existingIndex >= 0) {
+          merged[existingIndex] = newEntry; // Overwrite with newer Android data
+          updatedCount++;
+        } else {
+          merged.push(newEntry); // Add new date
+          addedCount++;
+        }
+      }
+      
+      console.log(`🔀 MERGE: ${merged.length} total entries (${updatedCount} updated, ${addedCount} added)`);
+      
+      // 4. Save merged data to NEW key (wellnessai_ prefix)
+      await Preferences.set({ 
+        key: 'wellnessai_stepHistory', 
+        value: JSON.stringify(merged) 
+      });
+      console.log(`✅ Saved ${merged.length} entries to wellnessai_stepHistory`);
+      
+      // 5. Keep OLD key for backward compatibility (will be removed in future version)
+      localStorage.setItem('stepHistory', JSON.stringify(merged));
+      
+      // 6. Sync merged data to Firebase
+      if (userId && firebaseService.isAuthenticated()) {
+        try {
+          await firebaseService.updateUserProfile(userId, { stepHistory: merged });
+          console.log('☁️ Synced merged data to Firebase');
+        } catch (e) {
+          console.warn('⚠️ Firebase sync failed, will retry later');
+        }
+      }
+      
+      console.log('✅ MIGRATION: Step data migration complete!');
+      return { success: true, entriesCount: merged.length };
+    } catch (error) {
+      console.error('❌ MIGRATION: Failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // Called after user login
   async onUserLogin(userId) {
     try {
-      if(import.meta.env.DEV)console.log('👤 User logged in, syncing data...');
+      console.log('👤 RESTORATION: User logged in, restoring all data...');
       
-      // Pull data from Firebase first
+      // STEP 1: Restore critical data from Capacitor Preferences (survives uninstall if backed up)
+      let restoredCount = 0;
+      for (const key of this.criticalKeys) {
+        try {
+          const { value } = await Preferences.get({ key: `wellnessai_${key}` });
+          if (value) {
+            const parsed = JSON.parse(value);
+            localStorage.setItem(key, JSON.stringify(parsed));
+            restoredCount++;
+            console.log(`🔒 Restored from Preferences: ${key}`);
+          }
+        } catch (error) {
+          // Silently continue if key doesn't exist
+        }
+      }
+      console.log(`✅ RESTORATION: Restored ${restoredCount} items from Preferences`);
+      
+      // STEP 2: Pull ALL data from Firebase cloud (critical keys + profile)
       await this.pullFromFirebase();
       
-      // Then sync local changes to Firebase
+      // STEP 3: Sync current state back to Firebase
+      console.log('🔄 RESTORATION: Syncing current state to cloud...');
       await this.syncAllData();
       
+      console.log('✅ RESTORATION: Complete! All your data has been restored.');
       return { success: true };
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ User login sync failed:', error);
+      console.error('❌ RESTORATION: User login sync failed:', error);
       return { success: false, error: error.message };
     }
   }
@@ -823,7 +1005,116 @@ class SyncService {
       
       return { totalSize, sizeMB };
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Error during storage cleanup:', error);
+      if(import.meta.env.DEV)console.error('❌ Cleanup failed:', error);
+      return { totalSize: 0, sizeMB: '0' };
+    }
+  }
+
+  // ========================================
+  // MANUAL BACKUP & RESTORE
+  // ========================================
+
+  // Manual full backup to Firebase (user-triggered)
+  async manualBackupToCloud() {
+    try {
+      console.log('🔄 MANUAL BACKUP: Starting full backup to cloud...');
+      
+      const userId = firebaseService.getCurrentUserId();
+      if (!userId) {
+        throw new Error('Not logged in');
+      }
+
+      let backedUpCount = 0;
+      let failedCount = 0;
+
+      for (const key of this.criticalKeys) {
+        try {
+          const value = localStorage.getItem(key);
+          if (value) {
+            // Save to Preferences
+            await Preferences.set({
+              key: `wellnessai_${key}`,
+              value: value
+            });
+
+            // Save to Firebase
+            const dataRef = ref(this.database, `users/${userId}/${key}`);
+            await set(dataRef, JSON.parse(value));
+            
+            backedUpCount++;
+          }
+        } catch (error) {
+          console.error(`❌ Backup failed for ${key}:`, error.message);
+          failedCount++;
+        }
+      }
+
+      const timestamp = new Date().toISOString();
+      await Preferences.set({
+        key: 'last_backup_timestamp',
+        value: timestamp
+      });
+
+      console.log(`✅ MANUAL BACKUP: Complete! ${backedUpCount} items backed up, ${failedCount} failed`);
+      return { success: true, backedUpCount, failedCount, timestamp };
+    } catch (error) {
+      console.error('❌ MANUAL BACKUP: Failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Manual restore from cloud (user-triggered)
+  async manualRestoreFromCloud() {
+    try {
+      console.log('🔄 MANUAL RESTORE: Starting restore from cloud...');
+      
+      const userId = firebaseService.getCurrentUserId();
+      if (!userId) {
+        throw new Error('Not logged in');
+      }
+
+      let restoredCount = 0;
+      let failedCount = 0;
+
+      for (const key of this.criticalKeys) {
+        try {
+          // Try Firebase first
+          const dataRef = ref(this.database, `users/${userId}/${key}`);
+          const snapshot = await get(dataRef);
+          
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            localStorage.setItem(key, JSON.stringify(data));
+            
+            // Also save to Preferences
+            await Preferences.set({
+              key: `wellnessai_${key}`,
+              value: JSON.stringify(data)
+            });
+            
+            console.log(`☁️ Restored from cloud: ${key}`);
+            restoredCount++;
+          }
+        } catch (error) {
+          console.error(`❌ Restore failed for ${key}:`, error.message);
+          failedCount++;
+        }
+      }
+
+      console.log(`✅ MANUAL RESTORE: Complete! ${restoredCount} items restored, ${failedCount} failed`);
+      return { success: true, restoredCount, failedCount };
+    } catch (error) {
+      console.error('❌ MANUAL RESTORE: Failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get last backup timestamp
+  async getLastBackupTime() {
+    try {
+      const { value } = await Preferences.get({ key: 'last_backup_timestamp' });
+      return value || null;
+    } catch (error) {
       return null;
     }
   }

@@ -1,13 +1,14 @@
-// Food Scanner Component - AI-Powered Food & Label Analysis
+// Food Scanner Component - AI-Powered Food & Halal Analysis
 import { useState, useEffect } from 'react';
 import './FoodScanner.css';
 import aiVisionService from '../services/aiVisionService';
 import authService from '../services/authService';
 import subscriptionService from '../services/subscriptionService';
 import PaywallModal from './PaywallModal';
+import { showToast } from './Toast';
 
-export default function FoodScanner({ onClose }) {
-  const [scanMode, setScanMode] = useState('food'); // 'food' or 'label'
+export default function FoodScanner({ onClose, initialMode = null, lockMode = false, initialTab = 'usda' }) {
+  const [scanMode, setScanMode] = useState(initialMode || 'food'); // 'food' or 'label' or 'halal' or 'search'
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -19,9 +20,29 @@ export default function FoodScanner({ onClose }) {
     if(import.meta.env.DEV)console.log('📋 Loaded Allergen Profile:', profile);
     // Ensure profile has default values even if null
     setAllergenProfile(profile || { allergens: [], intolerances: [], dietaryPreferences: [], allergenSeverity: {} });
+    
+    // 🎯 Read scan history via Preferences (4-system architecture)
+    (async () => {
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        const { value: scanHistory } = await Preferences.get({ key: 'wellnessai_foodScans' });
+        if (scanHistory) {
+          const scans = JSON.parse(scanHistory);
+          if(import.meta.env.DEV)console.log('📊 Loaded food scan history:', scans.length, 'scans');
+        }
+      } catch (e) {
+        console.warn('Could not load scan history:', e);
+      }
+    })();
   }, []);
 
   const handleScanFood = async () => {
+    // Check if user has access to food scanner (Starter+ required for camera)
+    if (!subscriptionService.hasAccess('foodScanner')) {
+      setShowPaywall(true);
+      return;
+    }
+
     // Check food scan limit
     const limit = subscriptionService.checkLimit('foodScans');
     if (!limit.allowed) {
@@ -45,7 +66,36 @@ export default function FoodScanner({ onClose }) {
         throw new Error(photoResult.error || 'Failed to capture photo');
       }
 
-      // Analyze with AI
+      // HALAL MODE - Complete isolation
+      if (scanMode === 'halal') {
+        if(import.meta.env.DEV)console.log('🕌 HALAL MODE ACTIVE - Running Halal-only analysis');
+        
+        const analysisResult = await aiVisionService.analyzeHalalStatus(photoResult.imageData);
+        
+        if (!analysisResult.success) {
+          throw new Error(analysisResult.error || 'Halal analysis failed');
+        }
+        
+        if(import.meta.env.DEV)console.log('✅ Halal analysis complete:', analysisResult.analysis);
+        
+        setResult({
+          ...analysisResult.analysis,
+          imageData: photoResult.imageData,
+          scanMode: 'halal'
+        });
+        
+        // INCREMENT USAGE COUNT
+        subscriptionService.incrementUsage('foodScans');
+        const newLimit = subscriptionService.checkLimit('foodScans');
+        if(import.meta.env.DEV)console.log(`✅ Halal scan used. Remaining: ${newLimit.remaining}/${newLimit.limit}`);
+        
+        setAnalyzing(false);
+        return; // EXIT - No food database search
+      }
+
+      // FOOD/LABEL MODE - Standard analysis
+      if(import.meta.env.DEV)console.log(`📊 ${scanMode.toUpperCase()} MODE - Running food/label analysis`);
+      
       const analysisResult = scanMode === 'food'
         ? await aiVisionService.analyzeFoodImage(photoResult.imageData)
         : await aiVisionService.analyzeIngredientLabel(photoResult.imageData);
@@ -54,7 +104,7 @@ export default function FoodScanner({ onClose }) {
         throw new Error(analysisResult.error || 'Analysis failed');
       }
 
-      // Search ALL databases for better nutrition data
+      // Search ALL databases for better nutrition data (food/label mode only)
       const foodName = analysisResult.analysis.foodName || analysisResult.analysis.food;
       const smartFoodSearch = (await import('../services/smartFoodSearch')).default;
       const databaseMatches = await smartFoodSearch.searchAllDatabases(foodName);
@@ -64,6 +114,15 @@ export default function FoodScanner({ onClose }) {
         imageData: photoResult.imageData,
         databaseMatches: databaseMatches, // All database results
         bestMatch: databaseMatches.length > 0 ? databaseMatches[0] : null // Best nutrition data
+      });
+
+      // Trigger sync after successful scan
+      const syncService = (await import('../services/syncService')).default;
+      await syncService.syncNutrition({
+        foodName: analysisResult.analysis.foodName,
+        calories: analysisResult.analysis.nutrition?.calories || 0,
+        timestamp: Date.now(),
+        date: new Date().toISOString().split('T')[0]
       });
 
       if(import.meta.env.DEV)console.log(`✅ AI detected: ${foodName}. Found ${databaseMatches.length} database matches.`);
@@ -81,6 +140,76 @@ export default function FoodScanner({ onClose }) {
           allergens: analysisResult.analysis.detectedAllergens,
           safety: analysisResult.analysis.safetyLevel
         });
+        
+        // 🎯 UPDATE SCAN STATS - Track via Preferences (4-system architecture)
+        const { Preferences } = await import('@capacitor/preferences');
+        const { value: totalScansVal } = await Preferences.get({ key: 'wellnessai_total_scans' });
+        const { value: todayScansVal } = await Preferences.get({ key: 'wellnessai_scans_today' });
+        const { value: caloriesVal } = await Preferences.get({ key: 'wellnessai_calories_tracked' });
+        const totalScans = parseInt(totalScansVal || '0');
+        const todayScans = parseInt(todayScansVal || '0');
+        const scanCalories = databaseMatches.length > 0 ? (databaseMatches[0].calories || 0) : 0;
+        const totalCalories = parseInt(caloriesVal || '0');
+        
+        // 🎯 Update via Preferences (4-system architecture)
+        await Preferences.set({ key: 'wellnessai_total_scans', value: (totalScans + 1).toString() });
+        await Preferences.set({ key: 'wellnessai_scans_today', value: (todayScans + 1).toString() });
+        await Preferences.set({ key: 'wellnessai_scans_today_date', value: new Date().toISOString().split('T')[0] });
+        await Preferences.set({ key: 'wellnessai_calories_tracked', value: (totalCalories + scanCalories).toString() });
+        
+        // 🎯 Update recent scans via Preferences (4-system architecture)
+        const { value: recentScansVal } = await Preferences.get({ key: 'wellnessai_recent_scans' });
+        const recentScans = JSON.parse(recentScansVal || '[]');
+        recentScans.unshift({
+          name: analysisResult.analysis.foodName,
+          calories: scanCalories,
+          time: 'Just now',
+          icon: '📸'
+        });
+        const updatedRecentScans = recentScans.slice(0, 10);
+        await Preferences.set({ key: 'wellnessai_recent_scans', value: JSON.stringify(updatedRecentScans) });
+        
+        // 💾 DUAL STORAGE: Save to Preferences (survives app updates)
+        try {
+          const { Preferences } = await import('@capacitor/preferences');
+          await Preferences.set({ key: 'wellnessai_total_scans', value: (totalScans + 1).toString() });
+          await Preferences.set({ key: 'wellnessai_scans_today', value: (todayScans + 1).toString() });
+          await Preferences.set({ key: 'wellnessai_scans_today_date', value: new Date().toISOString().split('T')[0] });
+          await Preferences.set({ key: 'wellnessai_calories_tracked', value: (totalCalories + scanCalories).toString() });
+          await Preferences.set({ key: 'wellnessai_recent_scans', value: JSON.stringify(updatedRecentScans) });
+          if(import.meta.env.DEV)console.log('💾 Scan stats saved to Preferences');
+        } catch (e) {
+          console.warn('Could not save scan stats to Preferences:', e);
+        }
+        
+        // ☁️ FIREBASE SYNC: Save to cloud
+        try {
+          const firestoreService = (await import('../services/firestoreService')).default;
+          const authService = (await import('../services/authService')).default;
+          const user = authService.getCurrentUser();
+          if (user?.uid) {
+            await firestoreService.save('total_scans', totalScans + 1, user.uid);
+            await firestoreService.save('scans_today', todayScans + 1, user.uid);
+            await firestoreService.save('scans_today_date', new Date().toISOString().split('T')[0], user.uid);
+            await firestoreService.save('calories_tracked', totalCalories + scanCalories, user.uid);
+            await firestoreService.save('recent_scans', updatedRecentScans, user.uid);
+            if(import.meta.env.DEV)console.log('☁️ Scan stats synced to Firebase');
+          }
+        } catch (e) {
+          console.warn('Could not sync scan stats to Firebase (will retry):', e);
+        }
+        
+        // Award XP for successful scan
+        if (window.addPoints) {
+          window.addPoints(5, { x: window.innerWidth / 2, y: 100 });
+        }
+        
+        // Update daily challenge
+        if (window.updateDailyChallenge) {
+          window.updateDailyChallenge('scan_food', 1);
+        }
+        
+        if(import.meta.env.DEV)console.log('📊 Scan stats updated:', { totalScans: totalScans + 1, calories: scanCalories });
       }
 
     } catch (err) {
@@ -129,7 +258,7 @@ export default function FoodScanner({ onClose }) {
     };
 
     await authService.logSymptom(symptomData);
-    alert('Symptom logged for AI learning');
+    showToast('Symptom logged for AI learning', 'success');
   };
 
   return (
@@ -172,27 +301,35 @@ export default function FoodScanner({ onClose }) {
           return null;
         })()}
 
-        {/* Mode Toggle */}
-        <div className="scan-mode-toggle">
-          <button
-            className={`mode-btn ${scanMode === 'food' ? 'active' : ''}`}
-            onClick={() => setScanMode('food')}
-          >
-            📸 Scan Food
-          </button>
-          <button
-            className={`mode-btn ${scanMode === 'label' ? 'active' : ''}`}
-            onClick={() => setScanMode('label')}
-          >
-            🏷️ Scan Label
-          </button>
-          <button
-            className={`mode-btn ${scanMode === 'search' ? 'active' : ''}`}
-            onClick={() => setScanMode('search')}
-          >
-            🔍 Search 6M Foods
-          </button>
-        </div>
+        {/* Mode Toggle - Hidden when lockMode is true */}
+        {!lockMode && (
+          <div className="scan-mode-toggle">
+            <button
+              className={`mode-btn ${scanMode === 'food' ? 'active' : ''}`}
+              onClick={() => setScanMode('food')}
+            >
+              📸 Scan Food
+            </button>
+            <button
+              className={`mode-btn ${scanMode === 'label' ? 'active' : ''}`}
+              onClick={() => setScanMode('label')}
+            >
+              🏷️ Scan Label
+            </button>
+            <button
+              className={`mode-btn ${scanMode === 'halal' ? 'active' : ''}`}
+              onClick={() => setScanMode('halal')}
+            >
+              🕌 Halal Check
+            </button>
+            <button
+              className={`mode-btn ${scanMode === 'search' ? 'active' : ''}`}
+              onClick={() => setScanMode('search')}
+            >
+              🔍 Search 6M Foods
+            </button>
+          </div>
+        )}
 
         {/* Allergen Profile Summary */}
         {allergenProfile && allergenProfile.allergens?.length > 0 && (
@@ -213,15 +350,16 @@ export default function FoodScanner({ onClose }) {
 
         {/* Search Mode */}
         {scanMode === 'search' && !result && (
-          <SearchFoods onClose={onClose} />
+          <SearchFoods onClose={onClose} initialTab={initialTab} />
         )}
 
         {/* Scan Button */}
         {!result && scanMode !== 'search' && (
-          <button
-            className="scan-button"
+          <button 
+            className="scan-button" 
             onClick={handleScanFood}
             disabled={analyzing}
+            aria-label="Start camera to scan food"
           >
             {analyzing ? (
               <>
@@ -230,7 +368,7 @@ export default function FoodScanner({ onClose }) {
               </>
             ) : (
               <>
-                📷 {scanMode === 'food' ? 'Scan Food' : 'Scan Ingredient Label'}
+                📷 {scanMode === 'food' ? 'Scan Food' : scanMode === 'halal' ? 'Check Halal Status' : 'Scan Ingredient Label'}
               </>
             )}
           </button>
@@ -243,8 +381,106 @@ export default function FoodScanner({ onClose }) {
           </div>
         )}
 
-        {/* Results Display */}
-        {result && (
+        {/* Halal Results Display */}
+        {result && scanMode === 'halal' && result.halalStatus && (
+          <div className="halal-results">
+            {/* Image Preview */}
+            <div className="result-image">
+              <img
+                src={`data:image/jpeg;base64,${result.imageData}`}
+                alt="Scanned product"
+              />
+            </div>
+
+            <div className={`halal-verdict ${result.halalStatus}`}>
+              {result.halalStatus === 'halal' && '✅ HALAL'}
+              {result.halalStatus === 'haram' && '❌ HARAM'}
+              {result.halalStatus === 'doubtful' && '⚠️ DOUBTFUL (MUSHBOOH)'}
+              {result.halalStatus === 'uncertain' && '❓ UNCERTAIN'}
+            </div>
+
+            <div className="halal-confidence">
+              Confidence: {result.confidence}%
+            </div>
+
+            {result.certifications && result.certifications.length > 0 && (
+              <div className="halal-section">
+                <h4>🏅 Certifications Found:</h4>
+                <ul>
+                  {result.certifications.map((cert, idx) => (
+                    <li key={idx} className="cert-item">{cert}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.haramIngredients && result.haramIngredients.length > 0 && (
+              <div className="halal-section danger">
+                <h4>🚫 Haram Ingredients:</h4>
+                <ul>
+                  {result.haramIngredients.map((ing, idx) => (
+                    <li key={idx} className="haram-item">{ing}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.doubtfulIngredients && result.doubtfulIngredients.length > 0 && (
+              <div className="halal-section warning">
+                <h4>⚠️ Doubtful Ingredients:</h4>
+                <ul>
+                  {result.doubtfulIngredients.map((ing, idx) => (
+                    <li key={idx} className="doubtful-item">{ing}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.eCodes && result.eCodes.length > 0 && (
+              <div className="halal-section">
+                <h4>🔢 E-Codes Found:</h4>
+                <ul>
+                  {result.eCodes.map((code, idx) => (
+                    <li key={idx} className="ecode-item">{code}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result.crossContamination && (
+              <div className="halal-section">
+                <h4>⚗️ Cross-Contamination:</h4>
+                <p>{result.crossContamination}</p>
+              </div>
+            )}
+
+            {result.recommendation && (
+              <div className="halal-section recommendation">
+                <h4>💡 Recommendation:</h4>
+                <p>{result.recommendation}</p>
+              </div>
+            )}
+
+            {result.details && (
+              <div className="halal-section details">
+                <h4>📋 Detailed Analysis:</h4>
+                <p>{result.details}</p>
+              </div>
+            )}
+
+            <div className="result-actions">
+              <button className="action-btn" onClick={handleScanFood}>
+                📷 Scan Another Product
+              </button>
+              <button className="action-btn secondary" onClick={() => setResult(null)}>
+                ← Back
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Regular Food/Label Results Display */}
+        {result && scanMode !== 'halal' && (
           <div className="scan-results">
             {/* Image Preview */}
             <div className="result-image">
@@ -265,6 +501,76 @@ export default function FoodScanner({ onClose }) {
 
             {/* Food Name */}
             <h3 className="food-name">{result.foodName}</h3>
+
+            {/* 🔥 FIX #8: AI Confidence Score */}
+            {result.confidence !== undefined && (
+              <div style={{
+                background: result.confidence >= 80 
+                  ? 'linear-gradient(135deg, #10b981, #059669)' 
+                  : result.confidence >= 60 
+                  ? 'linear-gradient(135deg, #f59e0b, #d97706)' 
+                  : 'linear-gradient(135deg, #ef4444, #dc2626)',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                marginBottom: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                  <span style={{fontSize: '20px'}}>
+                    {result.confidence >= 80 ? '✅' : result.confidence >= 60 ? '⚠️' : '❌'}
+                  </span>
+                  <div>
+                    <div style={{color: 'white', fontWeight: 'bold', fontSize: '14px'}}>
+                      AI Confidence: {result.confidence}%
+                    </div>
+                    <div style={{color: 'rgba(255,255,255,0.9)', fontSize: '12px'}}>
+                      {result.confidence >= 80 
+                        ? 'High confidence - nutrition data should be accurate' 
+                        : result.confidence >= 60 
+                        ? 'Moderate confidence - please review values below' 
+                        : 'Low confidence - consider manually editing nutrition values'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    const newProtein = prompt('Enter protein (grams):', result.protein || 0)
+                    const newCarbs = prompt('Enter carbs (grams):', result.carbs || result.carbohydrates || 0)
+                    const newFat = prompt('Enter fat (grams):', result.fat || result.fats || 0)
+                    const newCalories = prompt('Enter calories:', result.calories || 0)
+                    if (newProtein !== null && newCarbs !== null && newFat !== null && newCalories !== null) {
+                      setResult({
+                        ...result,
+                        protein: parseFloat(newProtein),
+                        carbs: parseFloat(newCarbs),
+                        carbohydrates: parseFloat(newCarbs),
+                        fat: parseFloat(newFat),
+                        fats: parseFloat(newFat),
+                        calories: parseFloat(newCalories),
+                        confidence: 100 // Mark as manually verified
+                      })
+                      showToast('✅ Nutrition values updated', 'success')
+                    }
+                  }}
+                  style={{
+                    background: 'rgba(255,255,255,0.3)',
+                    border: '1px solid rgba(255,255,255,0.5)',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  ✏️ Edit Values
+                </button>
+              </div>
+            )}
 
             {/* Database Matches */}
             {result.databaseMatches && result.databaseMatches.length > 0 && (
@@ -400,6 +706,8 @@ export default function FoodScanner({ onClose }) {
             <p>
               {scanMode === 'food'
                 ? '📸 Point camera at any food to identify ingredients and check allergens'
+                : scanMode === 'halal'
+                ? '🕌 Scan product labels for comprehensive Islamic dietary compliance verification'
                 : '🏷️ Scan ingredient labels to extract and analyze all contents'}
             </p>
           </div>
@@ -410,10 +718,10 @@ export default function FoodScanner({ onClose }) {
 }
 
 // Search Foods Component - OpenFoodFacts + Restaurants
-function SearchFoods({ onClose }) {
+function SearchFoods({ onClose, initialTab = 'usda' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [searchTab, setSearchTab] = useState('usda'); // 'usda', 'foods', or 'restaurants'
+  const [searchTab, setSearchTab] = useState(initialTab); // 'usda', 'foods', or 'restaurants'
   const [loading, setLoading] = useState(false);
   const [halalOnly, setHalalOnly] = useState(false);
   const [selectedCuisine, setSelectedCuisine] = useState('');
@@ -462,6 +770,7 @@ function SearchFoods({ onClose }) {
         const results = restaurantService.searchMenuItems(searchQuery, null, filters);
         setSearchResults(results);
       }
+      
     } catch (error) {
       if(import.meta.env.DEV)console.error('Search error:', error);
     } finally {
@@ -485,7 +794,7 @@ function SearchFoods({ onClose }) {
       carbs: food.carbs || food.carbohydrates,
       fat: food.fats || food.fat
     });
-    alert('✅ Food logged!');
+    showToast('✅ Food logged!', 'success');
   };
   
   return (
@@ -711,17 +1020,6 @@ function SearchFoods({ onClose }) {
           </div>
         ) : null}
       </div>
-
-      {/* Paywall Modal */}
-      {showPaywall && (
-        <PaywallModal
-          isOpen={showPaywall}
-          onClose={() => setShowPaywall(false)}
-          featureName="Food Scanning"
-          message="You've reached your daily food scan limit. Upgrade for unlimited scans!"
-          currentPlan={subscriptionService.getCurrentPlan()}
-        />
-      )}
     </div>
   );
 }

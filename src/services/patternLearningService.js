@@ -36,28 +36,28 @@ class PatternLearningService {
 
   async initialize() {
     try {
-      if(import.meta.env.DEV)console.log('🧠 Initializing Pattern Learning AI...');
+      console.log('🧠 Initializing Pattern Learning AI...');
       
       // Load historical patterns
       this.patterns = this.loadPatterns();
       this.analyzeHistoricalData();
       
-      if(import.meta.env.DEV)console.log('📊 Pattern statistics:');
-      if(import.meta.env.DEV)console.log('   - Training sessions:', this.patterns.totalSessions || 0);
-      if(import.meta.env.DEV)console.log('   - Days of data:', this.patterns.daysOfData || 0);
-      if(import.meta.env.DEV)console.log('   - Peak hours:', this.getPeakHours().join(', '));
+      console.log('📊 Pattern statistics:');
+      console.log('   - Training sessions:', this.patterns.totalSessions || 0);
+      console.log('   - Days of data:', this.patterns.daysOfData || 0);
+      console.log('   - Peak hours:', this.getPeakHours().join(', '));
       
-      if(import.meta.env.DEV)console.log('✅ Pattern Learning AI initialized');
+      console.log('✅ Pattern Learning AI initialized');
       return true;
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Pattern Learning initialization failed:', error);
+      console.error('❌ Pattern Learning initialization failed:', error);
       return false;
     }
   }
 
   analyzeHistoricalData() {
     if (!this.patterns.sessions || this.patterns.sessions.length === 0) {
-      if(import.meta.env.DEV)console.log('📚 No historical data yet - learning mode active');
+      console.log('📚 No historical data yet - learning mode active');
       return;
     }
 
@@ -90,7 +90,7 @@ class PatternLearningService {
       }
     }
 
-    if(import.meta.env.DEV)console.log('📈 Pattern analysis complete');
+    console.log('📈 Pattern analysis complete');
   }
 
   recordSession(steps, context, duration) {
@@ -135,7 +135,7 @@ class PatternLearningService {
     // Save to storage
     this.savePatterns();
 
-    if(import.meta.env.DEV)console.log('💾 Session recorded:', steps, 'steps at', hour + ':00');
+    console.log('💾 Session recorded:', steps, 'steps at', hour + ':00');
   }
 
   getExpectedStepsForCurrentTime() {
@@ -210,7 +210,7 @@ class PatternLearningService {
         this.recentAnomalies.shift();
       }
 
-      if(import.meta.env.DEV)console.log('⚠️ ANOMALY DETECTED:', currentSteps, 'steps (expected ~' + expected.expected.toFixed(0) + ')');
+      console.log('⚠️ ANOMALY DETECTED:', currentSteps, 'steps (expected ~' + expected.expected.toFixed(0) + ')');
     }
 
     return {
@@ -267,16 +267,28 @@ class PatternLearningService {
     return { adjustment: 1.0, reason: 'No pattern adjustment' };
   }
 
-  loadPatterns() {
+  async loadPatterns() {
     try {
+      // 🔥 FIX: Try Firebase first, then localStorage
+      try {
+        const firestoreService = (await import('./firestoreService.js')).default;
+        const authService = (await import('./authService.js')).default;
+        const cloudPatterns = await firestoreService.get('helio_pattern_learning', authService.getCurrentUser()?.uid);
+        if (cloudPatterns && cloudPatterns.totalSessions > 0) {
+          localStorage.setItem('helio_pattern_learning', JSON.stringify(cloudPatterns));
+          console.log('📚 Loaded pattern data from cloud:', cloudPatterns.totalSessions, 'sessions');
+          return cloudPatterns;
+        }
+      } catch (e) { /* fallback to localStorage */ }
+      
       const saved = localStorage.getItem('helio_pattern_learning');
       if (saved) {
         const patterns = JSON.parse(saved);
-        if(import.meta.env.DEV)console.log('📚 Loaded pattern data:', patterns.totalSessions || 0, 'sessions');
+        console.log('📚 Loaded pattern data:', patterns.totalSessions || 0, 'sessions');
         return patterns;
       }
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Error loading patterns:', error);
+      console.error('Error loading patterns:', error);
     }
 
     return {
@@ -288,11 +300,18 @@ class PatternLearningService {
     };
   }
 
-  savePatterns() {
+  async savePatterns() {
     try {
       localStorage.setItem('helio_pattern_learning', JSON.stringify(this.patterns));
+      
+      // 🔥 FIX: Sync to Firebase
+      try {
+        const firestoreService = (await import('./firestoreService.js')).default;
+        const authService = (await import('./authService.js')).default;
+        await firestoreService.save('helio_pattern_learning', this.patterns, authService.getCurrentUser()?.uid);
+      } catch (e) { /* offline mode */ }
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Error saving patterns:', error);
+      console.error('Error saving patterns:', error);
     }
   }
 
@@ -315,11 +334,8 @@ class PatternLearningService {
       lastUpdate: null
     };
     this.savePatterns();
-    if(import.meta.env.DEV)console.log('🔄 Pattern data reset');
+    console.log('🔄 Pattern data reset');
   }
 }
 
 export default new PatternLearningService();
-
-
-

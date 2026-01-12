@@ -4,6 +4,7 @@ import './MealAutomation.css';
 import mealAutomationService from '../services/mealAutomationService';
 import subscriptionService from '../services/subscriptionService';
 import PaywallModal from './PaywallModal';
+import { showToast } from './Toast';
 
 export default function MealAutomation({ onClose }) {
   const [view, setView] = useState('today'); // today, plan, appliances, recipes, grocery, mealprep
@@ -21,6 +22,11 @@ export default function MealAutomation({ onClose }) {
   const [macroTargets, setMacroTargets] = useState({ protein: 150, carbs: 200, fat: 60 });
   const [macroMeals, setMacroMeals] = useState(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [planExpiration, setPlanExpiration] = useState(null);
+  const [todayOverride, setTodayOverride] = useState(null);
+  const [generatingOverride, setGeneratingOverride] = useState(false);
+  const [showOverrideIngredients, setShowOverrideIngredients] = useState(false);
+  const [overrideIngredients, setOverrideIngredients] = useState('');
 
   useEffect(() => {
     // Check Premium+ access before loading
@@ -29,7 +35,35 @@ export default function MealAutomation({ onClose }) {
       return;
     }
 
+    // Load meal data from storage on mount
+    const loadMealData = async () => {
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        const { value: plansValue } = await Preferences.get({ key: 'meal_plans' });
+        const { value: prefsValue } = await Preferences.get({ key: 'meal_preferences' });
+        // 🎯 Meal data handled via Preferences above (localStorage kept for legacy compatibility)
+        const localPlans = plansValue || null;
+        const localPrefs = prefsValue || null;
+        
+        if (plansValue) {
+          if(import.meta.env.DEV)console.log('📊 Loaded meal plans from Preferences');
+        } else if (localPlans) {
+          if(import.meta.env.DEV)console.log('📊 Loaded meal plans from localStorage');
+        }
+        
+        if (prefsValue) {
+          if(import.meta.env.DEV)console.log('📊 Loaded meal preferences from Preferences');
+        } else if (localPrefs) {
+          if(import.meta.env.DEV)console.log('📊 Loaded meal preferences from localStorage');
+        }
+      } catch (error) {
+        console.error('Failed to load meal data:', error);
+      }
+    };
+    
+    loadMealData();
     loadSavedMealPlan();
+    loadTodayOverride();
     loadTodaysMeals();
     loadAppliances();
     loadRecipeLibrary();
@@ -39,9 +73,28 @@ export default function MealAutomation({ onClose }) {
   const loadSavedMealPlan = async () => {
     const saved = await mealAutomationService.loadSavedMealPlan();
     if (saved && saved.plan) {
-      if(import.meta.env.DEV)console.log('📋 Loaded saved meal plan from', saved.generatedDate);
+      const generatedDate = new Date(saved.generatedDate);
+      const now = new Date();
+      const daysDiff = Math.floor((now - generatedDate) / (1000 * 60 * 60 * 24));
+      const daysRemaining = 7 - daysDiff;
+      
+      setPlanExpiration({
+        generatedDate: saved.generatedDate,
+        daysOld: daysDiff,
+        daysRemaining: daysRemaining,
+        isExpiringSoon: daysRemaining <= 2
+      });
+      
+      if(import.meta.env.DEV)console.log(`📋 Loaded saved meal plan - Day ${daysDiff + 1}/7 (${daysRemaining} days remaining)`);
       setMealPlan(saved.plan);
+    } else {
+      setPlanExpiration(null);
     }
+  };
+
+  const loadTodayOverride = async () => {
+    const override = await mealAutomationService.getTodayOverride();
+    setTodayOverride(override);
   };
 
   const loadTodaysMeals = async () => {
@@ -96,7 +149,7 @@ export default function MealAutomation({ onClose }) {
       setShowIngredientsInput(false);
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Generate error:', error);
-      alert('Failed to generate meal plan: ' + error.message);
+      showToast('Failed to generate meal plan: ' + error.message, 'error');
     } finally {
       setGenerating(false);
     }
@@ -108,13 +161,56 @@ export default function MealAutomation({ onClose }) {
     }
   };
 
+  const handleCancelPlan = async () => {
+    if (confirm('🗑️ Cancel 7-Day Plan?\n\nThis will delete your entire weekly meal plan. You can generate a new one anytime.')) {
+      setGenerating(true);
+      try {
+        await mealAutomationService.clearMealPlan();
+        setMealPlan(null);
+        setTodaysMeals(null);
+        setPlanExpiration(null);
+        showToast('Meal plan cancelled', 'success');
+      } catch (error) {
+        showToast('Failed to cancel plan', 'error');
+      } finally {
+        setGenerating(false);
+      }
+    }
+  };
+
+  const handleChangeTodaysMeals = async (useIngredients = false) => {
+    setGeneratingOverride(true);
+    try {
+      const override = await mealAutomationService.generateTodayOverride({
+        useOwnIngredients: useIngredients,
+        availableIngredients: useIngredients ? overrideIngredients : null
+      });
+      
+      setTodayOverride(override);
+      setShowOverrideIngredients(false);
+      setOverrideIngredients('');
+      showToast('✨ Today\'s meals changed!', 'success');
+    } catch (error) {
+      showToast('Failed to change meals: ' + error.message, 'error');
+    } finally {
+      setGeneratingOverride(false);
+    }
+  };
+
+  const handleClearTodayOverride = async () => {
+    await mealAutomationService.clearTodayOverride();
+    setTodayOverride(null);
+    loadTodaysMeals();
+    showToast('Restored to weekly plan', 'success');
+  };
+
   const handleGenerateFromIngredients = () => {
     setShowIngredientsInput(true);
   };
 
   const handleSubmitIngredients = () => {
     if (!userIngredients.trim()) {
-      alert('Please enter the ingredients you have available!');
+      showToast('Please enter the ingredients you have available!', 'warning');
       return;
     }
     handleGeneratePlan(true);
@@ -122,7 +218,7 @@ export default function MealAutomation({ onClose }) {
 
   const handleOrderGroceries = async () => {
     if (!mealPlan) {
-      alert('Please generate a meal plan first!');
+      showToast('Please generate a meal plan first!', 'warning');
       return;
     }
 
@@ -242,7 +338,29 @@ Setup process:
         {/* Today's Meals View */}
         {view === 'today' && todaysMeals && (
           <div className="today-view">
-            {Object.entries(todaysMeals).map(([type, meal]) => (
+            {todaysMeals.dayNumber && (
+              <div className="today-day-badge">
+                📅 Day {todaysMeals.dayNumber}/7 {todaysMeals.dayName && `• ${todaysMeals.dayName}`}
+                {todaysMeals.daysRemaining !== undefined && (
+                  <span className="remaining"> • {todaysMeals.daysRemaining} day{todaysMeals.daysRemaining !== 1 ? 's' : ''} left</span>
+                )}
+              </div>
+            )}
+
+            {/* Override Active Badge */}
+            {todayOverride && (
+              <div className="override-active-badge">
+                ⚡ Using custom meals for today
+                <button className="restore-btn" onClick={handleClearTodayOverride}>
+                  ↩️ Back to Plan
+                </button>
+              </div>
+            )}
+
+            {/* Display override meals if active, otherwise weekly plan meals */}
+            {Object.entries(todayOverride || todaysMeals)
+              .filter(([type]) => !['date', 'dayNumber', 'daysRemaining', 'dayName'].includes(type))
+              .map(([type, meal]) => (
               meal && (
                 <div key={type} className="meal-card">
                   <div className="meal-type">{type.charAt(0).toUpperCase() + type.slice(1)}</div>
@@ -266,6 +384,58 @@ Setup process:
               <div className="no-meals">
                 <p>📋 No meal plan for today</p>
                 <p className="help-text">Generate a 7-day plan to get started</p>
+              </div>
+            )}
+
+            {/* Quick Override Actions */}
+            {todaysMeals && mealPlan && !todayOverride && (
+              <div className="today-override-actions">
+                {!showOverrideIngredients ? (
+                  <>
+                    <button 
+                      className="override-btn"
+                      onClick={() => handleChangeTodaysMeals(false)}
+                      disabled={generatingOverride}
+                    >
+                      {generatingOverride ? '⏳ Generating...' : '🔄 Change Today\'s Meals'}
+                    </button>
+                    <button 
+                      className="override-ingredients-btn"
+                      onClick={() => setShowOverrideIngredients(true)}
+                      disabled={generatingOverride}
+                    >
+                      🥕 Cook From My Ingredients
+                    </button>
+                  </>
+                ) : (
+                  <div className="override-ingredients-input">
+                    <label>What's in your kitchen today?</label>
+                    <textarea
+                      placeholder="Example: chicken, eggs, rice, tomatoes, onions..."
+                      value={overrideIngredients}
+                      onChange={(e) => setOverrideIngredients(e.target.value)}
+                      rows={4}
+                    />
+                    <div className="override-buttons">
+                      <button 
+                        className="submit-override-btn"
+                        onClick={() => handleChangeTodaysMeals(true)}
+                        disabled={generatingOverride || !overrideIngredients.trim()}
+                      >
+                        {generatingOverride ? '⏳ Creating...' : '🍳 Cook Today'}
+                      </button>
+                      <button 
+                        className="cancel-override-btn"
+                        onClick={() => {
+                          setShowOverrideIngredients(false);
+                          setOverrideIngredients('');
+                        }}
+                      >
+                        ✕ Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -330,6 +500,30 @@ Setup process:
               </div>
             ) : (
               <>
+                {/* Plan Expiration Badge */}
+                {planExpiration && (
+                  <div className="plan-header-row">
+                    <div className={`plan-expiration-badge ${planExpiration.isExpiringSoon ? 'warning' : ''}`}>
+                      📅 Day {planExpiration.daysOld + 1}/7
+                      {planExpiration.daysRemaining > 0 && (
+                        <span className="expiry-info">
+                          {planExpiration.isExpiringSoon 
+                            ? ` • ⚠️ Expires in ${planExpiration.daysRemaining} day${planExpiration.daysRemaining > 1 ? 's' : ''}`
+                            : ` • ${planExpiration.daysRemaining} day${planExpiration.daysRemaining > 1 ? 's' : ''} remaining`
+                          }
+                        </span>
+                      )}
+                    </div>
+                    <button 
+                      className="cancel-plan-btn"
+                      onClick={handleCancelPlan}
+                      disabled={generating}
+                    >
+                      🗑️ Cancel Plan
+                    </button>
+                  </div>
+                )}
+                
                 <div className="plan-summary">
                   <h3>Weekly Meal Plan</h3>
                   <div className="summary-stats">
@@ -370,14 +564,17 @@ Setup process:
                         <div className="mini-meal">
                           <span className="mini-type">🌅 Breakfast</span>
                           <span className="mini-name">{day.breakfast.name}</span>
+                          <span className="mini-calories">🔥 {day.breakfast.calories} cal</span>
                         </div>
                         <div className="mini-meal">
                           <span className="mini-type">☀️ Lunch</span>
                           <span className="mini-name">{day.lunch.name}</span>
+                          <span className="mini-calories">🔥 {day.lunch.calories} cal</span>
                         </div>
                         <div className="mini-meal">
                           <span className="mini-type">🌙 Dinner</span>
                           <span className="mini-name">{day.dinner.name}</span>
+                          <span className="mini-calories">🔥 {day.dinner.calories} cal</span>
                         </div>
                       </div>
                     </div>

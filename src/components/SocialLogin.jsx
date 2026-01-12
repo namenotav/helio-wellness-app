@@ -24,10 +24,18 @@ const SocialLogin = ({ onSuccess, onError }) => {
         created: new Date().toISOString()
       };
 
-      // Save to localStorage
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      // Save to both localStorage and Preferences
+      const userJson = JSON.stringify(mockUser);
+      localStorage.setItem('user', userJson);
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('authProvider', provider);
+      
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        await Preferences.set({ key: 'wellnessai_user', value: userJson });
+        await Preferences.set({ key: 'wellnessai_isAuthenticated', value: 'true' });
+        await Preferences.set({ key: 'wellnessai_authProvider', value: provider });
+      } catch (e) { /* localStorage fallback already done */ }
 
       // Call success callback
       if (onSuccess) {

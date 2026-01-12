@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import './AvatarGenerator.css';
 
+// SECURITY NOTE: Uses direct Gemini API for instant avatar generation
+// Protected by monthly key rotation strategy
+
 const AvatarGenerator = ({ user, userData, planType }) => {
   const [currentAvatar, setCurrentAvatar] = useState('');
   const [futureAvatars, setFutureAvatars] = useState({
@@ -19,8 +22,12 @@ const AvatarGenerator = ({ user, userData, planType }) => {
     loadLastUpdate();
   }, []);
 
-  const loadLastUpdate = () => {
-    const stored = localStorage.getItem(`avatar_${user?.uid}_lastUpdate`);
+  const loadLastUpdate = async () => {
+    const { Preferences } = await import('@capacitor/preferences');
+    
+    // Read lastUpdate from Preferences first, localStorage fallback
+    const { value: prefsLastUpdate } = await Preferences.get({ key: `wellnessai_avatar_${user?.uid}_lastUpdate` });
+    const stored = prefsLastUpdate || localStorage.getItem(`avatar_${user?.uid}_lastUpdate`);
     if (stored) {
       const updateTime = new Date(stored);
       setLastUpdate(updateTime);
@@ -32,8 +39,9 @@ const AvatarGenerator = ({ user, userData, planType }) => {
       }
     }
 
-    // Load cached avatars
-    const cached = localStorage.getItem(`avatar_${user?.uid}_data`);
+    // Load cached avatars from Preferences first, localStorage fallback
+    const { value: prefsData } = await Preferences.get({ key: `wellnessai_avatar_${user?.uid}_data` });
+    const cached = prefsData || localStorage.getItem(`avatar_${user?.uid}_data`);
     if (cached) {
       const avatarData = JSON.parse(cached);
       setCurrentAvatar(avatarData.current);
@@ -52,7 +60,7 @@ const AvatarGenerator = ({ user, userData, planType }) => {
 
   const generateAvatar = async () => {
     if (!canUpdate()) {
-      alert(`You can update avatar once per week on Essential plan. Next update in ${daysUntilUpdate} days. Upgrade to Premium for unlimited updates!`);
+      alert(`You can update avatar once per week on Starter plan. Next update in ${daysUntilUpdate} days. Upgrade to Premium for unlimited updates!`);
       return;
     }
 
@@ -129,8 +137,12 @@ const AvatarGenerator = ({ user, userData, planType }) => {
         timestamp: new Date().toISOString()
       };
 
+      // Save to both localStorage and Preferences (dual-storage pattern)
       localStorage.setItem(`avatar_${user?.uid}_data`, JSON.stringify(avatarData));
       localStorage.setItem(`avatar_${user?.uid}_lastUpdate`, new Date().toISOString());
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({ key: `wellnessai_avatar_${user?.uid}_data`, value: JSON.stringify(avatarData) });
+      await Preferences.set({ key: `wellnessai_avatar_${user?.uid}_lastUpdate`, value: new Date().toISOString() });
       
       setLastUpdate(new Date());
       setDaysUntilUpdate(7);
@@ -201,7 +213,7 @@ const AvatarGenerator = ({ user, userData, planType }) => {
           fontSize: '14px',
           color: 'rgba(255,255,255,0.9)'
         }}>
-          💡 <strong>Essential Plan:</strong> Avatar updates once per week. 
+          💡 <strong>Starter Plan:</strong> Avatar updates once per week. 
           {canUpdateUnlimited ? '' : ` Next update in ${daysUntilUpdate} days.`}
           <a href="/#pricing" style={{ color: '#f59e0b', marginLeft: '10px', fontWeight: 'bold' }}>
             Upgrade for unlimited updates →

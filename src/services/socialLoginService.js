@@ -22,7 +22,7 @@ class SocialLoginService {
    */
   async signInWithGoogle() {
     try {
-      if(import.meta.env.DEV)console.log('🔐 Initiating Google Sign-In...');
+      console.log('🔐 Initiating Google Sign-In...');
 
       if (Capacitor.getPlatform() === 'web') {
         return await this.googleWebSignIn();
@@ -30,7 +30,7 @@ class SocialLoginService {
         return await this.googleNativeSignIn();
       }
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Google sign-in error:', error);
+      console.error('❌ Google sign-in error:', error);
       throw new Error('Google sign-in failed: ' + error.message);
     }
   }
@@ -102,7 +102,7 @@ class SocialLoginService {
       };
     } catch (error) {
       // Fallback to web auth if plugin not available
-      if(import.meta.env.DEV)console.warn('Native Google Auth not available, using web auth');
+      console.warn('Native Google Auth not available, using web auth');
       return await this.googleWebSignIn();
     }
   }
@@ -112,7 +112,7 @@ class SocialLoginService {
    */
   async signInWithApple() {
     try {
-      if(import.meta.env.DEV)console.log('🍎 Initiating Apple Sign-In...');
+      console.log('🍎 Initiating Apple Sign-In...');
 
       if (Capacitor.getPlatform() === 'ios') {
         return await this.appleNativeSignIn();
@@ -120,7 +120,7 @@ class SocialLoginService {
         return await this.appleWebSignIn();
       }
     } catch (error) {
-      if(import.meta.env.DEV)console.error('❌ Apple sign-in error:', error);
+      console.error('❌ Apple sign-in error:', error);
       throw new Error('Apple sign-in failed: ' + error.message);
     }
   }
@@ -186,7 +186,7 @@ class SocialLoginService {
         token: result.response.identityToken
       };
     } catch (error) {
-      if(import.meta.env.DEV)console.warn('Native Apple Auth not available, using web auth');
+      console.warn('Native Apple Auth not available, using web auth');
       return await this.appleWebSignIn();
     }
   }
@@ -264,10 +264,10 @@ class SocialLoginService {
       localStorage.removeItem('social_login_provider');
       localStorage.removeItem('social_login_token');
       
-      if(import.meta.env.DEV)console.log(`✅ Signed out from ${provider}`);
+      console.log(`✅ Signed out from ${provider}`);
       return { success: true };
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Sign out error:', error);
+      console.error('Sign out error:', error);
       throw error;
     }
   }
@@ -281,9 +281,9 @@ class SocialLoginService {
       localStorage.setItem('social_login_token', userData.token);
       localStorage.setItem('social_login_data', JSON.stringify(userData));
       
-      if(import.meta.env.DEV)console.log(`✅ Social login session saved (${userData.provider})`);
+      console.log(`✅ Social login session saved (${userData.provider})`);
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Failed to save social session:', error);
+      console.error('Failed to save social session:', error);
     }
   }
 
@@ -301,7 +301,7 @@ class SocialLoginService {
       }
       return null;
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Failed to get social session:', error);
+      console.error('Failed to get social session:', error);
       return null;
     }
   }
@@ -316,6 +316,3 @@ class SocialLoginService {
 
 const socialLoginService = new SocialLoginService();
 export default socialLoginService;
-
-
-

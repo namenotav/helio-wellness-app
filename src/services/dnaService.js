@@ -256,24 +256,7 @@ class DNAService {
         this.geneticData = parsed.data;
         await this.analyzeGenetics();
         
-        // 💾 SAVE TO PERSISTENT STORAGE (Preferences + localStorage + Firebase)
-        await Preferences.set({ 
-          key: 'dna_genetic_data', 
-          value: JSON.stringify(this.geneticData) 
-        });
-        
-        // Also save to localStorage for Health Avatar compatibility
-        localStorage.setItem('dnaAnalysis', JSON.stringify(this.geneticData));
-        
-        // Sync to Firestore via firestoreService
-        try {
-          const userId = authService.getCurrentUser()?.uid;
-          await firestoreService.save('dnaAnalysis', this.geneticData, userId);
-          if(import.meta.env.DEV)console.log('✅ DNA data saved to storage (Preferences + localStorage + Firestore)');
-        } catch (syncError) {
-          if(import.meta.env.DEV)console.warn('DNA Firestore sync failed (offline?):', syncError);
-          if(import.meta.env.DEV)console.log('✅ DNA data saved to storage (Preferences + localStorage)');
-        }
+        // 💾 SAVE happens in analyzeGenetics() after merging with analysis
         
         return {
           success: true,
@@ -589,7 +572,17 @@ Generate personalized health recommendations in JSON format:
       this.analysisComplete = true;
     }
     
-    // 💾 SAVE ANALYSIS TO PERSISTENT STORAGE (Preferences + localStorage + Firebase)
+    // 💾 SAVE MERGED DNA DATA (geneticData + analysis) TO PERSISTENT STORAGE
+    const completeDNAData = {
+      ...this.geneticData,           // traits, source, uploadDate, etc.
+      analysis: this.analysis,        // recommendations and risks
+      analysisComplete: true
+    };
+    
+    await Preferences.set({ 
+      key: 'dna_genetic_data', 
+      value: JSON.stringify(completeDNAData) 
+    });
     await Preferences.set({ 
       key: 'dna_analysis', 
       value: JSON.stringify(this.analysis) 
@@ -599,18 +592,16 @@ Generate personalized health recommendations in JSON format:
       value: 'true' 
     });
     
-    // Also save to localStorage for Health Avatar compatibility
-    localStorage.setItem('dnaAnalysis', JSON.stringify(this.analysis));
+    // Save merged object to localStorage for Health Avatar compatibility
+    localStorage.setItem('dnaAnalysis', JSON.stringify(completeDNAData));
     
-    // Sync to Firestore via firestoreService
-    try {
-      const userId = authService.getCurrentUser()?.uid;
-      await firestoreService.save('dnaAnalysis', this.analysis, userId);
-      if(import.meta.env.DEV)console.log('✅ DNA analysis saved to storage (Preferences + localStorage + Firestore)');
-    } catch (syncError) {
-      if(import.meta.env.DEV)console.warn('DNA analysis Firestore sync failed (offline?):', syncError);
-      if(import.meta.env.DEV)console.log('✅ DNA analysis saved to storage (Preferences + localStorage)');
-    }
+    // Sync merged object to Firestore via firestoreService (non-blocking)
+    const userId = authService.getCurrentUser()?.uid;
+    firestoreService.save('dnaAnalysis', completeDNAData, userId)
+      .then(() => console.log('☁️ dnaAnalysis synced to Firestore (background)'))
+      .catch(err => console.warn('⚠️ dnaAnalysis sync failed:', err));
+    
+    if(import.meta.env.DEV)console.log('✅ Complete DNA data saved to storage (Preferences + localStorage)');
   }
 
   // Get personalized meal plan based on DNA
@@ -860,6 +851,36 @@ Return JSON:
   // Check if user has uploaded DNA data
   hasDNAData() {
     return this.geneticData !== null;
+  }
+
+  /**
+   * Clear DNA data from storage - used for re-upload
+   */
+  async clearDNAData() {
+    try {
+      // Clear from Preferences (Capacitor storage)
+      await Preferences.remove({ key: 'dna_genetic_data' });
+      await Preferences.remove({ key: 'dna_analysis' });
+      await Preferences.remove({ key: 'dna_analysis_complete' });
+      
+      // Clear from localStorage if encryption service was used
+      try {
+        localStorage.removeItem('dnaAnalysis');
+      } catch (e) {
+        if(import.meta.env.DEV)console.warn('Could not clear localStorage:', e);
+      }
+      
+      // Clear in-memory data
+      this.geneticData = null;
+      this.analysis = null;
+      this.analysisComplete = false;
+      
+      if(import.meta.env.DEV)console.log('✅ DNA data cleared successfully');
+      return { success: true, message: 'DNA data cleared' };
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Error clearing DNA data:', error);
+      return { success: false, error: error.message };
+    }
   }
 }
 

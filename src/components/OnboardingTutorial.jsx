@@ -40,11 +40,23 @@ export default function OnboardingTutorial({ onComplete }) {
   ];
 
   useEffect(() => {
-    // Check if user has seen onboarding
-    const hasSeenOnboarding = localStorage.getItem('has_seen_onboarding');
-    if (!hasSeenOnboarding) {
-      setIsVisible(true);
-    }
+    // Check if user has seen onboarding - Preferences first
+    const checkOnboarding = async () => {
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        const { value: prefsValue } = await Preferences.get({ key: 'wellnessai_has_seen_onboarding' });
+        const hasSeenOnboarding = prefsValue || localStorage.getItem('has_seen_onboarding');
+        if (!hasSeenOnboarding) {
+          setIsVisible(true);
+        }
+      } catch (e) {
+        const hasSeenOnboarding = localStorage.getItem('has_seen_onboarding');
+        if (!hasSeenOnboarding) {
+          setIsVisible(true);
+        }
+      }
+    };
+    checkOnboarding();
   }, []);
 
   const handleNext = () => {
@@ -59,8 +71,13 @@ export default function OnboardingTutorial({ onComplete }) {
     handleComplete();
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    // Write to both storages
     localStorage.setItem('has_seen_onboarding', 'true');
+    try {
+      const { Preferences } = await import('@capacitor/preferences');
+      await Preferences.set({ key: 'wellnessai_has_seen_onboarding', value: 'true' });
+    } catch (e) { /* localStorage fallback already done */ }
     setIsVisible(false);
     if (onComplete) {
       onComplete();

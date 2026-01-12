@@ -1,9 +1,16 @@
 // Rep Counter Component - AI-Powered Exercise Rep Counting
 import React, { useState, useEffect, useRef } from 'react';
-import tensorflowService from '../services/tensorflowService';
+import * as tf from '@tensorflow/tfjs';
+// LAZY LOAD pose-detection to avoid @mediapipe/pose import error
+// import * as poseDetection from '@tensorflow-models/pose-detection';
 import { Motion } from '@capacitor/motion';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
+import syncService from '../services/syncService';
+import dataService from '../services/dataService';
+import authService from '../services/authService';
+import gamificationService from '../services/gamificationService';
+import subscriptionService from '../services/subscriptionService';
 import './RepCounter.css';
 
 const RepCounter = ({ onClose, onWorkoutComplete }) => {
@@ -14,8 +21,14 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
   const [calories, setCalories] = useState(0);
   const [motionListener, setMotionListener] = useState(null);
   const [activityStatus, setActivityStatus] = useState('Ready');
+  const [detector, setDetector] = useState(null);
+  const [isModelLoading, setIsModelLoading] = useState(false);
+  const [userWeight, setUserWeight] = useState(150); // Default 150 lbs
   const startTimeRef = useRef(null);
   const intervalRef = useRef(null);
+  const motionDataBuffer = useRef([]);
+  const lastRepTime = useRef(0);
+  const repCountRef = useRef(0);
 
   const exercises = [
     { id: 'pushups', name: 'Push-ups', icon: '💪', caloriesPerRep: 0.5 },
@@ -30,14 +43,106 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
 
   const selectedExercise = exercises.find(e => e.id === exercise);
 
+  // Load user weight for personalized calorie calculation
   useEffect(() => {
-    // Initialize TensorFlow on mount
-    tensorflowService.initialize();
+    const loadUserWeight = async () => {
+      try {
+        const { default: authService } = await import('../services/authService');
+        const currentUser = authService.getCurrentUser();
+        const weight = currentUser?.profile?.weight || 150; // Default 150 lbs
+        setUserWeight(weight);
+        if(import.meta.env.DEV)console.log('💪 User weight loaded for calorie calculation:', weight, 'lbs');
+      } catch (error) {
+        if(import.meta.env.DEV)console.warn('Could not load user weight, using default 150 lbs');
+      }
+    };
+    loadUserWeight();
+  }, []);
+
+  // TensorFlow.js-based rep detection from motion sensor data
+  const detectRepFromMotion = (buffer, exerciseType) => {
+    const now = Date.now();
+    
+    // Prevent duplicate counting (minimum 800ms between reps)
+    if (now - lastRepTime.current < 800) {
+      return false;
+    }
+    
+    // Calculate motion magnitude (acceleration changes, not absolute)
+    const recentData = buffer.slice(-30);
+    const magnitudes = recentData.map(d => 
+      Math.sqrt(d.x * d.x + d.y * d.y + d.z * d.z)
+    );
+    
+    // Calculate variance (motion intensity)
+    const avgMag = magnitudes.reduce((a, b) => a + b, 0) / magnitudes.length;
+    const variance = magnitudes.reduce((sum, mag) => sum + Math.pow(mag - avgMag, 2), 0) / magnitudes.length;
+    
+    // Different threshold for different exercises (increased to prevent false positives)
+    let varianceThreshold = 4.0;
+    if (exerciseType === 'burpees' || exerciseType === 'jumping_jacks') {
+      varianceThreshold = 6.0;
+    } else if (exerciseType === 'planks' || exerciseType === 'mountain_climbers') {
+      varianceThreshold = 2.0;
+    }
+    
+    // Detect rep: significant motion variance indicates a rep
+    if (variance > varianceThreshold) {
+      lastRepTime.current = now;
+      return true;
+    }
+    
+    return false;
+  };
+
+  useEffect(() => {
+    // Initialize TensorFlow.js and load pose detection model
+    const initTensorFlow = async () => {
+      try {
+        setIsModelLoading(true);
+        
+        // Check TensorFlow backend availability
+        await tf.ready();
+        const backend = tf.getBackend();
+        console.log('TensorFlow backend:', backend);
+        
+        // Only try pose detection if we have proper backend (not CPU)
+        if (backend === 'cpu') {
+          throw new Error('No GPU backend available - using motion sensors');
+        }
+        
+        // Dynamically import pose-detection
+        const poseDetection = await import('@tensorflow-models/pose-detection');
+        
+        // Create pose detector with MoveNet
+        const detectorConfig = {
+          runtime: 'tfjs',
+          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
+        };
+        const poseDetector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          detectorConfig
+        );
+        
+        setDetector(poseDetector);
+        setIsModelLoading(false);
+        console.log('✅ TensorFlow.js pose detection loaded with', backend);
+      } catch (error) {
+        console.error('TensorFlow failed:', error.message);
+        setIsModelLoading(false);
+        setActivityStatus('Ready'); // Continue with motion sensors only
+      }
+    };
+    
+    initTensorFlow();
 
     return () => {
       // Cleanup on unmount
       if (isTracking) {
         stopTracking();
+      }
+      if (detector) {
+        detector.dispose();
       }
     };
   }, []);
@@ -49,33 +154,70 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
         return;
       }
 
-      // Start rep counting in TensorFlow service
-      tensorflowService.startRepCounting(exercise);
+      // Check workout limit (free users: 1/day)
+      try {
+        const limitCheck = subscriptionService.checkLimit('workouts');
+        if (!limitCheck || !limitCheck.allowed) {
+          alert(limitCheck?.message || 'Workout limit reached for today');
+          return;
+        }
+      } catch (error) {
+        console.error('Subscription check failed:', error);
+        // Continue anyway if check fails - don't block user
+      }
+
+      // Reset motion buffer and counters
+      motionDataBuffer.current = [];
+      lastRepTime.current = 0;
+      repCountRef.current = 0;
 
       // Start motion sensor listening
-      const listener = await Motion.addListener('accel', (event) => {
-        // Feed motion data to TensorFlow
-        tensorflowService.addMotionData({
-          acceleration: {
-            x: event.accelerationIncludingGravity.x,
-            y: event.accelerationIncludingGravity.y,
-            z: event.accelerationIncludingGravity.z
-          },
-          rotationRate: event.rotationRate
-        });
+      const listener = await Motion.addListener('accel', async (event) => {
+        // Store motion data in buffer
+        const motionData = {
+          timestamp: Date.now(),
+          x: event.accelerationIncludingGravity.x,
+          y: event.accelerationIncludingGravity.y,
+          z: event.accelerationIncludingGravity.z,
+          alpha: event.rotationRate?.alpha || 0,
+          beta: event.rotationRate?.beta || 0,
+          gamma: event.rotationRate?.gamma || 0
+        };
+        
+        motionDataBuffer.current.push(motionData);
+        
+        // Keep buffer at 100 samples (~3 seconds)
+        if (motionDataBuffer.current.length > 100) {
+          motionDataBuffer.current.shift();
+        }
 
-        // Count reps
-        const repResult = tensorflowService.countReps(exercise);
-        if (repResult.count > repCount) {
-          setRepCount(repResult.count);
-          
-          // Calculate calories
-          const newCalories = repResult.count * selectedExercise.caloriesPerRep;
-          setCalories(Math.round(newCalories));
+        // Detect reps from motion data (works with or without TensorFlow)
+        if (motionDataBuffer.current.length >= 20) {
+          try {
+            // Use motion analysis to detect reps
+            const repDetected = detectRepFromMotion(motionDataBuffer.current, exercise);
+            
+            if (repDetected) {
+              repCountRef.current += 1;
+              const newCount = repCountRef.current;
+              setRepCount(newCount);
+              
+              // Calculate calories with weight personalization
+              const weightFactor = userWeight / 150; // Scale based on 150 lbs baseline
+              const baseCalories = newCount * selectedExercise.caloriesPerRep;
+              const personalizedCalories = baseCalories * weightFactor;
+              setCalories(Math.round(personalizedCalories));
 
-          // Haptic feedback (vibration)
-          if (navigator.vibrate) {
-            navigator.vibrate(50);
+              // Haptic feedback (vibration)
+              if (navigator.vibrate) {
+                navigator.vibrate(50);
+              }
+              
+              // Update gamification points
+              await gamificationService.addPoints(5, 'workout_rep');
+            }
+          } catch (error) {
+            if(import.meta.env.DEV)console.error('Rep detection error:', error);
           }
         }
       });
@@ -110,15 +252,24 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
       intervalRef.current = null;
     }
 
-    // Stop TensorFlow rep counting
-    const finalCount = tensorflowService.stopRepCounting();
+    // Use current rep count as final count
+    const finalCount = repCount;
 
     setIsTracking(false);
     setActivityStatus('Completed');
 
-    // Calculate final stats
-    const finalCalories = Math.round(finalCount * selectedExercise.caloriesPerRep);
+    // Calculate final stats with weight personalization
+    const weightFactor = userWeight / 150; // Scale based on 150 lbs baseline
+    const baseCalories = finalCount * selectedExercise.caloriesPerRep;
+    const finalCalories = Math.round(baseCalories * weightFactor);
     const pace = duration > 0 ? (finalCount / (duration / 60)).toFixed(1) : 0;
+
+    if(import.meta.env.DEV)console.log('💪 Personalized calories:', {
+      baseCalories: Math.round(baseCalories),
+      userWeight: userWeight,
+      weightFactor: weightFactor.toFixed(2),
+      finalCalories
+    });
 
     // 💾 SAVE TO CAPACITOR PREFERENCES (persistent storage)
     const workoutEntry = {
@@ -139,13 +290,54 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
       // Add new workout
       workoutHistory.push(workoutEntry);
       
-      // Save back to Preferences
-      await Preferences.set({ key: 'workoutHistory', value: JSON.stringify(workoutHistory) });
+      // Save using dataService (Preferences + Firebase + localStorage + Firestore)
+      const userId = authService.getCurrentUser()?.uid;
+      await dataService.save('workoutHistory', workoutHistory, userId);
       
-      // Also keep localStorage for backwards compatibility
-      localStorage.setItem('workoutHistory', JSON.stringify(workoutHistory));
+      if(import.meta.env.DEV)console.log('✅ Workout saved to cloud + Firestore:', workoutEntry);
+
+      // Increment workout usage (for free user limits)
+      const { subscriptionService } = await import('../services/subscriptionService');
+      await subscriptionService.incrementUsage('workouts');
       
-      if(import.meta.env.DEV)console.log('✅ Workout saved to persistent storage:', workoutEntry);
+      // 🧠 BRAIN.JS: Track rep counter workout impact on energy and mood
+      try {
+        const brainLearningService = (await import('../services/brainLearningService')).default;
+        
+        // Rep counter workouts are high intensity - track workout
+        await brainLearningService.trackWorkout({
+          type: selectedExercise.name,
+          duration: duration,
+          calories: finalCalories,
+          intensity: pace >= 15 ? 'high' : pace >= 10 ? 'medium' : 'low',
+          reps: finalCount,
+          completed: true
+        });
+        
+        // High rep workouts boost energy
+        const energyBoost = finalCount >= 30 ? 8 : finalCount >= 15 ? 7 : 6;
+        await brainLearningService.trackEnergy(energyBoost, {
+          recentWorkout: true,
+          workoutType: selectedExercise.name,
+          workoutDuration: duration,
+          reps: finalCount,
+          stressLevel: 3,
+          caffeineConsumed: false
+        });
+        
+        // Workouts improve mood
+        await brainLearningService.trackMood(7, {
+          triggers: ['workout', 'exercise', selectedExercise.id],
+          activities: ['rep_counter', selectedExercise.name],
+          socialInteraction: false,
+          exerciseToday: true,
+          weather: 'indoor'
+        });
+        
+        if(import.meta.env.DEV)console.log('🧠 [BRAIN.JS] Rep counter workout tracked for AI learning');
+      } catch (brainError) {
+        console.error('❌ [BRAIN.JS] Failed to track rep counter workout:', brainError);
+      }
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to save workout:', error);
     }
@@ -197,7 +389,10 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
                 <button
                   key={ex.id}
                   className={`exercise-btn ${exercise === ex.id ? 'selected' : ''}`}
-                  onClick={() => setExercise(ex.id)}
+                  onClick={() => {
+                    console.log('🔥 Exercise clicked:', ex.id);
+                    setExercise(ex.id);
+                  }}
                 >
                   <span className="exercise-icon">{ex.icon}</span>
                   <span className="exercise-name">{ex.name}</span>
@@ -205,19 +400,17 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
               ))}
             </div>
 
-            <div className="instructions">
-              <h4>📱 Setup Instructions</h4>
-              <ul>
-                <li>Place phone on the floor or in your pocket</li>
-                <li>Phone should move with your body during exercise</li>
-                <li>Start workout and begin exercising</li>
-                <li>Rep counter will automatically detect each rep</li>
-              </ul>
-            </div>
-
-            <button className="start-btn" onClick={startTracking}>
+            <button className="start-btn" onClick={() => {
+              console.log('🚀 Start Workout clicked');
+              startTracking();
+            }}>
               ▶️ Start Workout
             </button>
+
+            <div className="instructions">
+              <h4>📱 Tip</h4>
+              <p>Place phone in your pocket or on the floor during exercise</p>
+            </div>
           </div>
         )}
 

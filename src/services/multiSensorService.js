@@ -1081,6 +1081,19 @@ class MultiSensorService {
   // ==================== DATA PERSISTENCE ====================
   async loadUserPatterns() {
     try {
+      // 🔥 FIX: Try Firebase first, then localStorage
+      try {
+        const firestoreService = (await import('./firestoreService.js')).default;
+        const authService = (await import('./authService.js')).default;
+        const cloudPatterns = await firestoreService.get('ml_user_patterns', authService.getCurrentUser()?.uid);
+        if (cloudPatterns && cloudPatterns.totalStepsLearned > 0) {
+          this.userPatterns = cloudPatterns;
+          localStorage.setItem('ml_user_patterns', JSON.stringify(cloudPatterns));
+          if(import.meta.env.DEV)console.log('🧠 Loaded learned patterns from cloud:', cloudPatterns);
+          return;
+        }
+      } catch (e) { /* fallback to localStorage */ }
+      
       const saved = localStorage.getItem('ml_user_patterns');
       if (saved) {
         this.userPatterns = JSON.parse(saved);
@@ -1094,6 +1107,13 @@ class MultiSensorService {
   async saveUserPatterns() {
     try {
       localStorage.setItem('ml_user_patterns', JSON.stringify(this.userPatterns));
+      
+      // 🔥 FIX: Sync to Firebase
+      try {
+        const firestoreService = (await import('./firestoreService.js')).default;
+        const authService = (await import('./authService.js')).default;
+        await firestoreService.save('ml_user_patterns', this.userPatterns, authService.getCurrentUser()?.uid);
+      } catch (e) { /* offline mode */ }
     } catch (error) {
       if(import.meta.env.DEV)console.error('Error saving patterns:', error);
     }

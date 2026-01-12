@@ -3,6 +3,7 @@
 import syncService from './syncService.js';
 import firestoreService from './firestoreService';
 import authService from './authService';
+import brainLearningService from './brainLearningService.js';
 
 class WaterIntakeService {
   constructor() {
@@ -36,20 +37,37 @@ class WaterIntakeService {
     this.todayIntake += amount;
     this.intakeHistory.push(intake);
 
-    // Save to localStorage
+    // Save to ALL 4 systems via dataService
     this.saveTodayIntake();
     this.saveHistory();
 
-    // ALSO save to waterLog for dashboard compatibility (save to cloud)
-    const waterLog = await firestoreService.get('waterLog', authService.getCurrentUser()?.uid) || [];
-    waterLog.push({
-      cups: Math.round(amount / 250), // Convert ml to cups (250ml = 1 cup)
-      timestamp: Date.now(),
-      date: new Date().toISOString().split('T')[0]
-    });
-    await firestoreService.save('waterLog', waterLog, authService.getCurrentUser()?.uid);
+    // Save waterLog via unified dataService (all 4 storages)
+    const dataService = (await import('./dataService')).default;
+    firestoreService.get('waterLog', authService.getCurrentUser()?.uid).then(waterLog => {
+      const log = waterLog || [];
+      log.push({
+        cups: Math.round(amount / 250), // Convert ml to cups (250ml = 1 cup)
+        timestamp: Date.now(),
+        date: new Date().toISOString().split('T')[0]
+      });
+      dataService.save('waterLog', log, authService.getCurrentUser()?.uid)
+        .then(() => console.log('✅ waterLog saved via dataService (all 4 systems)'))
+        .catch(err => console.warn('⚠️ dataService water save failed:', err));
+    }).catch(err => console.warn('⚠️ waterLog get failed:', err));
 
     if(import.meta.env.DEV)console.log(`💧 Added ${amount}ml water. Total today: ${this.todayIntake}ml`);
+
+    // 🧠 BRAIN.JS LEARNING - Track hydration for AI reminders
+    try {
+      await brainLearningService.trackHydration(amount, {
+        exercised: false,
+        temperature: 20,
+        thirstLevel: 3
+      });
+      if(import.meta.env.DEV)console.log('🧠 Hydration tracked for AI learning');
+    } catch (err) {
+      if(import.meta.env.DEV)console.warn('Brain.js hydration tracking failed:', err);
+    }
 
     // Check if goal reached
     if (this.todayIntake >= this.dailyGoal) {

@@ -91,13 +91,13 @@ const ApiAccess = ({ user, planType }) => {
         <div style={{ fontSize: '48px', marginBottom: '15px' }}>🔌</div>
         <h3 style={{ fontSize: '24px', marginBottom: '10px', color: 'white' }}>API Access</h3>
         <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)', marginBottom: '20px', lineHeight: '1.6' }}>
-          Integrate your health data with other apps. Upgrade to Ultimate plan to get API access with 1,000 calls/month.
+          Integrate your health data with other apps. Upgrade to Premium plan to get API access.
         </p>
         <button
           onClick={() => window.location.href = '/#pricing'}
           style={{
             padding: '15px 30px',
-            background: 'linear-gradient(135deg, #eab308, #d97706)',
+            background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
             color: 'white',
             border: 'none',
             borderRadius: '12px',
@@ -106,7 +106,7 @@ const ApiAccess = ({ user, planType }) => {
             cursor: 'pointer'
           }}
         >
-          Upgrade to Ultimate
+          Upgrade to Premium
         </button>
       </div>
     );

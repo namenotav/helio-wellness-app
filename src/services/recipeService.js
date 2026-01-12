@@ -313,19 +313,213 @@ class RecipeService {
   }
 
   /**
-   * Save recipes to storage
+   * Search user's own recipes for food logging
+   */
+  async searchUserRecipes(userId, query) {
+    try {
+      const { db } = await import('../config/firebase');
+      const { collection, query: fsQuery, where, getDocs } = await import('firebase/firestore');
+      
+      const recipesRef = collection(db, 'recipes', userId, 'userRecipes');
+      const snapshot = await getDocs(recipesRef);
+      
+      const recipes = [];
+      snapshot.forEach(doc => {
+        recipes.push({ id: doc.id, ...doc.data() });
+      });
+
+      if (!query) return recipes;
+
+      const lowerQuery = query.toLowerCase();
+      return recipes.filter(recipe => 
+        recipe.name?.toLowerCase().includes(lowerQuery)
+      );
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to search user recipes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Search community recipes (approved only)
+   */
+  async searchCommunityRecipes(query, userId = null) {
+    try {
+      const { db } = await import('../config/firebase');
+      const { collection, getDocs } = await import('firebase/firestore');
+      
+      const recipesRef = collection(db, 'communityRecipes');
+      const snapshot = await getDocs(recipesRef);
+      
+      const recipes = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        // Show approved recipes OR own pending recipes
+        if (data.approved || data.author?.uid === userId) {
+          recipes.push({ id: doc.id, ...data });
+        }
+      });
+
+      if (!query) return recipes;
+
+      const lowerQuery = query.toLowerCase();
+      return recipes.filter(recipe => 
+        recipe.name?.toLowerCase().includes(lowerQuery)
+      );
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to search community recipes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Convert recipe to food entry for logging
+   */
+  convertRecipeToFood(recipe) {
+    return {
+      name: recipe.name,
+      calories: recipe.nutrition?.calories || recipe.calories || 0,
+      protein: recipe.nutrition?.protein || recipe.protein || 0,
+      carbs: recipe.nutrition?.carbs || recipe.carbs || 0,
+      fat: recipe.nutrition?.fat || recipe.fats || 0,
+      fiber: recipe.nutrition?.fiber || 0,
+      sugar: recipe.nutrition?.sugar || 0,
+      sodium: recipe.nutrition?.sodium || 0,
+      serving_size: `1 of ${recipe.servings} servings`,
+      servingSize: `1 of ${recipe.servings} servings`,
+      source: 'Recipe',
+      recipeId: recipe.id,
+      isRecipe: true
+    };
+  }
+
+  /**
+   * Like/unlike a recipe
+   */
+  async toggleLike(recipeId, userId) {
+    try {
+      const { db } = await import('../config/firebase');
+      const { doc, getDoc, updateDoc, increment } = await import('firebase/firestore');
+      
+      const recipeRef = doc(db, 'communityRecipes', recipeId);
+      const recipeSnap = await getDoc(recipeRef);
+      
+      if (!recipeSnap.exists()) {
+        throw new Error('Recipe not found');
+      }
+
+      const data = recipeSnap.data();
+      const likedBy = data.likedBy || [];
+      const isLiked = likedBy.includes(userId);
+
+      if (isLiked) {
+        // Unlike
+        await updateDoc(recipeRef, {
+          likes: increment(-1),
+          likedBy: likedBy.filter(id => id !== userId)
+        });
+        return { liked: false, likes: (data.likes || 1) - 1 };
+      } else {
+        // Like
+        await updateDoc(recipeRef, {
+          likes: increment(1),
+          likedBy: [...likedBy, userId]
+        });
+        return { liked: true, likes: (data.likes || 0) + 1 };
+      }
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to toggle like:', error);
+      return { error: error.message };
+    }
+  }
+
+  /**
+   * Approve/reject recipe (admin only)
+   */
+  async moderateRecipe(recipeId, approved) {
+    try {
+      const { db } = await import('../config/firebase');
+      const { doc, updateDoc } = await import('firebase/firestore');
+      
+      const recipeRef = doc(db, 'communityRecipes', recipeId);
+      await updateDoc(recipeRef, {
+        approved,
+        moderatedAt: new Date().toISOString()
+      });
+
+      if(import.meta.env.DEV)console.log(`✅ Recipe ${approved ? 'approved' : 'rejected'}:`, recipeId);
+      return { success: true };
+    } catch (error) {
+      if(import.meta.env.DEV)console.error('Failed to moderate recipe:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Save recipes to storage (Preferences + Firebase)
    */
   async saveRecipes(recipes) {
     try {
+      // Save to Preferences (survives reinstall)
       await Preferences.set({
         key: this.storageKey,
         value: JSON.stringify(recipes)
       });
+      
+      // 🔥 FIX: Also sync to Firebase
+      try {
+        const firestoreService = (await import('./firestoreService.js')).default;
+        const authService = (await import('./authService.js')).default;
+        await firestoreService.save('saved_recipes', recipes, authService.getCurrentUser()?.uid);
+        if(import.meta.env.DEV)console.log('☁️ Recipes synced to Firebase');
+      } catch (e) {
+        if(import.meta.env.DEV)console.warn('Could not sync recipes to Firebase (offline?)');
+      }
+      
       return true;
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to save recipes:', error);
       return false;
     }
+  }
+  
+  /**
+   * Load recipes from cloud on startup
+   */
+  async loadFromCloud() {
+    try {
+      const firestoreService = (await import('./firestoreService.js')).default;
+      const authService = (await import('./authService.js')).default;
+      const cloudRecipes = await firestoreService.get('saved_recipes', authService.getCurrentUser()?.uid);
+      
+      if (cloudRecipes && cloudRecipes.length > 0) {
+        // Merge with local recipes (cloud takes priority)
+        const { value } = await Preferences.get({ key: this.storageKey });
+        const localRecipes = value ? JSON.parse(value) : [];
+        
+        // Create map of cloud recipes by ID
+        const cloudMap = new Map(cloudRecipes.map(r => [r.id, r]));
+        
+        // Add local recipes that aren't in cloud
+        for (const localRecipe of localRecipes) {
+          if (!cloudMap.has(localRecipe.id)) {
+            cloudRecipes.push(localRecipe);
+          }
+        }
+        
+        // Save merged recipes
+        await Preferences.set({
+          key: this.storageKey,
+          value: JSON.stringify(cloudRecipes)
+        });
+        
+        if(import.meta.env.DEV)console.log(`☁️ Loaded ${cloudRecipes.length} recipes from cloud`);
+        return cloudRecipes;
+      }
+    } catch (e) {
+      if(import.meta.env.DEV)console.warn('Could not load recipes from cloud:', e);
+    }
+    return null;
   }
 }
 

@@ -3,21 +3,25 @@
 
 import { Device } from '@capacitor/device';
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 
 class DevAuthService {
   constructor() {
-    // LOCKED: Multiple authorized devices for development
+    // SECURITY: Only specific device IDs allowed (removed generic model names)
+    // Generic model names like 'CPH2551' match thousands of devices worldwide
     this.authorizedDeviceIds = [
-      '85e89dbedd0cda70',  // ACTUAL OPPO CPH2551 device ID
+      '85e89dbedd0cda70',  // ACTUAL OPPO CPH2551 device ID (primary dev device)
       'a8f5d227622e766f',  // Backup device ID
-      'CPH2551',            // OPPO device model
-      'OPPO CPH2551',       // Full device name
-      'cph2551',            // Lowercase variant
-      'oppo cph2551',       // Lowercase full name
+      // REMOVED: Generic model patterns for security
+      // If dev mode stops working, add your actual device ID here (not model name)
     ];
     
-    // Developer password
-    this.devPassword = 'helio2025dev';
+    // Developer password - MUST be set via environment variable
+    // 🔒 SECURITY: No hardcoded fallback in production
+    this.devPassword = import.meta.env.VITE_DEV_PASSWORD;
+    if (!this.devPassword && import.meta.env.PROD) {
+      console.error('🔒 SECURITY: VITE_DEV_PASSWORD not set - dev mode disabled in production');
+    }
     
     // Developer mode state - starts disabled
     this.isDevMode = false;
@@ -67,8 +71,23 @@ class DevAuthService {
       }
 
       // Check if dev mode was previously unlocked with password
-      const savedDevMode = localStorage.getItem(this.storageKey);
-      if(import.meta.env.DEV)console.log('💾 Saved dev mode state:', savedDevMode);
+      // 🔥 FIX: Check BOTH localStorage AND Capacitor Preferences (Preferences survives reinstalls)
+      let savedDevMode = localStorage.getItem(this.storageKey);
+      if(import.meta.env.DEV)console.log('💾 localStorage dev mode:', savedDevMode);
+      
+      // Also check Capacitor Preferences (persists across reinstalls)
+      try {
+        const { value: prefsDevMode } = await Preferences.get({ key: 'wellnessai_helio_dev_mode' });
+        if(import.meta.env.DEV)console.log('💾 Preferences dev mode:', prefsDevMode);
+        if (prefsDevMode === 'true') {
+          savedDevMode = 'true';
+          // Sync back to localStorage if it was lost
+          localStorage.setItem(this.storageKey, 'true');
+          if(import.meta.env.DEV)console.log('🔄 Synced dev mode from Preferences to localStorage');
+        }
+      } catch (e) {
+        if(import.meta.env.DEV)console.log('⚠️ Could not read Preferences:', e);
+      }
       
       if (savedDevMode === 'true') {
         this.isDevMode = true;
@@ -159,6 +178,14 @@ class DevAuthService {
         this.isDevMode = true;
         localStorage.setItem(this.storageKey, 'true');
         
+        // 🔥 FIX: Also save to Capacitor Preferences (survives app reinstall)
+        try {
+          await Preferences.set({ key: 'wellnessai_helio_dev_mode', value: 'true' });
+          if(import.meta.env.DEV)console.log('💾 Saved dev mode to Preferences (persistent)');
+        } catch (e) {
+          if(import.meta.env.DEV)console.log('⚠️ Could not save to Preferences:', e);
+        }
+        
         if(import.meta.env.DEV)console.log('✅ Password correct - Developer mode unlocked!');
         
         return {
@@ -184,9 +211,15 @@ class DevAuthService {
   /**
    * Lock developer mode
    */
-  lockDevMode() {
+  async lockDevMode() {
     this.isDevMode = false;
     localStorage.removeItem(this.storageKey);
+    // 🔥 FIX: Also remove from Capacitor Preferences
+    try {
+      await Preferences.remove({ key: 'wellnessai_helio_dev_mode' });
+    } catch (e) {
+      if(import.meta.env.DEV)console.log('⚠️ Could not remove from Preferences:', e);
+    }
     if(import.meta.env.DEV)console.log('Developer mode locked');
   }
 
@@ -231,9 +264,15 @@ class DevAuthService {
   /**
    * Reset authorization (for testing only)
    */
-  resetAuthorization() {
+  async resetAuthorization() {
     localStorage.removeItem('authorized_device_id');
     localStorage.removeItem(this.storageKey);
+    // 🔥 FIX: Also remove from Capacitor Preferences
+    try {
+      await Preferences.remove({ key: 'wellnessai_helio_dev_mode' });
+    } catch (e) {
+      if(import.meta.env.DEV)console.log('⚠️ Could not remove from Preferences:', e);
+    }
     this.authorizedDeviceId = null;
     this.isDevMode = false;
     if(import.meta.env.DEV)console.log('Authorization reset');

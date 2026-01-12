@@ -12,10 +12,21 @@ async function createCheckoutSession(priceId, plan) {
       throw new Error('User must be logged in to subscribe');
     }
 
+    // Fetch CSRF token for security
+    console.log('🔒 Fetching CSRF token...');
+    const csrfResponse = await fetch(`${API_URL}/api/csrf-token`);
+    if (!csrfResponse.ok) {
+      throw new Error('Failed to get security token. Please check your connection.');
+    }
+    const { csrfToken } = await csrfResponse.json();
+    console.log('✅ CSRF token received');
+
+    // Create checkout session with CSRF token
     const response = await fetch(`${API_URL}/api/stripe/create-checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-csrf-token': csrfToken
       },
       body: JSON.stringify({
         userId: user.uid,
@@ -25,30 +36,43 @@ async function createCheckoutSession(priceId, plan) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create checkout session');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to create checkout session');
     }
 
     const data = await response.json();
     window.location.href = data.url;
   } catch (error) {
-    console.error('Error creating checkout:', error);
-    alert('Failed to start checkout. Please try again.');
+    console.error('❌ Error creating checkout:', error);
+    alert('Failed to start checkout. Please try again.\n\n' + error.message);
   }
 }
 
-// Essential Plan - £4.99/month
+// Starter Plan - £6.99/month
+export const checkoutStarter = () => {
+  const priceId = import.meta.env.VITE_STRIPE_PRICE_STARTER || 'price_1SffiWD2EDcoPFLNrGfZU1c6';
+  createCheckoutSession(priceId, 'starter');
+};
+
+// Premium Plan - £16.99/month  
+export const checkoutPremium = () => {
+  const priceId = import.meta.env.VITE_STRIPE_PRICE_PREMIUM || 'price_1Sffj1D2EDcoPFLNkqdUxY9L';
+  createCheckoutSession(priceId, 'premium');
+};
+
+// Ultimate Plan - £34.99/month
+export const checkoutUltimate = () => {
+  const priceId = import.meta.env.VITE_STRIPE_PRICE_ULTIMATE || 'price_1Sffk1D2EDcoPFLN4yxdNXSq';
+  createCheckoutSession(priceId, 'ultimate');
+};
+
+// LEGACY - Essential Plan - £4.99/month (for grandfathered users)
 export const checkoutEssential = () => {
   const priceId = import.meta.env.VITE_STRIPE_PRICE_ESSENTIAL || 'prod_TZhdMJIuUuIxOP';
   createCheckoutSession(priceId, 'essential');
 };
 
-// Premium Plan - £14.99/month  
-export const checkoutPremium = () => {
-  const priceId = import.meta.env.VITE_STRIPE_PRICE_PREMIUM || 'prod_TZhulmjk69SvVX';
-  createCheckoutSession(priceId, 'premium');
-};
-
-// VIP Plan - £29.99/month
+// LEGACY - VIP Plan - £29.99/month (for grandfathered users)
 export const checkoutVIP = () => {
   const priceId = import.meta.env.VITE_STRIPE_PRICE_VIP || 'prod_TZhmpYUG5KqUaK';
   createCheckoutSession(priceId, 'vip');

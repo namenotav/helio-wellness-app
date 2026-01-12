@@ -1,0 +1,5 @@
+Runtime enabled
+Modals: [{"cls":"modal-loading","text":"Loading AI Coach..."}]
+Setter type: function
+Setter result: CALLED
+After 3s: {"aiModal":false,"anyModalCount":1,"loadingText":"Loading AI Coach..."}

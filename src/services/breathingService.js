@@ -1,8 +1,8 @@
 // Breathing Exercise Service
 // Provides guided breathing exercises with voice guidance and animations
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
-import ambientSoundService from './ambientSoundService';
 import directAudioService from './directAudioService';
+import ambientSoundService from './ambientSoundService';
 import firestoreService from './firestoreService';
 import authService from './authService';
 
@@ -279,7 +279,14 @@ class BreathingService {
     };
     
     history.push(session);
+    
+    // 🔥 FIX: Save to ALL storage layers (localStorage + Firebase)
     localStorage.setItem('breathing_history', JSON.stringify(history));
+    try {
+      await firestoreService.save('breathing_history', history, authService.getCurrentUser()?.uid);
+    } catch (syncError) {
+      if(import.meta.env.DEV)console.warn('Breathing history Firebase sync failed (offline?):', syncError);
+    }
 
     // Also log to meditation log for activity feed
     let meditationLog = [];
@@ -309,8 +316,22 @@ class BreathingService {
   /**
    * Get session history
    */
-  getHistory(days = 30) {
-    const history = JSON.parse(localStorage.getItem('breathing_history') || '[]');
+  async getHistory(days = 30) {
+    // 🔥 FIX: Try Firebase first, then localStorage
+    let history = [];
+    try {
+      history = await firestoreService.get('breathing_history', authService.getCurrentUser()?.uid) || [];
+      if (history.length > 0) {
+        localStorage.setItem('breathing_history', JSON.stringify(history));
+      }
+    } catch (e) {
+      history = JSON.parse(localStorage.getItem('breathing_history') || '[]');
+    }
+    
+    if (history.length === 0) {
+      history = JSON.parse(localStorage.getItem('breathing_history') || '[]');
+    }
+    
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
     

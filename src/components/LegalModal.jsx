@@ -823,7 +823,81 @@ const PrivacyPolicy = () => (
     <h4>9. Cookies and Tracking</h4>
     <p>We use minimal cookies and local storage for essential functionality. See our Cookie Policy for details.</p>
     
-    <h4>10. Security Limitations and Disclaimers</h4>
+    <h4>10. Device Permissions and Emergency Calling Disclosure</h4>
+    <p>Helio/WellnessAI requires certain device permissions to provide its features. We are committed to transparency about how these permissions are used.</p>
+    
+    <h5>10.1 Phone Call Permission (CALL_PHONE) - Emergency Calling Disclosure</h5>
+    <p><strong>IMPORTANT DISCLOSURE:</strong> This app requests the CALL_PHONE permission to enable emergency calling features.</p>
+    <p><strong>Purpose:</strong> The CALL_PHONE permission is used EXCLUSIVELY for:</p>
+    <ul>
+      <li><strong>Emergency SOS Feature:</strong> Allows you to quickly dial emergency services (999/112/911) directly from the Emergency Panel with one tap</li>
+      <li><strong>Fall Detection Response:</strong> If fall detection is enabled and a potential fall is detected, the app may offer to call emergency services on your behalf</li>
+      <li><strong>Emergency Contact Calling:</strong> Allows one-tap calling to your designated emergency contacts during health emergencies</li>
+    </ul>
+    <p><strong>User Control:</strong></p>
+    <ul>
+      <li>This permission is OPTIONAL - you can deny it and still use other app features</li>
+      <li>The app will NEVER make calls without your explicit action or confirmation</li>
+      <li>You can revoke this permission at any time in your device Settings → Apps → Helio → Permissions</li>
+      <li>Without this permission, you can still manually dial emergency numbers using your phone's dialer</li>
+    </ul>
+    <p><strong>NO AUTOMATIC CALLS:</strong> Helio/WellnessAI will NEVER initiate phone calls automatically without user interaction. All calls require explicit user confirmation via button tap or dialog acknowledgment.</p>
+    
+    <h5>10.2 Other Device Permissions</h5>
+    <table style={{width: '100%', borderCollapse: 'collapse', marginTop: '10px'}}>
+      <thead>
+        <tr style={{backgroundColor: 'rgba(139, 95, 232, 0.2)'}}>
+          <th style={{padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.2)'}}>Permission</th>
+          <th style={{padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.2)'}}>Purpose</th>
+          <th style={{padding: '8px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.2)'}}>Required</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Camera</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Food scanning, barcode scanning, profile photos</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Optional</td>
+        </tr>
+        <tr>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Motion/Activity</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Step counting, fall detection, rep counting</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Optional</td>
+        </tr>
+        <tr>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Notifications</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Reminders, alerts, step tracking display</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Optional</td>
+        </tr>
+        <tr>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Microphone</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Voice commands, AI voice chat</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Optional</td>
+        </tr>
+        <tr>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Storage</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>DNA file upload, data export</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Optional</td>
+        </tr>
+        <tr>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Bluetooth</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Heart rate monitor, wearable device sync</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Optional</td>
+        </tr>
+        <tr>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Phone (CALL_PHONE)</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Emergency SOS, fall detection response, emergency contact calling</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Optional</td>
+        </tr>
+        <tr>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Foreground Service</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>24/7 step tracking, persistent notifications</td>
+          <td style={{padding: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>Optional</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style={{marginTop: '15px'}}><strong>Privacy Commitment:</strong> All permissions are used solely for the stated purposes. We do not access device capabilities for advertising, tracking, or any purpose other than app functionality. You maintain full control and can revoke any permission at any time.</p>
+    
+    <h4>11. Security Limitations and Disclaimers</h4>
     <p><strong>CRITICAL SECURITY DISCLAIMER:</strong></p>
     <p>While Helio/WellnessAI implements industry-standard security measures (encryption, secure connections, access controls), we make NO GUARANTEES regarding data security. You acknowledge and agree that:</p>
     <ul>
@@ -838,7 +912,7 @@ const PrivacyPolicy = () => (
     </ul>
     <p><strong>YOU RELEASE Helio/WellnessAI FROM ALL LIABILITY arising from data breaches, security incidents, unauthorized access, identity theft, privacy violations, or any other security-related damages.</strong></p>
     
-    <h4>11. DNA Data Special Provisions and Enhanced Warnings</h4>
+    <h4>12. DNA Data Special Provisions and Enhanced Warnings</h4>
     <p><strong>DNA DATA CARRIES UNIQUE AND SERIOUS RISKS. BY UPLOADING DNA DATA, YOU ACKNOWLEDGE:</strong></p>
     <ul>
       <li><strong>Permanent identification risk:</strong> DNA is permanent and uniquely identifies you. If compromised, you cannot change your DNA</li>
@@ -858,12 +932,12 @@ const PrivacyPolicy = () => (
     </ul>
     <p><strong>Helio/WellnessAI is NOT responsible for any consequences arising from your DNA data upload, including psychological distress, family disputes, discrimination, legal issues, or future uses of genetic information.</strong></p>
     
-    <h4>12. Children's Data - Strict Prohibition</h4>
+    <h4>13. Children's Data - Strict Prohibition</h4>
     <p>Helio/WellnessAI is STRICTLY PROHIBITED for children under 16 years of age. We do NOT knowingly collect, store, or process data from children under 16.</p>
     <p>If we discover that a child under 16 has provided personal information, we will delete it immediately. However, we are NOT responsible for verifying user ages or any consequences if a child uses the App without our knowledge.</p>
     <p><strong>Parents/Guardians:</strong> You are responsible for monitoring your children's device usage. Helio/WellnessAI is NOT liable if a minor uses the App in violation of this policy.</p>
     
-    <h4>13. Changes to Privacy Policy</h4>
+    <h4>14. Changes to Privacy Policy</h4>
     <p>Helio/WellnessAI reserves the right to modify this Privacy Policy at any time, at our sole discretion. We will make reasonable efforts to notify you of material changes via:</p>
     <ul>
       <li>In-app notifications</li>
@@ -873,7 +947,7 @@ const PrivacyPolicy = () => (
     <p>However, we are NOT obligated to provide notice, and it is YOUR responsibility to review this Policy periodically. Continued use of the App after changes constitutes acceptance of the revised Policy.</p>
     <p>Changes become effective IMMEDIATELY upon posting, unless otherwise stated.</p>
     
-    <h4>14. No Guarantees or Warranties</h4>
+    <h4>15. No Guarantees or Warranties</h4>
     <p>This Privacy Policy describes our intended practices, but we make NO GUARANTEES OR WARRANTIES that:</p>
     <ul>
       <li>We will always follow these practices exactly</li>
@@ -885,7 +959,7 @@ const PrivacyPolicy = () => (
     </ul>
     <p><strong>All privacy commitments are subject to applicable law, legal processes, business necessities, and technical limitations.</strong></p>
     
-    <h4>15. Limitation of Liability for Privacy Issues</h4>
+    <h4>16. Limitation of Liability for Privacy Issues</h4>
     <p><strong>TO THE MAXIMUM EXTENT PERMITTED BY LAW, Helio/WellnessAI AND ALL RELATED PARTIES ARE NOT LIABLE FOR:</strong></p>
     <ul>
       <li>Data breaches, hacking, or unauthorized access</li>
@@ -897,12 +971,12 @@ const PrivacyPolicy = () => (
       <li>Any damages arising from privacy violations or data security incidents</li>
     </ul>
     
-    <h4>16. International Users and Data Transfers</h4>
+    <h4>17. International Users and Data Transfers</h4>
     <p>Helio/WellnessAI operates globally. Your data may be transferred to, stored in, and processed in countries with DIFFERENT and POTENTIALLY WEAKER data protection laws than your own country.</p>
     <p>By using the App, you CONSENT to international data transfers and acknowledge that foreign governments may have access to your data through legal processes in their jurisdictions.</p>
     <p>We make NO GUARANTEES about compliance with all international privacy laws, and you assume all risks of international data storage.</p>
     
-    <h4>17. Contact Information for Privacy Concerns</h4>
+    <h4>18. Contact Information for Privacy Concerns</h4>
     <p>For privacy concerns, data requests, or to exercise your rights, contact our Data Protection Officer at:</p>
     <p><strong>Data Protection Officer - Helio/WellnessAI</strong><br/>
     Email: <strong>privacy@wellnessai.app</strong><br/>

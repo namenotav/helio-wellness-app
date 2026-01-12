@@ -121,7 +121,7 @@ const UsageLimitWarning = ({ type, used, limit, onUpgrade, onEarnMore }) => {
           fontSize: '13px',
           color: 'rgba(255,255,255,0.9)'
         }}>
-          💡 <strong>Upgrade to Essential</strong> for just £4.99/mo and get 30 {type}/day + NO ADS!
+          💡 <strong>Upgrade to Starter</strong> for just £6.99/mo and get unlimited {type} + NO ADS!
         </div>
       )}
     </div>

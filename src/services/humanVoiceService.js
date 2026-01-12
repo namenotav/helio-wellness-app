@@ -191,8 +191,16 @@ class HumanVoiceService {
     }
 
     return new Promise((resolve) => {
+      // 🔒 SECURITY: ResponsiveVoice API key from environment variable
+      const apiKey = import.meta.env.VITE_RESPONSIVEVOICE_KEY;
+      if (!apiKey) {
+        if(import.meta.env.DEV)console.warn('⚠️ VITE_RESPONSIVEVOICE_KEY not set, ResponsiveVoice disabled');
+        resolve(false);
+        return;
+      }
+      
       const script = document.createElement('script');
-      script.src = 'https://code.responsivevoice.org/responsivevoice.js?key=jQZ2zSP7';
+      script.src = `https://code.responsivevoice.org/responsivevoice.js?key=${apiKey}`;
       script.onload = () => {
         if(import.meta.env.DEV)console.log('✅ ResponsiveVoice loaded - Premium natural voices available');
         resolve(true);

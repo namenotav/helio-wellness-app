@@ -12,10 +12,21 @@ const ReferralSystem = ({ userId, userName }) => {
     const code = `HELIO${userId?.slice(0, 6)?.toUpperCase() || 'DEMO'}`;
     setReferralCode(code);
     
-    // Load referral stats from localStorage
-    const stats = JSON.parse(localStorage.getItem(`referral_${userId}`) || '{"count": 0, "rewards": 0}');
-    setReferralCount(stats.count);
-    setRewardsClaimed(stats.rewards);
+    // Load referral stats - Preferences first, localStorage fallback
+    const loadStats = async () => {
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        const { value: prefsValue } = await Preferences.get({ key: `wellnessai_referral_${userId}` });
+        const stats = JSON.parse(prefsValue || localStorage.getItem(`referral_${userId}`) || '{"count": 0, "rewards": 0}');
+        setReferralCount(stats.count);
+        setRewardsClaimed(stats.rewards);
+      } catch (e) {
+        const stats = JSON.parse(localStorage.getItem(`referral_${userId}`) || '{"count": 0, "rewards": 0}');
+        setReferralCount(stats.count);
+        setRewardsClaimed(stats.rewards);
+      }
+    };
+    loadStats();
   }, [userId]);
 
   const copyReferralLink = () => {

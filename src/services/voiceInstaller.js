@@ -11,7 +11,7 @@ class VoiceInstaller {
       const result = await TextToSpeech.getSupportedVoices();
       const voices = result.voices || [];
       
-      if(import.meta.env.DEV)console.log('Available voices:', voices.length);
+      console.log('Available voices:', voices.length);
       
       // Check for Google's premium neural voices
       const hasGoogleVoice = voices.some(v => 
@@ -26,7 +26,7 @@ class VoiceInstaller {
         voices: voices
       };
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Error checking voices:', error);
+      console.error('Error checking voices:', error);
       return { hasVoices: false, hasPremiumVoices: false, voiceCount: 0 };
     }
   }
@@ -68,13 +68,10 @@ The UK English female voice has a warm, gentle, healing quality that will give y
         alert(this.showVoiceInstallationGuide());
       }
     } catch (error) {
-      if(import.meta.env.DEV)console.error('Error opening TTS settings:', error);
+      console.error('Error opening TTS settings:', error);
     }
   }
 }
 
 const voiceInstaller = new VoiceInstaller();
 export default voiceInstaller;
-
-
-

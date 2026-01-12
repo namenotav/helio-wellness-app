@@ -41,7 +41,31 @@ export default function ARScanner({ onClose }) {
         ...result.overlayData,
         databaseMatches: result.databaseMatches || [] // Store database results
       });
+      
+      // Save scan result to storage
+      const scanResult = {
+        imageData: result.imageData,
+        overlayData: result.overlayData,
+        timestamp: Date.now(),
+        date: new Date().toISOString().split('T')[0]
+      };
+      
+      // Read from Preferences first, fallback to localStorage
+      const { Preferences } = await import('@capacitor/preferences');
+      const { value: prefsScans } = await Preferences.get({ key: 'wellnessai_ar_scans' });
+      const existingScans = JSON.parse(prefsScans || localStorage.getItem('ar_scans') || '[]');
+      existingScans.push(scanResult);
+      
+      // Write to both storages
+      const arScansJson = JSON.stringify(existingScans);
+      localStorage.setItem('ar_scans', arScansJson);
+      await Preferences.set({ key: 'wellnessai_ar_scans', value: arScansJson });
+      
+      const syncService = (await import('../services/syncService')).default;
+      await syncService.saveData('ar_scans', scanResult);
+      
       if(import.meta.env.DEV)console.log('✅ AR overlay set with database matches:', result.overlayData);
+      if(import.meta.env.DEV)console.log('📊 AR scan saved to storage');
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ AR scan error:', error);
       alert('Failed to start AR scan: ' + error.message);
@@ -59,7 +83,7 @@ export default function ARScanner({ onClose }) {
       <div className="ar-modal">
         <button className="ar-close" onClick={onClose}>✕</button>
 
-        <h2 className="ar-title">📸 AR Food Scanner</h2>
+        <h2 className="ar-title">📸 Body Scanner</h2>
 
         {!capturedImage ? (
           <div className="ar-start">

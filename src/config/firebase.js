@@ -1,5 +1,5 @@
 // Firebase Configuration - Exports for auth and db
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
@@ -15,8 +15,9 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (or reuse existing default app)
+// IMPORTANT: This file is imported in many places; it must be idempotent.
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // Export auth and db instances
 export const auth = getAuth(app);

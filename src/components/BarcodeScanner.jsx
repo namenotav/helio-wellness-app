@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import barcodeScannerService from '../services/barcodeScannerService';
 import authService from '../services/authService';
+import { showToast } from './Toast';
 import './BarcodeScanner.css';
 
 const BarcodeScanner = ({ onClose, onFoodScanned }) => {
@@ -13,6 +14,14 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
 
   const handleScan = async () => {
     try {
+      // Check barcode scan limit (starter users: 3/day)
+      const { default: subscriptionService } = await import('../services/subscriptionService');
+      const limitCheck = await subscriptionService.checkLimit('barcodeScans');
+      if (!limitCheck.allowed) {
+        setError(limitCheck.message);
+        return;
+      }
+
       setError(null);
       setScanning(true);
       setLoading(false);
@@ -51,6 +60,10 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
             totalResults: allResults.length
           });
           if(import.meta.env.DEV)console.log(`✅ Found ${allResults.length} matches across databases. Best: ${allResults[0].name}`);
+          
+          // Increment barcode scan usage (for starter user limits)
+          const { default: subscriptionService } = await import('../services/subscriptionService');
+          await subscriptionService.incrementUsage('barcodeScans');
         } else {
           setError('Product not found in any database (USDA, Restaurants, OpenFoodFacts)');
         }
@@ -128,7 +141,116 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
 
       if (logResult.success !== false) {
         if(import.meta.env.DEV)console.log('✅ Meal logged successfully!');
-        alert(`✅ ${result.name} logged!\n+${result.calories} calories`);
+        showToast(`✅ ${result.name} logged! +${result.calories} cal`, 'success');
+        
+        // UPDATE SCAN STATS - Track successful scan with dual storage
+        // 🔥 FIX: Read from Preferences first (survives app updates), fallback to localStorage
+        const { Preferences } = await import('@capacitor/preferences');
+        
+        let totalScans = 0;
+        let todayScans = 0;
+        let totalCalories = 0;
+        let recentScans = [];
+        
+        try {
+          const { value: prefsTotalScans } = await Preferences.get({ key: 'wellnessai_total_scans' });
+          const { value: prefsTodayScans } = await Preferences.get({ key: 'wellnessai_scans_today' });
+          const { value: prefsCalories } = await Preferences.get({ key: 'wellnessai_calories_tracked' });
+          const { value: prefsRecent } = await Preferences.get({ key: 'wellnessai_recent_scans' });
+          const { value: prefsTodayDate } = await Preferences.get({ key: 'wellnessai_scans_today_date' });
+          
+          // Check if today's date matches stored date, reset if not
+          const today = new Date().toISOString().split('T')[0];
+          const storedTodayDate = prefsTodayDate || localStorage.getItem('scans_today_date');
+          
+          totalScans = parseInt(prefsTotalScans || localStorage.getItem('total_scans') || '0');
+          todayScans = (storedTodayDate === today) ? parseInt(prefsTodayScans || localStorage.getItem('scans_today') || '0') : 0;
+          totalCalories = parseInt(prefsCalories || localStorage.getItem('calories_tracked') || '0');
+          recentScans = JSON.parse(prefsRecent || localStorage.getItem('recent_scans') || '[]');
+        } catch (e) {
+          // Fallback to localStorage if Preferences fails
+          totalScans = parseInt(localStorage.getItem('total_scans') || '0');
+          todayScans = parseInt(localStorage.getItem('scans_today') || '0');
+          totalCalories = parseInt(localStorage.getItem('calories_tracked') || '0');
+          recentScans = JSON.parse(localStorage.getItem('recent_scans') || '[]');
+        }
+        
+        const scanCalories = result.calories || 0;
+        
+        // Update localStorage
+        localStorage.setItem('total_scans', (totalScans + 1).toString());
+        localStorage.setItem('scans_today', (todayScans + 1).toString());
+        localStorage.setItem('scans_today_date', new Date().toISOString().split('T')[0]);
+        localStorage.setItem('calories_tracked', (totalCalories + scanCalories).toString());
+        
+        // Update recent scans (using already-loaded recentScans from Preferences/localStorage)
+        recentScans.unshift({
+          name: result.name,
+          calories: scanCalories,
+          time: 'Just now',
+          icon: '📊'
+        });
+        const updatedRecentScans = recentScans.slice(0, 10);
+        localStorage.setItem('recent_scans', JSON.stringify(updatedRecentScans));
+        
+        // 💾 DUAL STORAGE: Save to Preferences (survives app updates)
+        try {
+          const { Preferences } = await import('@capacitor/preferences');
+          await Preferences.set({ key: 'wellnessai_total_scans', value: (totalScans + 1).toString() });
+          await Preferences.set({ key: 'wellnessai_scans_today', value: (todayScans + 1).toString() });
+          await Preferences.set({ key: 'wellnessai_scans_today_date', value: new Date().toISOString().split('T')[0] });
+          await Preferences.set({ key: 'wellnessai_calories_tracked', value: (totalCalories + scanCalories).toString() });
+          await Preferences.set({ key: 'wellnessai_recent_scans', value: JSON.stringify(updatedRecentScans) });
+          if(import.meta.env.DEV)console.log('💾 Scan stats saved to Preferences');
+        } catch (e) {
+          console.warn('Could not save scan stats to Preferences:', e);
+        }
+        
+        // ☁️ FIREBASE SYNC: Save to cloud
+        try {
+          const firestoreService = (await import('../services/firestoreService')).default;
+          const authService = (await import('../services/authService')).default;
+          const user = authService.getCurrentUser();
+          if (user?.uid) {
+            firestoreService.save('total_scans', totalScans + 1, user.uid)
+              .then(() => console.log('☁️ total_scans synced'))
+              .catch(err => console.warn('⚠️ total_scans sync failed:', err));
+            firestoreService.save('scans_today', todayScans + 1, user.uid)
+              .then(() => console.log('☁️ scans_today synced'))
+              .catch(err => console.warn('⚠️ scans_today sync failed:', err));
+            firestoreService.save('scans_today_date', new Date().toISOString().split('T')[0], user.uid)
+              .catch(err => console.warn('⚠️ scans_today_date sync failed:', err));
+            firestoreService.save('calories_tracked', totalCalories + scanCalories, user.uid)
+              .catch(err => console.warn('⚠️ calories_tracked sync failed:', err));
+            firestoreService.save('recent_scans', updatedRecentScans, user.uid)
+              .catch(err => console.warn('⚠️ recent_scans sync failed:', err));
+          }
+        } catch (e) {
+          console.warn('Could not sync scan stats to Firebase (will retry):', e);
+        }
+        
+        // Award XP for successful scan
+        if (window.addPoints) {
+          window.addPoints(5, { x: window.innerWidth / 2, y: 100 });
+        }
+        
+        // Update daily challenge
+        if (window.updateDailyChallenge) {
+          window.updateDailyChallenge('scan_food', 1);
+        }
+        
+        if(import.meta.env.DEV)console.log('📊 Scan stats updated:', { totalScans: totalScans + 1, calories: scanCalories });
+        
+        // ⭐ GAMIFICATION: Log scan activity (scan-specific XP)
+        try {
+          const { default: gamificationService } = await import('../services/gamificationService');
+          await gamificationService.logActivity('scan');
+          if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Scan activity logged');
+        } catch (error) {
+          console.error('❌ [GAMIFICATION] Failed to log scan activity:', error);
+        }
+        
+        // ⭐ Note: Meal activity is logged automatically by authService.logFood()
         
         // Notify parent if callback exists
         if (onFoodScanned) {
@@ -136,11 +258,11 @@ const BarcodeScanner = ({ onClose, onFoodScanned }) => {
         }
       } else {
         if(import.meta.env.DEV)console.error('❌ Failed to log meal:', logResult.error);
-        alert('⚠️ Failed to log meal. Please try again.');
+        showToast('Failed to log meal. Please try again.', 'error');
       }
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ Error logging meal:', error);
-      alert('⚠️ Error logging meal. Please try again.');
+      showToast('Error logging meal. Please try again.', 'error');
     }
     
     // Keep modal open so user can scan another item

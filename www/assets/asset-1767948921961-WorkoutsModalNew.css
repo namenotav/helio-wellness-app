@@ -1,0 +1,1189 @@
+/* Updated Workouts Modal with Exercise Library */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999998;
+  backdrop-filter: blur(8px);
+}
+
+.workouts-modal-new {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 25px;
+  padding: 25px;
+  max-width: 900px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: white;
+  box-shadow: 0 20px 60px rgba(139, 95, 232, 0.4);
+}
+
+.workouts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  gap: 15px;
+}
+
+.workouts-header h2 {
+  font-size: 26px;
+  margin: 0;
+  background: linear-gradient(135deg, #8B5FE8, #C084FC);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  flex: 1;
+  text-align: center;
+}
+
+.back-btn {
+  background: rgba(139, 95, 232, 0.2);
+  border: 2px solid rgba(139, 95, 232, 0.4);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: rgba(139, 95, 232, 0.3);
+  transform: translateX(-3px);
+}
+
+.close-btn {
+  background: #8B5FE8;
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: #A78BFA;
+  transform: rotate(90deg);
+}
+
+/* Special Features */
+.special-features {
+  margin-bottom: 25px;
+}
+
+.feature-card {
+  background: linear-gradient(135deg, rgba(139, 95, 232, 0.3), rgba(139, 95, 232, 0.1));
+  border: 2px solid rgba(139, 95, 232, 0.4);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  width: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-3px);
+  border-color: #8B5FE8;
+  box-shadow: 0 15px 40px rgba(139, 95, 232, 0.5);
+}
+
+.feature-icon {
+  font-size: 40px;
+}
+
+.feature-info {
+  flex: 1;
+  text-align: left;
+}
+
+.feature-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 20px;
+}
+
+.feature-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #999;
+}
+
+.feature-badge {
+  background: linear-gradient(135deg, #8B5FE8, #C084FC);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Categories Grid */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.category-card {
+  border: none;
+  border-radius: 20px;
+  padding: 25px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+.cat-icon {
+  font-size: 48px;
+  animation: iconFloat 3s ease-in-out infinite;
+}
+
+.cat-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.cat-count {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Search Bar */
+.search-bar {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 15px 15px 15px 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(139, 95, 232, 0.3);
+  border-radius: 15px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-bar input:focus {
+  border-color: #8B5FE8;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.search-bar input::placeholder {
+  color: #999;
+}
+
+/* Exercises List */
+.exercises-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.exercise-card {
+  background: linear-gradient(135deg, rgba(139, 95, 232, 0.15), rgba(139, 95, 232, 0.05));
+  border: 2px solid rgba(139, 95, 232, 0.3);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  text-align: left;
+}
+
+.exercise-card:hover {
+  transform: translateX(5px);
+  border-color: #8B5FE8;
+  box-shadow: 0 10px 30px rgba(139, 95, 232, 0.4);
+}
+
+.exercise-animation-preview {
+  flex-shrink: 0;
+}
+
+.exercise-animation.small {
+  width: 70px;
+  height: 70px;
+}
+
+.exercise-animation.small .exercise-stick-figure {
+  width: 45px;
+  height: 60px;
+}
+
+.exercise-animation.small .exercise-stick-figure::before {
+  width: 14px;
+  height: 14px;
+}
+
+.exercise-animation.small .exercise-stick-figure::after {
+  height: 28px;
+  width: 3px;
+  top: 14px;
+}
+
+.exercise-animation.small .stick-arms {
+  width: 32px;
+  height: 3px;
+  top: 22px;
+}
+
+.exercise-animation.small .stick-leg-left,
+.exercise-animation.small .stick-leg-right {
+  height: 24px;
+  width: 3px;
+}
+
+.exercise-info {
+  flex: 1;
+}
+
+.exercise-info h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.exercise-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.exercise-meta span {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.difficulty {
+  border: 1px solid;
+}
+
+.difficulty.beginner {
+  border-color: #4CAF50;
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.difficulty.intermediate {
+  border-color: #FF9800;
+  color: #FF9800;
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.difficulty.advanced {
+  border-color: #F44336;
+  color: #F44336;
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.equipment {
+  background: rgba(139, 95, 232, 0.2);
+  color: #C084FC;
+}
+
+.calories {
+  background: rgba(255, 152, 0, 0.2);
+  color: #FFB84D;
+}
+
+.muscles {
+  font-size: 13px;
+  color: #999;
+  margin: 0;
+}
+
+.exercise-arrow {
+  font-size: 24px;
+  color: #8B5FE8;
+}
+
+.workouts-footer {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(139, 95, 232, 0.2);
+}
+
+.workouts-footer p {
+  margin: 0;
+  color: #999;
+  font-size: 14px;
+}
+
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@media (max-width: 768px) {
+  .categories-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+  }
+  
+  .category-card {
+    padding: 20px 10px;
+  }
+  
+  .cat-icon {
+    font-size: 36px;
+  }
+  
+  .cat-name {
+    font-size: 14px;
+  }
+  
+  .exercise-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .exercise-info {
+    text-align: center;
+  }
+}
+/* Exercise Stick Figure Animations - 200+ Exercises */
+/* All animations are 100% original, no copyright issues */
+
+/* ========== CHEST EXERCISES ========== */
+@keyframes pushup-exercise {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(15px) scaleY(0.9); }
+}
+
+@keyframes bench-press-exercise {
+  0%, 100% { transform: translateY(-10px); }
+  50% { transform: translateY(10px); }
+}
+
+@keyframes chest-fly-exercise {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.3); }
+}
+
+@keyframes dips-exercise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(12px); }
+}
+
+/* ========== BACK EXERCISES ========== */
+@keyframes pullup-exercise {
+  0%, 100% { transform: translateY(15px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes row-exercise {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-15px); }
+}
+
+@keyframes deadlift-exercise {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(10px) rotate(5deg); }
+  70% { transform: translateY(10px) rotate(5deg); }
+}
+
+@keyframes lat-pulldown-exercise {
+  0%, 100% { transform: translateY(-10px); }
+  50% { transform: translateY(5px); }
+}
+
+/* ========== LEG EXERCISES ========== */
+@keyframes squat-exercise {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(18px) scaleY(0.85); }
+}
+
+@keyframes lunge-exercise {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(15px) translateY(8px); }
+  75% { transform: translateX(-15px) translateY(8px); }
+}
+
+@keyframes leg-press-exercise {
+  0%, 100% { transform: scaleY(0.9); }
+  50% { transform: scaleY(1.1); }
+}
+
+@keyframes calf-raise-exercise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes leg-curl-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-20deg); }
+}
+
+/* ========== SHOULDER EXERCISES ========== */
+@keyframes overhead-press-exercise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes lateral-raise-exercise {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.4); }
+}
+
+@keyframes shoulder-shrug-exercise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes front-raise-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-45deg); }
+}
+
+/* ========== ARM EXERCISES ========== */
+@keyframes bicep-curl-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-60deg); }
+}
+
+@keyframes tricep-extension-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(30deg); }
+}
+
+@keyframes hammer-curl-exercise {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-50deg); }
+}
+
+/* ========== CORE EXERCISES ========== */
+@keyframes plank-exercise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes crunch-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-15deg); }
+}
+
+@keyframes sit-up-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-45deg); }
+}
+
+@keyframes russian-twist-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-30deg); }
+  75% { transform: rotate(30deg); }
+}
+
+@keyframes leg-raise-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-70deg); }
+}
+
+@keyframes bicycle-crunch-exercise {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  25% { transform: rotate(-15deg) translateX(-8px); }
+  75% { transform: rotate(15deg) translateX(8px); }
+}
+
+/* ========== CARDIO EXERCISES ========== */
+@keyframes jumping-jack-exercise {
+  0%, 100% { transform: scaleX(1) translateY(0); }
+  50% { transform: scaleX(1.3) translateY(-15px); }
+}
+
+@keyframes burpee-exercise {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  25% { transform: translateY(10px) scaleY(0.6); }
+  75% { transform: translateY(-15px) scaleY(1.1); }
+}
+
+@keyframes mountain-climber-exercise {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes high-knee-exercise {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-10px); }
+  75% { transform: translateY(-8px); }
+}
+
+@keyframes jump-rope-exercise {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(180deg); }
+}
+
+@keyframes box-jump-exercise {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-20px); }
+  60% { transform: translateY(-20px); }
+}
+
+/* ========== YOGA EXERCISES ========== */
+@keyframes downward-dog-exercise {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(-30deg) translateY(-10px); }
+}
+
+@keyframes warrior-pose-exercise {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.2); }
+}
+
+@keyframes tree-pose-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-3deg); }
+}
+
+@keyframes child-pose-exercise {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.7); }
+}
+
+@keyframes cobra-pose-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-20deg); }
+}
+
+/* ========== HIIT EXERCISES ========== */
+@keyframes sprint-exercise {
+  0%, 100% { transform: translateX(0) scaleX(1); }
+  50% { transform: translateX(20px) scaleX(1.1); }
+}
+
+@keyframes battle-rope-exercise {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-15px); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(15px); }
+}
+
+@keyframes kettlebell-swing-exercise {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(-90deg) translateY(-15px); }
+}
+
+/* ========== STRETCHING EXERCISES ========== */
+@keyframes hamstring-stretch-exercise {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-45deg); }
+}
+
+@keyframes quad-stretch-exercise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px) rotate(10deg); }
+}
+
+@keyframes shoulder-stretch-exercise {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.15); }
+}
+
+/* ========== EXERCISE ANIMATION CONTAINER ========== */
+.exercise-animation {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.exercise-stick-figure {
+  position: absolute;
+  width: 60px;
+  height: 80px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Head */
+.exercise-stick-figure::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 50%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Body */
+.exercise-stick-figure::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 35px;
+  background: linear-gradient(180deg, #667eea, #764ba2);
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+/* Arms */
+.stick-arms {
+  position: absolute;
+  width: 40px;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+/* Legs */
+.stick-leg-left,
+.stick-leg-right {
+  position: absolute;
+  width: 4px;
+  height: 30px;
+  background: linear-gradient(180deg, #764ba2, #667eea);
+  bottom: 0;
+  border-radius: 2px;
+}
+
+.stick-leg-left {
+  left: calc(50% - 8px);
+}
+
+.stick-leg-right {
+  right: calc(50% - 8px);
+}
+
+/* Apply animations */
+.anim-pushup .exercise-stick-figure { animation: pushup-exercise 2s ease-in-out infinite; }
+.anim-squat .exercise-stick-figure { animation: squat-exercise 2.5s ease-in-out infinite; }
+.anim-pullup .exercise-stick-figure { animation: pullup-exercise 2s ease-in-out infinite; }
+.anim-lunge .exercise-stick-figure { animation: lunge-exercise 3s ease-in-out infinite; }
+.anim-plank .exercise-stick-figure { animation: plank-exercise 4s ease-in-out infinite; }
+.anim-burpee .exercise-stick-figure { animation: burpee-exercise 2.5s ease-in-out infinite; }
+.anim-jumping-jack .exercise-stick-figure { animation: jumping-jack-exercise 1.5s ease-in-out infinite; }
+.anim-mountain-climber .exercise-stick-figure { animation: mountain-climber-exercise 1s ease-in-out infinite; }
+.anim-bicep-curl .exercise-stick-figure { animation: bicep-curl-exercise 2s ease-in-out infinite; }
+.anim-overhead-press .exercise-stick-figure { animation: overhead-press-exercise 2s ease-in-out infinite; }
+.anim-deadlift .exercise-stick-figure { animation: deadlift-exercise 3s ease-in-out infinite; }
+.anim-bench-press .exercise-stick-figure { animation: bench-press-exercise 2s ease-in-out infinite; }
+.anim-row .exercise-stick-figure { animation: row-exercise 2s ease-in-out infinite; }
+.anim-lateral-raise .exercise-stick-figure { animation: lateral-raise-exercise 2s ease-in-out infinite; }
+.anim-tricep-extension .exercise-stick-figure { animation: tricep-extension-exercise 2s ease-in-out infinite; }
+.anim-crunch .exercise-stick-figure { animation: crunch-exercise 2s ease-in-out infinite; }
+.anim-russian-twist .exercise-stick-figure { animation: russian-twist-exercise 2.5s ease-in-out infinite; }
+.anim-leg-raise .exercise-stick-figure { animation: leg-raise-exercise 2.5s ease-in-out infinite; }
+.anim-high-knee .exercise-stick-figure { animation: high-knee-exercise 1s ease-in-out infinite; }
+.anim-box-jump .exercise-stick-figure { animation: box-jump-exercise 2s ease-in-out infinite; }
+.anim-downward-dog .exercise-stick-figure { animation: downward-dog-exercise 4s ease-in-out infinite; }
+.anim-warrior-pose .exercise-stick-figure { animation: warrior-pose-exercise 3s ease-in-out infinite; }
+.anim-kettlebell-swing .exercise-stick-figure { animation: kettlebell-swing-exercise 2s ease-in-out infinite; }
+.anim-battle-rope .exercise-stick-figure { animation: battle-rope-exercise 1.5s ease-in-out infinite; }
+.anim-calf-raise .exercise-stick-figure { animation: calf-raise-exercise 2s ease-in-out infinite; }
+
+/* Glow effect for active exercise */
+.exercise-animation.active {
+  filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .exercise-animation {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .exercise-stick-figure {
+    width: 50px;
+    height: 65px;
+  }
+}
+/* Exercise Detail Modal */
+
+.exercise-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  backdrop-filter: blur(10px);
+}
+
+.exercise-detail-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 25px;
+  padding: 30px;
+  max-width: 600px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: white;
+  box-shadow: 0 25px 70px rgba(139, 95, 232, 0.5);
+}
+
+.exercise-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.exercise-detail-header h2 {
+  font-size: 28px;
+  margin: 0;
+  background: linear-gradient(135deg, #8B5FE8, #C084FC);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  flex: 1;
+  text-align: center;
+}
+
+.close-btn-detail {
+  background: #8B5FE8;
+  border: none;
+  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  font-size: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.close-btn-detail:hover {
+  background: #A78BFA;
+  transform: rotate(90deg);
+}
+
+.exercise-animation-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 30px;
+  background: rgba(139, 95, 232, 0.1);
+  border-radius: 20px;
+  border: 2px solid rgba(139, 95, 232, 0.3);
+}
+
+/* Video & GIF Wrapper Styles */
+.exercise-video-wrapper,
+.exercise-gif-wrapper {
+  width: 100%;
+  max-width: 350px;
+  border-radius: 15px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 3px;
+  box-shadow: 0 10px 30px rgba(139, 95, 232, 0.4);
+  margin-bottom: 15px;
+}
+
+.exercise-video {
+  width: 100%;
+  height: 250px;
+  display: block;
+  border-radius: 12px;
+  background: #000;
+}
+
+.exercise-gif {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  background: #1a1a2e;
+  min-height: 200px;
+  object-fit: cover;
+}
+
+/* CSS Animation Fallback Container */
+.exercise-animation-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.animation-label {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #8B5FE8;
+  font-weight: 600;
+  text-align: center;
+}
+
+.exercise-animation.large {
+  width: 160px;
+  height: 160px;
+}
+
+.exercise-animation.large .exercise-stick-figure {
+  width: 60px;
+  height: 80px;
+}
+
+.exercise-animation.large .exercise-stick-figure::before {
+  width: 20px;
+  height: 20px;
+}
+
+.exercise-animation.large .exercise-stick-figure::after {
+  height: 38px;
+  width: 4px;
+  top: 20px;
+}
+
+.exercise-animation.large .stick-arms {
+  width: 44px;
+  height: 4px;
+  top: 30px;
+}
+
+.exercise-animation.large .stick-leg-left,
+.exercise-animation.large .stick-leg-right {
+  height: 32px;
+  width: 4px;
+}
+
+.exercise-info-section {
+  margin-bottom: 25px;
+}
+
+.exercise-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.exercise-emoji {
+  font-size: 40px;
+}
+
+.exercise-title-row h3 {
+  margin: 0;
+  font-size: 26px;
+  flex: 1;
+}
+.detail-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.detail-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.badge {
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+}
+
+.badge.difficulty {
+  border: 2px solid;
+}
+
+.badge.difficulty.beginner {
+  border-color: #4CAF50;
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.badge.difficulty.intermediate {
+  border-color: #FF9800;
+  color: #FF9800;
+  background: rgba(255, 152, 0, 0.15);
+}
+
+.badge.difficulty.advanced {
+  border-color: #F44336;
+  color: #F44336;
+  background: rgba(244, 67, 54, 0.15);
+}
+
+.badge.equipment {
+  background: rgba(139, 95, 232, 0.25);
+  color: #C084FC;
+  border: 2px solid rgba(139, 95, 232, 0.4);
+}
+
+.badge.calories {
+  background: rgba(255, 152, 0, 0.25);
+  color: #FFB84D;
+  border: 2px solid rgba(255, 152, 0, 0.4);
+}
+
+.muscles-section {
+  margin-bottom: 25px;
+}
+
+.muscles-section h4 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #C084FC;
+}
+
+.muscles-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.muscle-tag {
+  background: linear-gradient(135deg, rgba(139, 95, 232, 0.3), rgba(139, 95, 232, 0.15));
+  border: 1px solid rgba(139, 95, 232, 0.5);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: white;
+}
+
+.instructions-section {
+  margin-bottom: 25px;
+}
+
+.instructions-section h4 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #C084FC;
+}
+
+.instructions-section ol {
+  padding-left: 25px;
+  margin: 0;
+}
+
+.instructions-section li {
+  margin-bottom: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #E5E5E5;
+}
+
+.tips-section {
+  background: rgba(139, 95, 232, 0.15);
+  border-left: 4px solid #8B5FE8;
+  padding: 15px 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.tips-section h4 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #C084FC;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tips-section p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #E5E5E5;
+}
+
+.reps-section {
+  margin-bottom: 25px;
+}
+
+.reps-section h4 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #C084FC;
+}
+
+.reps-section p {
+  margin: 0;
+  font-size: 15px;
+  color: #E5E5E5;
+  font-weight: 600;
+}
+
+.log-workout-section {
+  background: linear-gradient(135deg, rgba(139, 95, 232, 0.2), rgba(139, 95, 232, 0.1));
+  border: 2px solid rgba(139, 95, 232, 0.4);
+  border-radius: 20px;
+  padding: 25px;
+}
+
+.log-workout-section h4 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #C084FC;
+}
+
+.log-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.log-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.log-input-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #C084FC;
+}
+
+.log-input-group input {
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(139, 95, 232, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.log-input-group input:focus {
+  border-color: #8B5FE8;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.log-input-group input::placeholder {
+  color: #666;
+}
+
+.log-workout-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  border: none;
+  border-radius: 15px;
+  color: white;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(139, 95, 232, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+  0%, 100% { box-shadow: 0 8px 25px rgba(139, 95, 232, 0.4); }
+  50% { box-shadow: 0 8px 35px rgba(139, 95, 232, 0.6); }
+}
+
+.log-workout-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(139, 95, 232, 0.7);
+  background: linear-gradient(135deg, #667eea 0%, #f093fb 50%, #764ba2 100%);
+}
+
+.log-workout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .exercise-detail-modal {
+    padding: 20px;
+  }
+  
+  .exercise-detail-header h2 {
+    font-size: 22px;
+  }
+  
+  .exercise-animation-container {
+    padding: 20px;
+  }
+  
+  .exercise-animation.large {
+    width: 130px;
+    height: 130px;
+  }
+  
+  .log-inputs {
+    grid-template-columns: 1fr;
+  }
+}

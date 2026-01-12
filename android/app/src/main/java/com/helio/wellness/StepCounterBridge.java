@@ -80,6 +80,12 @@ public class StepCounterBridge {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             int steps = prefs.getInt("currentStepCount", 0);
             
+            // 🔥 FIX: Never return negative steps
+            if (steps < 0) {
+                android.util.Log.w("StepCounterBridge", "⚠️ Negative steps detected: " + steps + " - returning 0");
+                steps = 0;
+            }
+            
             JSONObject result = new JSONObject();
             result.put("steps", steps);
             
@@ -96,6 +102,49 @@ public class StepCounterBridge {
             } catch (Exception je) {
                 return "{\"steps\":0,\"error\":\"" + e.getMessage() + "\"}";
             }
+        }
+    }
+
+    @JavascriptInterface
+    public String getTodaySteps() {
+        try {
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            int steps = prefs.getInt("currentStepCount", 0);
+            
+            // Never return negative steps
+            if (steps < 0) {
+                android.util.Log.w("StepCounterBridge", "⚠️ Negative steps in getTodaySteps: " + steps + " - returning 0");
+                steps = 0;
+            }
+            
+            return String.valueOf(steps);
+        } catch (Exception e) {
+            android.util.Log.e("StepCounterBridge", "Failed to get today steps", e);
+            return "0";
+        }
+    }
+
+    @JavascriptInterface
+    public String resetForNewDay() {
+        try {
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            
+            // Clear the steps before reset and current count
+            prefs.edit()
+                .putInt("stepsBeforeReset", 0)
+                .putInt("currentStepCount", 0)
+                .putInt("initialStepCount", -1)  // Will be set on next sensor event
+                .apply();
+            
+            android.util.Log.d("StepCounterBridge", "🔄 Step counter reset for new day");
+            
+            JSONObject result = new JSONObject();
+            result.put("reset", true);
+            return result.toString();
+            
+        } catch (Exception e) {
+            android.util.Log.e("StepCounterBridge", "Failed to reset steps", e);
+            return "{\"reset\":false,\"error\":\"" + e.getMessage() + "\"}";
         }
     }
 }

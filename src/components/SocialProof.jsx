@@ -9,7 +9,7 @@ const SocialProof = () => {
     { name: 'Sarah M.', location: 'London', action: 'upgraded to Essential', icon: '🇬🇧', time: '2m ago' },
     { name: 'James K.', location: 'Manchester', action: 'upgraded to Premium', icon: '🇬🇧', time: '5m ago' },
     { name: 'Emma L.', location: 'Birmingham', action: 'just signed up', icon: '🇬🇧', time: '7m ago' },
-    { name: 'Oliver T.', location: 'Leeds', action: 'upgraded to Ultimate', icon: '🇬🇧', time: '12m ago' },
+    { name: 'Oliver T.', location: 'Leeds', action: 'upgraded to Premium', icon: '🇬🇧', time: '12m ago' },
     { name: 'Amelia R.', location: 'Glasgow', action: 'referred 3 friends', icon: '🇬🇧', time: '15m ago' },
     { name: 'Sophie B.', location: 'Bristol', action: 'upgraded to Premium', icon: '🇬🇧', time: '18m ago' },
     { name: 'Harry W.', location: 'Liverpool', action: 'just signed up', icon: '🇬🇧', time: '22m ago' },

@@ -73,7 +73,7 @@ class GoogleFitService {
         ]
       });
 
-      if (result.granted) {
+      if (result && result.granted) {
         this.isInitialized = true;
         console.log('✅ Google Fit permissions granted');
         return true;

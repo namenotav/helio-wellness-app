@@ -1,0 +1,49 @@
+{
+  // Recommended VS Code extensions for WellnessAI development
+  "recommendations": [
+    // GitHub Copilot (REQUIRED)
+    "github.copilot",
+    "github.copilot-chat",
+    
+    // Code Quality
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    
+    // React Development
+    "dsznajder.es7-react-js-snippets",
+    "burkeholland.simple-react-snippets",
+    
+    // Path IntelliSense
+    "christian-kohler.path-intellisense",
+    
+    // Markdown
+    "yzhang.markdown-all-in-one",
+    
+    // Git
+    "eamodio.gitlens",
+    
+    // Environment Variables
+    "mikestead.dotenv",
+    
+    // JSON
+    "zainchen.json",
+    
+    // PowerShell (for deployment scripts)
+    "ms-vscode.powershell",
+    
+    // Error Lens (inline errors)
+    "usernamehw.errorlens",
+    
+    // Auto Rename Tag
+    "formulahendry.auto-rename-tag",
+    
+    // Bracket Pair Colorizer
+    "coenraads.bracket-pair-colorizer-2",
+    
+    // Import Cost
+    "wix.vscode-import-cost",
+    
+    // Color Highlight
+    "naumovs.color-highlight"
+  ]
+}
