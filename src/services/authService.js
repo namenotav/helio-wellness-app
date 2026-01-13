@@ -28,7 +28,12 @@ class AuthService {
           // Load from Firebase
           const profile = await firebaseService.getUserProfile(firebaseUser.uid);
           if (profile) {
-            this.currentUser = profile;
+            // CRITICAL: Always include email from Firebase auth (profile might not have it)
+            this.currentUser = {
+              ...profile,
+              email: firebaseUser.email || profile.email,
+              uid: firebaseUser.uid
+            };
             localStorage.setItem('wellnessai_user', JSON.stringify(this.currentUser));
             await syncService.onUserLogin(firebaseUser.uid);
             // Don't notify during init - prevents React loops
@@ -200,7 +205,12 @@ class AuthService {
             // Load profile from Firebase
             const profile = await firebaseService.getUserProfile(firebaseResult.user.uid);
             if (profile) {
-              this.currentUser = profile;
+              // CRITICAL: Always include email from Firebase auth
+              this.currentUser = {
+                ...profile,
+                email: firebaseResult.user.email || profile.email || email,
+                uid: firebaseResult.user.uid
+              };
               await Preferences.set({ key: 'wellnessai_user', value: JSON.stringify(this.currentUser) });
               await syncService.onUserLogin(firebaseResult.user.uid);
               this.notifyAuthStateChanged();
