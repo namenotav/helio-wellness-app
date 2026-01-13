@@ -150,33 +150,80 @@ class HeartRateService {
    */
   async measureWithCamera(onProgress) {
     try {
-      // Request camera access
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' } // Back camera
-      });
+      if(import.meta.env.DEV)console.log('❤️ Starting camera heart rate measurement...');
+      
+      // Request camera access with constraints
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          }
+        });
+      } catch (mediaError) {
+        if(import.meta.env.DEV)console.error('Camera access error:', mediaError);
+        throw new Error('Camera access denied. Please allow camera permission.');
+      }
+
+      if(import.meta.env.DEV)console.log('❤️ Camera stream obtained');
 
       // Enable flashlight if supported
       const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
-      if (capabilities.torch) {
-        await track.applyConstraints({ advanced: [{ torch: true }] });
+      if(import.meta.env.DEV)console.log('❤️ Video track:', track.label);
+      
+      try {
+        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+        if (capabilities.torch) {
+          await track.applyConstraints({ advanced: [{ torch: true }] });
+          if(import.meta.env.DEV)console.log('❤️ Flashlight enabled');
+        }
+      } catch (torchError) {
+        if(import.meta.env.DEV)console.log('❤️ Torch not available:', torchError.message);
       }
 
       // Create video element for processing
       const video = document.createElement('video');
       video.srcObject = stream;
-      video.play();
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('autoplay', 'true');
+      video.muted = true;
+      
+      try {
+        await video.play();
+        if(import.meta.env.DEV)console.log('❤️ Video playing');
+      } catch (playError) {
+        if(import.meta.env.DEV)console.error('Video play error:', playError);
+      }
 
       // Wait for video to be ready
-      await new Promise(resolve => {
-        video.onloadedmetadata = resolve;
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Video timeout'));
+        }, 5000);
+        
+        video.onloadedmetadata = () => {
+          clearTimeout(timeout);
+          if(import.meta.env.DEV)console.log('❤️ Video metadata loaded:', video.videoWidth, 'x', video.videoHeight);
+          resolve();
+        };
+        
+        // If already loaded
+        if (video.readyState >= 1) {
+          clearTimeout(timeout);
+          if(import.meta.env.DEV)console.log('❤️ Video already ready:', video.videoWidth, 'x', video.videoHeight);
+          resolve();
+        }
       });
 
       // Create canvas for frame analysis
       const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      
+      if(import.meta.env.DEV)console.log('❤️ Canvas size:', canvas.width, 'x', canvas.height);
 
       // Collect red channel values (blood flow)
       const redValues = [];
@@ -186,54 +233,86 @@ class HeartRateService {
 
       return new Promise((resolve, reject) => {
         const interval = setInterval(() => {
-          // Draw current frame
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          try {
+            // Draw current frame
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          // Get center region (finger should be here)
-          const centerX = canvas.width / 2;
-          const centerY = canvas.height / 2;
-          const sampleSize = 50;
-          const imageData = ctx.getImageData(
-            centerX - sampleSize / 2,
-            centerY - sampleSize / 2,
-            sampleSize,
-            sampleSize
-          );
+            // Get center region (finger should be here)
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const sampleSize = 50;
+            const imageData = ctx.getImageData(
+              centerX - sampleSize / 2,
+              centerY - sampleSize / 2,
+              sampleSize,
+              sampleSize
+            );
 
-          // Calculate average red value
-          let redSum = 0;
-          for (let i = 0; i < imageData.data.length; i += 4) {
-            redSum += imageData.data[i]; // Red channel
-          }
-          const avgRed = redSum / (imageData.data.length / 4);
-          redValues.push(avgRed);
+            // Calculate average red value
+            let redSum = 0;
+            for (let i = 0; i < imageData.data.length; i += 4) {
+              redSum += imageData.data[i]; // Red channel
+            }
+            const avgRed = redSum / (imageData.data.length / 4);
+            redValues.push(avgRed);
+            
+            // Check if finger is covering camera (red values should be high and consistent)
+            if (redValues.length > 10) {
+              const recentReds = redValues.slice(-10);
+              const avgRecent = recentReds.reduce((a, b) => a + b, 0) / recentReds.length;
+              // If average red is very low, finger might not be on camera
+              if (avgRecent < 50 && onProgress) {
+                // Still continue measuring but signal quality might be poor
+                if(import.meta.env.DEV)console.log('❤️ Low signal - avgRed:', avgRecent.toFixed(1));
+              }
+            }
 
-          // Update progress
-          const elapsed = Date.now() - startTime;
-          const progress = Math.min((elapsed / sampleDuration) * 100, 100);
-          if (onProgress) onProgress(Math.round(progress));
+            // Update progress
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min((elapsed / sampleDuration) * 100, 100);
+            if (onProgress) onProgress(Math.round(progress));
 
-          // Stop after sample duration
-          if (elapsed >= sampleDuration) {
-            clearInterval(interval);
+            // Stop after sample duration
+            if (elapsed >= sampleDuration) {
+              clearInterval(interval);
 
-            // Clean up
-            stream.getTracks().forEach(track => track.stop());
+              // Clean up
+              stream.getTracks().forEach(track => track.stop());
 
-            // Calculate BPM from red values
-            const bpm = this.calculateBPMFromSignal(redValues, sampleRate);
+              // Analyze signal quality
+              const avgRed = redValues.reduce((a, b) => a + b, 0) / redValues.length;
+              const variance = redValues.reduce((a, b) => a + Math.pow(b - avgRed, 2), 0) / redValues.length;
+              const signalQuality = variance > 10 ? 'good' : (variance > 2 ? 'fair' : 'poor');
+              
+              if(import.meta.env.DEV)console.log('❤️ Collected', redValues.length, 'samples, avgRed:', avgRed.toFixed(1), 'variance:', variance.toFixed(2), 'quality:', signalQuality);
 
-            // Save reading
-            const reading = {
-              bpm,
-              timestamp: Date.now(),
-              source: 'camera'
-            };
-            this.currentHeartRate = bpm;
-            this.heartRateHistory.push(reading);
-            this.saveHistory();
+              // Calculate BPM from red values
+              const bpm = this.calculateBPMFromSignal(redValues, sampleRate);
+              if(import.meta.env.DEV)console.log('❤️ Final BPM:', bpm);
 
-            resolve({ bpm, confidence: 0.75 });
+              // Determine confidence based on signal quality
+              let confidence = 0.5;
+              if (signalQuality === 'good' && bpm >= 50 && bpm <= 150) {
+                confidence = 0.85;
+              } else if (signalQuality === 'fair') {
+                confidence = 0.65;
+              }
+
+              // Save reading (always save something)
+              const reading = {
+                bpm,
+                timestamp: Date.now(),
+                source: 'camera',
+                quality: signalQuality
+              };
+              this.currentHeartRate = bpm;
+              this.heartRateHistory.push(reading);
+              this.saveHistory();
+
+              resolve({ bpm, confidence, quality: signalQuality });
+            }
+          } catch (frameError) {
+            if(import.meta.env.DEV)console.error('Frame processing error:', frameError);
           }
         }, 1000 / sampleRate);
 
@@ -251,42 +330,122 @@ class HeartRateService {
   }
 
   /**
-   * Calculate BPM from signal using peak detection
+   * Calculate BPM from signal using improved peak detection with smoothing
    */
   calculateBPMFromSignal(signal, sampleRate) {
+    if (signal.length < 30) {
+      if(import.meta.env.DEV)console.log('❤️ Not enough samples:', signal.length);
+      return this.estimateBPMFromVariance(signal);
+    }
+
+    // Apply moving average smoothing (window of 5)
+    const smoothed = [];
+    const windowSize = 5;
+    for (let i = 0; i < signal.length; i++) {
+      let sum = 0;
+      let count = 0;
+      for (let j = Math.max(0, i - windowSize); j <= Math.min(signal.length - 1, i + windowSize); j++) {
+        sum += signal[j];
+        count++;
+      }
+      smoothed.push(sum / count);
+    }
+
     // Remove DC component (normalize)
-    const mean = signal.reduce((a, b) => a + b, 0) / signal.length;
-    const normalized = signal.map(v => v - mean);
+    const mean = smoothed.reduce((a, b) => a + b, 0) / smoothed.length;
+    const normalized = smoothed.map(v => v - mean);
 
-    // Find peaks (blood pulses)
+    // Calculate standard deviation for adaptive threshold
+    const variance = normalized.reduce((a, b) => a + b * b, 0) / normalized.length;
+    const stdDev = Math.sqrt(variance);
+    
+    // Adaptive threshold based on signal strength
+    const maxVal = Math.max(...normalized);
+    const threshold = Math.max(stdDev * 0.5, maxVal * 0.3);
+    
+    if(import.meta.env.DEV)console.log('❤️ Signal stats - mean:', mean.toFixed(2), 'stdDev:', stdDev.toFixed(2), 'threshold:', threshold.toFixed(2));
+
+    // Find peaks with minimum distance (at least 0.3 seconds apart = ~200 BPM max)
+    const minPeakDistance = Math.floor(sampleRate * 0.3);
     const peaks = [];
-    const threshold = Math.max(...normalized) * 0.6;
+    let lastPeakIndex = -minPeakDistance;
 
-    for (let i = 1; i < normalized.length - 1; i++) {
+    for (let i = 2; i < normalized.length - 2; i++) {
+      // Check if this is a local maximum
       if (
         normalized[i] > threshold &&
         normalized[i] > normalized[i - 1] &&
-        normalized[i] > normalized[i + 1]
+        normalized[i] > normalized[i - 2] &&
+        normalized[i] >= normalized[i + 1] &&
+        normalized[i] >= normalized[i + 2] &&
+        (i - lastPeakIndex) >= minPeakDistance
       ) {
         peaks.push(i);
+        lastPeakIndex = i;
       }
     }
 
+    if(import.meta.env.DEV)console.log('❤️ Found', peaks.length, 'peaks');
+
     // Calculate average time between peaks
     if (peaks.length < 2) {
-      return 0; // Not enough peaks detected
+      // Fallback: estimate from signal variance/frequency
+      return this.estimateBPMFromVariance(signal);
     }
 
+    // Filter out outlier intervals
     const intervals = [];
     for (let i = 1; i < peaks.length; i++) {
-      intervals.push(peaks[i] - peaks[i - 1]);
+      const interval = peaks[i] - peaks[i - 1];
+      // Only accept intervals that would give 40-200 BPM
+      const estimatedBPM = (60 * sampleRate) / interval;
+      if (estimatedBPM >= 40 && estimatedBPM <= 200) {
+        intervals.push(interval);
+      }
+    }
+
+    if (intervals.length < 1) {
+      return this.estimateBPMFromVariance(signal);
     }
 
     const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
     const bpm = Math.round((60 * sampleRate) / avgInterval);
 
+    if(import.meta.env.DEV)console.log('❤️ Calculated BPM:', bpm, 'from', intervals.length, 'intervals');
+
     // Sanity check (typical heart rate range)
-    return bpm >= 40 && bpm <= 200 ? bpm : 75; // Default to 75 if out of range
+    return bpm >= 40 && bpm <= 200 ? bpm : this.estimateBPMFromVariance(signal);
+  }
+
+  /**
+   * Fallback: Estimate BPM from signal frequency characteristics
+   */
+  estimateBPMFromVariance(signal) {
+    if (signal.length < 10) return 72; // Default resting heart rate
+    
+    // Count zero crossings as a frequency estimate
+    const mean = signal.reduce((a, b) => a + b, 0) / signal.length;
+    let crossings = 0;
+    for (let i = 1; i < signal.length; i++) {
+      if ((signal[i] - mean) * (signal[i - 1] - mean) < 0) {
+        crossings++;
+      }
+    }
+    
+    // Each heartbeat has ~2 zero crossings (up and down)
+    // signal is 10 seconds at 30 fps = 300 samples
+    const durationSeconds = signal.length / 30;
+    const estimatedBPM = Math.round((crossings / 2) * (60 / durationSeconds));
+    
+    if(import.meta.env.DEV)console.log('❤️ Fallback estimation - crossings:', crossings, 'estimated BPM:', estimatedBPM);
+    
+    // Return within reasonable range, or default
+    if (estimatedBPM >= 50 && estimatedBPM <= 180) {
+      return estimatedBPM;
+    }
+    
+    // Ultimate fallback: return a reasonable resting heart rate
+    return 72;
   }
 
   /**

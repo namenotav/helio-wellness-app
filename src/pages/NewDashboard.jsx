@@ -4496,15 +4496,16 @@ function HeartRateModal({ onClose }) {
     setMeasuring(true)
     setProgress(0)
     try {
-      alert('📱 Place your fingertip over the camera lens.\nKeep still for 10 seconds.')
       const result = await heartRateService.measureWithCamera((p) => setProgress(p))
       if (result && result.bpm) {
         setHeartRate(result.bpm)
         setMeasurementSource('camera')
-        alert(`✅ Heart Rate: ${result.bpm} BPM\nConfidence: ${Math.round(result.confidence * 100)}%`)
+      } else {
+        alert('⚠️ Could not detect heart rate.\nMake sure your finger covers the camera lens completely.')
       }
     } catch (error) {
-      alert(`❌ Measurement failed: ${error.message}`)
+      console.error('Heart rate measurement error:', error)
+      alert(`❌ Measurement failed: ${error.message || 'Unknown error'}`)
     } finally {
       setMeasuring(false)
       setProgress(0)
@@ -4530,13 +4531,16 @@ function HeartRateModal({ onClose }) {
         
         {measuring ? (
           <div style={{textAlign: 'center', padding: '30px'}}>
-            <div style={{fontSize: '64px', marginBottom: '20px'}}>📹</div>
-            <p style={{marginBottom: '15px', fontWeight: 'bold'}}>Measuring... Keep finger on camera</p>
+            <div style={{fontSize: '64px', marginBottom: '20px', animation: 'pulse 1s infinite'}}>❤️</div>
+            <p style={{marginBottom: '8px', fontWeight: 'bold', fontSize: '18px'}}>Measuring Heart Rate...</p>
+            <p style={{marginBottom: '15px', color: '#888', fontSize: '14px'}}>
+              Keep your fingertip pressed firmly on the camera lens
+            </p>
             <div style={{
               width: '100%',
-              height: '8px',
+              height: '12px',
               background: '#333',
-              borderRadius: '4px',
+              borderRadius: '6px',
               overflow: 'hidden',
               marginBottom: '10px'
             }}>
@@ -4547,7 +4551,10 @@ function HeartRateModal({ onClose }) {
                 transition: 'width 0.3s'
               }} />
             </div>
-            <p style={{color: '#888'}}>{progress}%</p>
+            <p style={{color: '#FF4D6A', fontWeight: 'bold', fontSize: '20px'}}>{progress}%</p>
+            <p style={{color: '#666', fontSize: '12px', marginTop: '15px'}}>
+              📍 The flash may turn on to illuminate your finger
+            </p>
           </div>
         ) : heartRate && !connected ? (
           <div style={{textAlign: 'center', padding: '30px'}}>
