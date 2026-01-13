@@ -4458,10 +4458,14 @@ function HeartRateModal({ onClose }) {
   const [heartRate, setHeartRate] = useState(null)
   const [connected, setConnected] = useState(false)
   const [connecting, setConnecting] = useState(false)
+  const [measuring, setMeasuring] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [measurementSource, setMeasurementSource] = useState(null) // 'camera' or 'bluetooth'
 
   useEffect(() => {
     if (heartRateService.isConnected()) {
       setConnected(true)
+      setMeasurementSource('bluetooth')
       setHeartRate(heartRateService.getCurrentHeartRate())
       
       const unsubscribe = heartRateService.subscribe((reading) => {
@@ -4477,6 +4481,7 @@ function HeartRateModal({ onClose }) {
     try {
       const result = await heartRateService.connectDevice()
       setConnected(true)
+      setMeasurementSource('bluetooth')
       alert(`✅ Connected to ${result.deviceName}!`)
     } catch (error) {
       alert(`❌ Connection failed: ${error.message}`)
@@ -4485,10 +4490,35 @@ function HeartRateModal({ onClose }) {
     }
   }
 
+  const measureWithCamera = async () => {
+    setMeasuring(true)
+    setProgress(0)
+    try {
+      alert('📱 Place your fingertip over the camera lens.\nKeep still for 10 seconds.')
+      const result = await heartRateService.measureWithCamera((p) => setProgress(p))
+      if (result && result.bpm) {
+        setHeartRate(result.bpm)
+        setMeasurementSource('camera')
+        alert(`✅ Heart Rate: ${result.bpm} BPM\nConfidence: ${Math.round(result.confidence * 100)}%`)
+      }
+    } catch (error) {
+      alert(`❌ Measurement failed: ${error.message}`)
+    } finally {
+      setMeasuring(false)
+      setProgress(0)
+    }
+  }
+
   const disconnect = async () => {
     await heartRateService.disconnect()
     setConnected(false)
     setHeartRate(null)
+    setMeasurementSource(null)
+  }
+
+  const resetMeasurement = () => {
+    setHeartRate(null)
+    setMeasurementSource(null)
   }
 
   return (
@@ -4496,29 +4526,71 @@ function HeartRateModal({ onClose }) {
       <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{maxWidth: '400px'}}>
         <h2>💓 Heart Rate Monitor</h2>
         
-        {!connected ? (
+        {measuring ? (
           <div style={{textAlign: 'center', padding: '30px'}}>
-            <div style={{fontSize: '64px', marginBottom: '20px'}}>🫀</div>
-            <p>Connect a Bluetooth heart rate monitor to track your heart rate in real-time.</p>
+            <div style={{fontSize: '64px', marginBottom: '20px'}}>📹</div>
+            <p style={{marginBottom: '15px', fontWeight: 'bold'}}>Measuring... Keep finger on camera</p>
+            <div style={{
+              width: '100%',
+              height: '8px',
+              background: '#333',
+              borderRadius: '4px',
+              overflow: 'hidden',
+              marginBottom: '10px'
+            }}>
+              <div style={{
+                width: `${progress}%`,
+                height: '100%',
+                background: 'linear-gradient(135deg, #FF4D6A, #FF758C)',
+                transition: 'width 0.3s'
+              }} />
+            </div>
+            <p style={{color: '#888'}}>{progress}%</p>
+          </div>
+        ) : heartRate && !connected ? (
+          <div style={{textAlign: 'center', padding: '30px'}}>
+            <div style={{
+              fontSize: '72px',
+              fontWeight: 'bold',
+              color: '#FF4D6A',
+              marginBottom: '10px'
+            }}>
+              {heartRate}
+            </div>
+            <div style={{fontSize: '18px', color: '#888', marginBottom: '5px'}}>BPM</div>
+            <div style={{fontSize: '14px', color: '#666', marginBottom: '20px'}}>
+              {measurementSource === 'camera' ? '📱 Measured via Camera' : '⌚ Bluetooth Device'}
+            </div>
+            <div style={{fontSize: '24px', marginBottom: '30px'}}>💓</div>
             <button 
-              onClick={connectDevice} 
-              disabled={connecting}
+              onClick={measureWithCamera}
               style={{
-                marginTop: '20px',
-                padding: '12px 30px',
+                padding: '10px 25px',
                 background: 'linear-gradient(135deg, #FF4D6A, #FF758C)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '10px',
-                fontSize: '16px',
-                fontWeight: 'bold',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                marginRight: '10px'
+              }}
+            >
+              Measure Again
+            </button>
+            <button 
+              onClick={resetMeasurement}
+              style={{
+                padding: '10px 25px',
+                background: '#333',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
                 cursor: 'pointer'
               }}
             >
-              {connecting ? 'Connecting...' : 'Connect Device'}
+              Reset
             </button>
           </div>
-        ) : (
+        ) : connected ? (
           <div style={{textAlign: 'center', padding: '30px'}}>
             <div style={{
               fontSize: '72px',
@@ -4528,7 +4600,8 @@ function HeartRateModal({ onClose }) {
             }}>
               {heartRate || '--'}
             </div>
-            <div style={{fontSize: '18px', color: '#888', marginBottom: '20px'}}>BPM</div>
+            <div style={{fontSize: '18px', color: '#888', marginBottom: '5px'}}>BPM</div>
+            <div style={{fontSize: '14px', color: '#666', marginBottom: '20px'}}>⌚ Bluetooth Device</div>
             <div style={{fontSize: '24px', marginBottom: '30px'}}>💓</div>
             <button 
               onClick={disconnect}
@@ -4543,6 +4616,55 @@ function HeartRateModal({ onClose }) {
             >
               Disconnect
             </button>
+          </div>
+        ) : (
+          <div style={{textAlign: 'center', padding: '30px'}}>
+            <div style={{fontSize: '64px', marginBottom: '20px'}}>🫀</div>
+            <p style={{marginBottom: '20px'}}>Choose measurement method:</p>
+            
+            <button 
+              onClick={measureWithCamera}
+              style={{
+                display: 'block',
+                width: '100%',
+                marginBottom: '15px',
+                padding: '15px 30px',
+                background: 'linear-gradient(135deg, #FF4D6A, #FF758C)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              📱 Measure with Camera
+            </button>
+            <p style={{fontSize: '12px', color: '#888', marginBottom: '25px'}}>
+              Place fingertip on camera lens for PPG measurement
+            </p>
+            
+            <button 
+              onClick={connectDevice} 
+              disabled={connecting}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '15px 30px',
+                background: '#333',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              {connecting ? 'Connecting...' : '⌚ Connect Bluetooth Device'}
+            </button>
+            <p style={{fontSize: '12px', color: '#888', marginTop: '10px'}}>
+              For continuous heart rate monitoring
+            </p>
           </div>
         )}
         

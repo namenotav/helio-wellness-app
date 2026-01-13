@@ -9,6 +9,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import environmentalContextService from './environmentalContextService.js';
 import patternLearningService from './patternLearningService.js';
 import deviceStateService from './deviceStateService.js';
+import heartRateService from './heartRateService.js';
 
 class MultiSensorService {
   constructor() {
@@ -900,21 +901,18 @@ class MultiSensorService {
     }
   }
 
-  async startHeartRateMeasurement() {
+  async startHeartRateMeasurement(onProgress) {
     try {
-      if (this.hrMeasuring) return;
+      if (this.hrMeasuring) return { success: false, reason: 'already_measuring' };
 
       this.hrMeasuring = true;
-      // This would use camera + flash to measure blood flow
-      // Simplified implementation - would need camera plugin
+      if(import.meta.env.DEV)console.log('❤️ Measuring heart rate via camera PPG...');
       
-      if(import.meta.env.DEV)console.log('❤️ Measuring heart rate...');
+      // Use REAL camera-based PPG measurement from heartRateService
+      const result = await heartRateService.measureWithCamera(onProgress);
       
-      // Simulate measurement (in real app, analyze camera frames)
-      setTimeout(() => {
-        // Typical HR: walking 90-120, running 140-180
-        const baseHR = this.activityType === 'running' ? 150 : 100;
-        this.heartRate = baseHR + Math.floor(Math.random() * 20);
+      if (result && result.bpm) {
+        this.heartRate = result.bpm;
         this.sensors.heartRate.data = this.heartRate;
         
         // Validate activity type with HR
@@ -924,15 +922,17 @@ class MultiSensorService {
           this.activityType = 'running';
         }
         
+        if(import.meta.env.DEV)console.log('❤️ Heart rate measured:', this.heartRate, 'bpm (confidence:', result.confidence, ')');
         this.hrMeasuring = false;
-        if(import.meta.env.DEV)console.log('❤️ Heart rate:', this.heartRate, 'bpm');
-      }, 3000);
+        return { success: true, bpm: this.heartRate, confidence: result.confidence };
+      }
       
-      return true;
+      this.hrMeasuring = false;
+      return { success: false, reason: 'no_result' };
     } catch (error) {
       if(import.meta.env.DEV)console.error('Heart rate measurement error:', error);
       this.hrMeasuring = false;
-      return false;
+      return { success: false, reason: error.message };
     }
   }
 
