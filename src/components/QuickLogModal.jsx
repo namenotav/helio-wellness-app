@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDashboard } from '../context/DashboardContext';
 import dataService from '../services/dataService'; // 🎯 SINGLE SOURCE OF TRUTH
 import './QuickLogModal.css';
@@ -12,24 +12,30 @@ export default function QuickLogModal({ isOpen, onClose }) {
   const [workoutType, setWorkoutType] = useState('');
   const [workoutDuration, setWorkoutDuration] = useState('');
   const [workoutCalories, setWorkoutCalories] = useState('');
+  const [displayCalories, setDisplayCalories] = useState(0); // 🔧 FIX: State for displayed calories
   
-  // 🔥 FIX #9: Auto-calculate calories based on workout type, duration AND user weight
-  const calculateWorkoutCalories = async (type, duration) => {
-    if (!type || !duration) return 0;
-    
-    // Get user weight for personalized calculation
-    const { default: authService } = await import('../services/authService');
-    const userProfile = authService.getCurrentUser()?.profile || {};
-    const userWeight = userProfile.weight || 150; // Default 150 lbs
-    const weightFactor = userWeight / 150;
-    
-    const calorieRateMap = {
-      'Running': 11, 'Cycling': 10, 'Swimming': 12, 'Weights': 7,
-      'Yoga': 3, 'HIIT': 13, 'Walking': 5, 'Sports': 9, 'Other': 7
-    };
-    const rate = calorieRateMap[type] || 7;
-    return Math.round(duration * rate * weightFactor);
+  // 🔧 FIX: Sync calorie calculation (no async in render)
+  const calorieRateMap = {
+    'Running': 11, 'Cycling': 10, 'Swimming': 12, 'Weights': 7,
+    'Yoga': 3, 'HIIT': 13, 'Walking': 5, 'Sports': 9, 'Other': 7
   };
+  
+  // 🔧 FIX: Update calories when type/duration changes
+  useEffect(() => {
+    const updateCalories = async () => {
+      if (!workoutType || !workoutDuration) {
+        setDisplayCalories(0);
+        return;
+      }
+      const { default: authService } = await import('../services/authService');
+      const userProfile = authService.getCurrentUser()?.profile || {};
+      const userWeight = userProfile.weight || 150;
+      const weightFactor = userWeight / 150;
+      const rate = calorieRateMap[workoutType] || 7;
+      setDisplayCalories(Math.round(parseInt(workoutDuration) * rate * weightFactor));
+    };
+    updateCalories();
+  }, [workoutType, workoutDuration]);
 
   if (!isOpen) return null;
 
@@ -123,8 +129,8 @@ export default function QuickLogModal({ isOpen, onClose }) {
   const handleLogWorkout = async () => {
     if (!workoutType || !workoutDuration) return;
     
-    // 🔥 Calculate calories automatically (MUST await - async function!)
-    const autoCalories = await calculateWorkoutCalories(workoutType, parseInt(workoutDuration));
+    // � FIX: Use displayCalories state (already calculated)
+    const autoCalories = displayCalories;
     
     console.log('💪 [QuickLog] Logging workout:', workoutType, workoutDuration, 'min', autoCalories, 'cal');
     const { default: workoutService } = await import('../services/workoutService');
@@ -344,7 +350,7 @@ export default function QuickLogModal({ isOpen, onClose }) {
                   <input
                     type="number"
                     min="0"
-                    value={calculateWorkoutCalories(workoutType, parseInt(workoutDuration) || 0)}
+                    value={displayCalories}
                     readOnly
                     placeholder="Select type and duration"
                     className="workout-input"

@@ -225,9 +225,10 @@ export default function DNAUpload({ onClose }) {
               </div>
             </div>
 
-            <div className="privacy-notice">
+            <div className="privacy-notice" style={{background: 'rgba(0, 255, 0, 0.1)', border: '1px solid rgba(0, 255, 0, 0.3)', padding: '12px', borderRadius: '8px', marginTop: '16px'}}>
               <span className="privacy-icon">🔒</span>
-              <p>Your DNA data is encrypted and never shared. We only analyze relevant health markers.</p>
+              <p style={{margin: 0, fontWeight: 'bold'}}>100% LOCAL PROCESSING - Your DNA data NEVER leaves this device</p>
+              <p style={{margin: '8px 0 0 0', fontSize: '12px', opacity: 0.8}}>All genetic analysis happens on your phone. No cloud uploads, no external servers, ever.</p>
             </div>
           </div>
         ) : (
