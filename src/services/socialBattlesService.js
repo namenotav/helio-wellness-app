@@ -433,16 +433,34 @@ class SocialBattlesService {
   // Get real-time step count from phone
   async getRealTimeSteps() {
     try {
-      // Use Capacitor Motion to get pedometer data
+      // 🔥 PRIMARY: Read from Preferences (where native step service writes)
+      const { Preferences } = await import('@capacitor/preferences');
+      const { value } = await Preferences.get({ key: 'wellnessai_todaySteps' });
+      if (value) {
+        const steps = parseInt(JSON.parse(value)) || parseInt(value) || 0;
+        if (steps > 0) {
+          if(import.meta.env.DEV)console.log('📱 Got real steps from Preferences:', steps);
+          return steps;
+        }
+      }
+      
+      // FALLBACK: Try Capacitor Motion
       const { Pedometer } = await import('@capacitor/motion');
       const result = await Pedometer.getStepCount();
       return result.steps || 0;
     } catch (error) {
-      if(import.meta.env.DEV)console.log('⚠️ Pedometer not available, using simulated steps');
-      // Fallback: simulate realistic step count based on time of day
-      const hour = new Date().getHours();
-      const baseSteps = Math.floor(Math.random() * 1000) + (hour * 500);
-      return baseSteps;
+      if(import.meta.env.DEV)console.log('⚠️ Pedometer not available, reading from storage...');
+      // 🔥 LAST RESORT: Read step history from localStorage
+      try {
+        const stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        const todayEntry = stepHistory.find(s => s.date === today);
+        if (todayEntry?.steps) {
+          if(import.meta.env.DEV)console.log('💾 Got steps from stepHistory:', todayEntry.steps);
+          return todayEntry.steps;
+        }
+      } catch (e) { /* ignore */ }
+      return 0; // Return 0 if no real data available
     }
   }
 

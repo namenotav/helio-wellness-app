@@ -1,28 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import './SocialProof.css';
+import firestoreService from '../services/firestoreService';
 
 const SocialProof = () => {
   const [notifications, setNotifications] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [realActivity, setRealActivity] = useState([]);
 
-  const proofItems = [
-    { name: 'Sarah M.', location: 'London', action: 'upgraded to Essential', icon: '🇬🇧', time: '2m ago' },
-    { name: 'James K.', location: 'Manchester', action: 'upgraded to Premium', icon: '🇬🇧', time: '5m ago' },
-    { name: 'Emma L.', location: 'Birmingham', action: 'just signed up', icon: '🇬🇧', time: '7m ago' },
-    { name: 'Oliver T.', location: 'Leeds', action: 'upgraded to Premium', icon: '🇬🇧', time: '12m ago' },
-    { name: 'Amelia R.', location: 'Glasgow', action: 'referred 3 friends', icon: '🇬🇧', time: '15m ago' },
-    { name: 'Sophie B.', location: 'Bristol', action: 'upgraded to Premium', icon: '🇬🇧', time: '18m ago' },
-    { name: 'Harry W.', location: 'Liverpool', action: 'just signed up', icon: '🇬🇧', time: '22m ago' },
-    { name: 'Isabella P.', location: 'Edinburgh', action: 'upgraded to Essential', icon: '🇬🇧', time: '25m ago' }
-  ];
+  // 🔥 FIX: Fetch REAL community activity from Firebase instead of fake data
+  useEffect(() => {
+    loadRealCommunityActivity();
+  }, []);
+
+  const loadRealCommunityActivity = async () => {
+    try {
+      // Fetch real anonymized community stats from Firebase
+      const communityStats = await firestoreService.getCommunityStats();
+      if (communityStats && communityStats.recentActivity) {
+        setRealActivity(communityStats.recentActivity);
+        if(import.meta.env.DEV)console.log('📊 Loaded real community activity:', communityStats.recentActivity.length);
+      }
+    } catch (error) {
+      // If no real data, don't show fake notifications
+      if(import.meta.env.DEV)console.log('ℹ️ No community stats available - social proof disabled');
+      setRealActivity([]);
+    }
+  };
 
   useEffect(() => {
-    // Show notification every 8 seconds
+    // 🔥 FIX: Only show notifications if we have REAL activity data
+    if (realActivity.length === 0) return;
+    
+    // Show notification every 12 seconds (less aggressive than fake FOMO)
     const interval = setInterval(() => {
-      const randomItem = proofItems[Math.floor(Math.random() * proofItems.length)];
+      const randomItem = realActivity[Math.floor(Math.random() * realActivity.length)];
+      if (!randomItem) return;
+      
       const newNotification = {
-        ...randomItem,
-        id: Date.now()
+        name: randomItem.anonymizedName || 'A member', // Anonymized for privacy
+        location: randomItem.region || 'UK',
+        action: randomItem.action || 'achieved a goal',
+        icon: randomItem.icon || '🎯',
+        time: randomItem.timeAgo || 'recently',
+        id: Date.now(),
+        isReal: true // 🔥 Flag indicating this is real data
       };
       
       setNotifications(prev => [...prev, newNotification]);
@@ -31,10 +51,10 @@ const SocialProof = () => {
       setTimeout(() => {
         setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
       }, 5000);
-    }, 8000);
+    }, 12000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [realActivity]);
 
   return (
     <div className="social-proof-container">

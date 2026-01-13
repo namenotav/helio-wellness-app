@@ -36,13 +36,20 @@ const SocialBattle = ({ onClose }) => {
   };
 
   const startBattle = async (opponentId) => {
+    // 🤖 AI opponent starts at 0 and progresses based on difficulty level
+    // Real multiplayer battles use Firebase Realtime Database for live scores
+    const isAIOpponent = opponentId === 'RandomOpponent' || opponentId === 'FitnessFriend';
+    const opponentName = isAIOpponent ? `🤖 AI Coach (${opponentId})` : opponentId;
+    
     const battle = {
       id: Date.now().toString(),
-      opponent: opponentId,
+      opponent: opponentName,
+      isAI: isAIOpponent,
       startTime: Date.now(),
       duration: 7 * 24 * 60 * 60 * 1000, // 7 days
       myScore: 0,
-      opponentScore: Math.floor(Math.random() * 1000)
+      opponentScore: 0, // 🔥 FIX: AI starts at 0, progresses realistically over time
+      aiDailyTarget: isAIOpponent ? 8000 : 0 // AI aims for 8000 steps/day
     };
 
     const newBattles = [...activeBattles, battle];

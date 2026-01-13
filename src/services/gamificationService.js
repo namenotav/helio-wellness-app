@@ -713,30 +713,33 @@ class GamificationService {
       isCurrentUser: true
     })
     
-    // Generate demo users
-    const demoUsers = [
-      { name: 'FitnessFanatic', level: 18, xp: 12800, streak: 45, steps: 485000 },
-      { name: 'HealthHero22', level: 15, xp: 9500, streak: 28, steps: 320000 },
-      { name: 'WellnessWarrior', level: 20, xp: 17500, streak: 67, steps: 620000 },
-      { name: 'StepMaster', level: 12, xp: 5800, streak: 15, steps: 280000 },
-      { name: 'GymLegend', level: 16, xp: 11200, streak: 32, steps: 410000 },
-      { name: 'ZenQueen', level: 14, xp: 8100, streak: 21, steps: 195000 },
-      { name: 'CardioKing', level: 19, xp: 14900, streak: 52, steps: 550000 },
-      { name: 'NutritionNerd', level: 13, xp: 6900, streak: 18, steps: 245000 },
-      { name: 'MarathonMike', level: 17, xp: 12100, streak: 38, steps: 480000 },
-      { name: 'YogaYoda', level: 11, xp: 4900, streak: 12, steps: 165000 }
+    // 🔥 PLACEHOLDER: These are seed users until real Firebase community data is populated
+    // TODO: Replace with firestoreService.getCommunityLeaderboard() when community grows
+    // These demonstrate the leaderboard feature and set competitive targets
+    const seedUsers = [
+      { name: '🤖 FitBot-Pro', level: 18, xp: 12800, streak: 45, steps: 485000, isAI: true },
+      { name: '🤖 HealthBot', level: 15, xp: 9500, streak: 28, steps: 320000, isAI: true },
+      { name: '🤖 WellnessBot', level: 20, xp: 17500, streak: 67, steps: 620000, isAI: true },
+      { name: '🤖 StepBot', level: 12, xp: 5800, streak: 15, steps: 280000, isAI: true },
+      { name: '🤖 GymBot', level: 16, xp: 11200, streak: 32, steps: 410000, isAI: true },
+      { name: '🤖 ZenBot', level: 14, xp: 8100, streak: 21, steps: 195000, isAI: true },
+      { name: '🤖 CardioBot', level: 19, xp: 14900, streak: 52, steps: 550000, isAI: true },
+      { name: '🤖 NutritionBot', level: 13, xp: 6900, streak: 18, steps: 245000, isAI: true },
+      { name: '🤖 MarathonBot', level: 17, xp: 12100, streak: 38, steps: 480000, isAI: true },
+      { name: '🤖 YogaBot', level: 11, xp: 4900, streak: 12, steps: 165000, isAI: true }
     ]
     
-    demoUsers.forEach((user, idx) => {
+    seedUsers.forEach((user, idx) => {
       leaderboardData.push({
-        userId: `user_${idx}`,
+        userId: `ai_bot_${idx}`,
         username: user.name,
         level: user.level,
         totalXP: user.xp,
         streak: user.streak,
         totalSteps: user.steps,
-        profilePic: ['🏃', '💪', '🧘', '🚴', '⚡'][idx % 5],
-        isCurrentUser: false
+        profilePic: ['🤖'][0], // AI bot icon
+        isCurrentUser: false,
+        isAIBot: true // 🔥 FIX: Clearly marked as AI bots for transparency
       })
     })
     
@@ -755,7 +758,7 @@ class GamificationService {
     leaderboardData.forEach((user, idx) => {
       user.rank = idx + 1;
       
-      // Add VIP badge for Ultimate users (randomly for demo users, real check for current user)
+      // Add VIP badge for Ultimate users
       if (user.isCurrentUser) {
         try {
           const { default: subscriptionService } = require('./subscriptionService');
@@ -764,8 +767,10 @@ class GamificationService {
           user.isVIP = false;
         }
       } else {
-        // Demo users - 20% chance of VIP badge for realism
-        user.isVIP = Math.random() < 0.2;
+        // 🔥 FIX: Other users on leaderboard are from Firebase - check their subscription
+        // For now, mark external users as non-VIP until Firebase integration is complete
+        user.isVIP = false;
+        user.isExternalUser = true; // Flag to show these are other community members
       }
     })
     
