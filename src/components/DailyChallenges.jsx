@@ -12,10 +12,10 @@ export default function DailyChallenges({ onChallengeComplete, todaySteps = 0 })
   useEffect(() => {
     loadChallenges()
     
-    // 🔥 AUTO-UPDATE: Poll for changes every 3 seconds
+    // 🔥 AUTO-UPDATE: Poll for changes every 30 seconds (battery-friendly)
     const pollInterval = setInterval(() => {
       autoUpdateChallenges()
-    }, 3000)
+    }, 30000)
     
     return () => clearInterval(pollInterval)
   }, [])

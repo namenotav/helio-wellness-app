@@ -13,8 +13,8 @@ export default function BrainInsightsDashboard({ onClose }) {
   useEffect(() => {
     loadInsights();
     
-    // 🔥 FIX: Add 10s polling for real-time updates (was missing!)
-    const interval = setInterval(loadInsights, 10000);
+    // 🔥 FIX: 30s polling for battery-friendly updates
+    const interval = setInterval(loadInsights, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -68,13 +68,14 @@ export default function BrainInsightsDashboard({ onClose }) {
       steps: brainLearningService.trainingData.steps?.length || 0
     };
 
+    // 🔧 FIX: Reduced requirements for faster unlock
     const dataRequirements = {
-      workouts: 10,
-      meals: 10,
-      sleep: 7,
-      energy: 10,
-      hydration: 5,
-      steps: 5
+      workouts: 5,   // Was 10 - now easier to achieve
+      meals: 5,      // Was 10 - now easier to achieve
+      sleep: 5,      // Was 7 - now easier to achieve
+      energy: 5,     // Was 10 - now easier to achieve
+      hydration: 3,  // Was 5 - now easier to achieve
+      steps: 3       // Was 5 - now easier to achieve
     };
 
     return (

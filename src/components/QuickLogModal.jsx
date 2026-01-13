@@ -33,12 +33,13 @@ export default function QuickLogModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const handleLogWater = async (amount) => {
-    console.log('💧 [QuickLog] Logging water:', amount, 'ml');
+  const handleLogWater = async (cups) => {
+    console.log('💧 [QuickLog] Logging water:', cups, 'cups');
     const { default: waterIntakeService } = await import('../services/waterIntakeService');
-    const result = await waterIntakeService.addIntake(amount);
+    // Convert cups to ml for service (1 cup = 250ml)
+    const result = await waterIntakeService.addIntake(cups * 250);
     console.log('✅ [QuickLog] Water logged successfully:', result);
-    setWaterAmount(prev => prev + amount);
+    setWaterAmount(prev => prev + cups);
     
     // ⭐ GAMIFICATION: Log water activity (reads from dataService - 4-system architecture)
     try {
@@ -52,8 +53,8 @@ export default function QuickLogModal({ isOpen, onClose }) {
       const today = new Date().toISOString().split('T')[0];
       const waterToday = waterLog.filter(w => w.date === today);
       const dailyTotal = waterToday.reduce((sum, w) => sum + (w.cups || 1), 0);
-      await gamificationService.logActivity('water', { cups: 1, dailyTotal });
-      if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Water activity logged, daily total:', dailyTotal);
+      await gamificationService.logActivity('water', { cups: cups, dailyTotal: dailyTotal + cups });
+      if(import.meta.env.DEV)console.log('⭐ [GAMIFICATION] Water activity logged, cups:', cups, 'daily total:', dailyTotal + cups);
     } catch (error) {
       console.error('❌ [GAMIFICATION] Failed to log water activity:', error);
     }
@@ -68,7 +69,7 @@ export default function QuickLogModal({ isOpen, onClose }) {
         recentMeal: false,
         stressLevel: 4,
         caffeineConsumed: false,
-        hydrationLevel: amount >= 500 ? 'high' : 'medium'
+        hydrationLevel: cups >= 2 ? 'high' : 'medium'
       });
       
       if(import.meta.env.DEV)console.log('🧠 [BRAIN.JS] Water intake tracked for AI learning');
@@ -226,27 +227,27 @@ export default function QuickLogModal({ isOpen, onClose }) {
                 <p className="log-description">How much water did you drink?</p>
                 
                 <div className="water-buttons">
-                  <button className="water-btn" onClick={() => handleLogWater(200)}>
-                    <span className="water-amount">200ml</span>
+                  <button className="water-btn" onClick={() => handleLogWater(1)}>
+                    <span className="water-amount">1</span>
                     <span className="water-label">Cup</span>
                   </button>
-                  <button className="water-btn" onClick={() => handleLogWater(250)}>
-                    <span className="water-amount">250ml</span>
-                    <span className="water-label">Glass</span>
+                  <button className="water-btn" onClick={() => handleLogWater(2)}>
+                    <span className="water-amount">2</span>
+                    <span className="water-label">Cups</span>
                   </button>
-                  <button className="water-btn" onClick={() => handleLogWater(500)}>
-                    <span className="water-amount">500ml</span>
-                    <span className="water-label">Bottle</span>
+                  <button className="water-btn" onClick={() => handleLogWater(3)}>
+                    <span className="water-amount">3</span>
+                    <span className="water-label">Cups</span>
                   </button>
-                  <button className="water-btn" onClick={() => handleLogWater(1000)}>
-                    <span className="water-amount">1L</span>
-                    <span className="water-label">Large</span>
+                  <button className="water-btn" onClick={() => handleLogWater(4)}>
+                    <span className="water-amount">4</span>
+                    <span className="water-label">Cups</span>
                   </button>
                 </div>
                 
                 {waterAmount > 0 && (
                   <div className="success-message">
-                    ✅ Logged {waterAmount}ml today!
+                    ✅ Logged {waterAmount} cup{waterAmount > 1 ? 's' : ''} today!
                   </div>
                 )}
                 

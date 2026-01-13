@@ -54,15 +54,15 @@ export default function PremiumModal({ isOpen, onClose }) {
               <span className="price-value">£6.99</span>
               <span className="price-period">/month</span>
             </div>
-            <p className="trial-info">30-day free trial • Cancel anytime</p>
+            <p className="trial-info">🚀 Premium launching Q2 2026</p>
           </div>
 
-          <button className="upgrade-btn" onClick={handleUpgrade}>
-            Start Free Trial
+          <button className="upgrade-btn" onClick={handleUpgrade} style={{ opacity: 0.7 }}>
+            🔔 Notify Me When Available
           </button>
 
           <p className="terms-text">
-            By starting trial, you agree to our Terms & Privacy Policy
+            We'll notify you when premium subscriptions are available
           </p>
         </div>
       </div>

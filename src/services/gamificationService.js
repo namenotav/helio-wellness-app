@@ -816,7 +816,10 @@ class GamificationService {
 }
 
 // Export singleton instance
-export default new GamificationService()
+const gamificationService = new GamificationService()
 
+// 🔧 FIX: Export LEVEL_THRESHOLDS for use in other components
+export { LEVEL_THRESHOLDS }
+export default gamificationService
 
 

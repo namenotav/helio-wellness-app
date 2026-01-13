@@ -22,8 +22,8 @@ export default function StatsModal({ isOpen, onClose, todaySteps = 0 }) {
   useEffect(() => {
     if (isOpen) {
       loadStats();
-      // 🔥 FIX: Add live polling for real-time updates
-      const interval = setInterval(loadStats, 5000); // Refresh every 5 seconds
+      // 🔥 FIX: Add live polling for real-time updates (30s for battery)
+      const interval = setInterval(loadStats, 30000); // Refresh every 30 seconds
       return () => clearInterval(interval);
     }
   }, [isOpen]);

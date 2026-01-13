@@ -15,12 +15,16 @@ class HealthAvatarService {
     const { age, weight, height, goalSteps } = userProfile || {};
     const { totalSteps = 0, totalDays = 0 } = stats;
 
-    let score = 100;
+    // 🔧 FIX: Track if profile is complete for better UX
+    const profileComplete = !!(height && weight && height >= 100 && height <= 250 && weight >= 30 && weight <= 300);
+    
+    // 🔧 FIX: Start with 50 (neutral) if profile incomplete, 100 if complete
+    let score = profileComplete ? 100 : 50;
     const factors = [];
     const scoreBreakdown = []; // NEW: Track each factor's contribution for visualization
 
     // 1. BMI factor (REAL body measurements with validation)
-    if (height && weight && height >= 100 && height <= 250 && weight >= 30 && weight <= 300) {
+    if (profileComplete) {
       const heightM = height / 100;
       const bmi = weight / (heightM * heightM);
       
@@ -45,8 +49,9 @@ class HealthAvatarService {
       }
       if(import.meta.env.DEV)console.log('📏 BMI Data:', { height, weight, bmi: bmi.toFixed(1) });
     } else {
-      // Invalid or missing height/weight
-      factors.push('⚠️ BMI unavailable - complete profile');
+      // Invalid or missing height/weight - prompt user
+      factors.push('📝 Complete your profile for accurate score');
+      scoreBreakdown.push({ factor: 'Profile Incomplete', points: 0, icon: '📝', message: 'Add height & weight in Settings' });
       if(import.meta.env.DEV)console.log('📏 BMI Data: Invalid or missing', { height, weight });
     }
 

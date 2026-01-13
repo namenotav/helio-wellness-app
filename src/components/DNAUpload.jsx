@@ -41,10 +41,14 @@ export default function DNAUpload({ onClose }) {
     loadSavedData();
   }, []);
 
+  // 🔒 PRIVACY: DNA data is processed 100% locally on your device
+  // Your genetic data NEVER leaves your phone - it's never uploaded to any server
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Show privacy notice
+    console.log('🔒 [DNA] Processing locally - data never leaves device');
     if(import.meta.env.DEV)console.log('File selected:', file.name, file.size, 'bytes');
     setUploading(true);
     

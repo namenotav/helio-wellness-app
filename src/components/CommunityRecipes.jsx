@@ -224,10 +224,49 @@ function RecipeDetailView({ recipe, onClose, onBack }) {
   const [liked, setLiked] = React.useState(false);
   const [likeCount, setLikeCount] = React.useState(recipe.likes || 0);
   const [logging, setLogging] = React.useState(false);
+  const [reported, setReported] = React.useState(false);
+
+  // 🔧 FIX: Calculate estimated calories from ingredients
+  const estimatedCalories = React.useMemo(() => {
+    if (recipe.nutrition?.calories > 0) return recipe.nutrition.calories;
+    // Basic estimation: ~100 cal per ingredient as rough baseline
+    const ingredientCount = recipe.ingredients?.length || 0;
+    return ingredientCount > 0 ? ingredientCount * 100 : null;
+  }, [recipe]);
 
   React.useEffect(() => {
     checkIfLiked();
   }, [recipe.id]);
+
+  // 🔧 FIX: Report recipe function for moderation
+  const handleReport = async () => {
+    try {
+      const authService = (await import('../services/authService')).default;
+      const user = authService.getCurrentUser();
+      if (!user) {
+        const { showToast } = await import('./Toast');
+        showToast('❌ Please log in to report recipes', 'error');
+        return;
+      }
+
+      const firestoreService = (await import('../services/firestoreService')).default;
+      await firestoreService.save('reportedRecipes', {
+        recipeId: recipe.id,
+        recipeName: recipe.name,
+        reportedBy: user.id,
+        reportedAt: new Date().toISOString(),
+        reason: 'User flagged for review'
+      }, `${recipe.id}_${user.id}`);
+
+      setReported(true);
+      const { showToast } = await import('./Toast');
+      showToast('🚩 Recipe reported for review. Thank you!', 'success');
+    } catch (error) {
+      console.error('Error reporting recipe:', error);
+      const { showToast } = await import('./Toast');
+      showToast('❌ Failed to report recipe', 'error');
+    }
+  };
 
   const checkIfLiked = async () => {
     try {
@@ -338,6 +377,22 @@ function RecipeDetailView({ recipe, onClose, onBack }) {
             >
               {logging ? '⏳ Logging...' : '🍽️ Log Food'}
             </button>
+            <button 
+              onClick={handleReport}
+              disabled={reported}
+              title="Report inappropriate content"
+              style={{
+                padding: '8px 12px',
+                background: reported ? '#ccc' : '#f0f0f0',
+                color: reported ? '#666' : '#333',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: reported ? 'not-allowed' : 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              {reported ? '✓ Reported' : '🚩'}
+            </button>
             <button className="close-btn" onClick={onClose}>✕</button>
           </div>
         </div>
@@ -366,7 +421,7 @@ function RecipeDetailView({ recipe, onClose, onBack }) {
           </div>
 
           {/* Nutrition Info */}
-          {recipe.nutrition && (recipe.nutrition.calories > 0 || recipe.nutrition.protein > 0) && (
+          {recipe.nutrition && (recipe.nutrition.calories > 0 || recipe.nutrition.protein > 0) ? (
             <div className="nutrition-info">
               <h3>📊 Nutrition (per serving)</h3>
               <div className="nutrition-grid">
@@ -376,7 +431,17 @@ function RecipeDetailView({ recipe, onClose, onBack }) {
                 {recipe.nutrition.fat > 0 && <div><strong>Fat:</strong> {recipe.nutrition.fat}g</div>}
               </div>
             </div>
-          )}
+          ) : estimatedCalories ? (
+            <div className="nutrition-info" style={{ background: '#fff9e6', border: '1px solid #ffd700' }}>
+              <h3>📊 Estimated Nutrition</h3>
+              <p style={{ color: '#666', fontSize: '12px', margin: '4px 0' }}>
+                ⚠️ No exact nutrition data - estimate based on {recipe.ingredients?.length || 0} ingredients
+              </p>
+              <div className="nutrition-grid">
+                <div><strong>Est. Calories:</strong> ~{estimatedCalories} per serving</div>
+              </div>
+            </div>
+          ) : null}
 
           {/* Ingredients */}
           <div className="ingredients-section">

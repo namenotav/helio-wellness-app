@@ -35,8 +35,8 @@ export default function TodayOverview({ todaySteps = 0 }) {
   useEffect(() => {
     console.log('🔄 [TodayOverview] useEffect triggered - todaySteps changed to:', todaySteps);
     loadStats();
-    // 🔥 FIX: Add live polling for real-time updates
-    const interval = setInterval(loadStats, 10000); // Refresh every 10 seconds
+    // 🔥 FIX: Add live polling for real-time updates (30s for battery)
+    const interval = setInterval(loadStats, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
   }, [todaySteps]); // Re-run when prop changes
 

@@ -60,16 +60,19 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
   }, []);
 
   // TensorFlow.js-based rep detection from motion sensor data
+  // ⚠️ NOTE: Place phone on chest/waist for best accuracy
   const detectRepFromMotion = (buffer, exerciseType) => {
     const now = Date.now();
     
-    // Prevent duplicate counting (minimum 800ms between reps)
-    if (now - lastRepTime.current < 800) {
+    // Prevent duplicate counting (minimum 1200ms between reps - more conservative)
+    if (now - lastRepTime.current < 1200) {
       return false;
     }
     
     // Calculate motion magnitude (acceleration changes, not absolute)
     const recentData = buffer.slice(-30);
+    if (recentData.length < 15) return false; // Need enough data
+    
     const magnitudes = recentData.map(d => 
       Math.sqrt(d.x * d.x + d.y * d.y + d.z * d.z)
     );
@@ -78,16 +81,23 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
     const avgMag = magnitudes.reduce((a, b) => a + b, 0) / magnitudes.length;
     const variance = magnitudes.reduce((sum, mag) => sum + Math.pow(mag - avgMag, 2), 0) / magnitudes.length;
     
-    // Different threshold for different exercises (increased to prevent false positives)
-    let varianceThreshold = 4.0;
+    // 🔧 FIX: Increased thresholds to reduce false positives (was 4.0, now 10.0)
+    let varianceThreshold = 10.0;
     if (exerciseType === 'burpees' || exerciseType === 'jumping_jacks') {
-      varianceThreshold = 6.0;
-    } else if (exerciseType === 'planks' || exerciseType === 'mountain_climbers') {
-      varianceThreshold = 2.0;
+      varianceThreshold = 15.0;
+    } else if (exerciseType === 'planks') {
+      varianceThreshold = 3.0; // Planks have minimal movement
+    } else if (exerciseType === 'mountain_climbers') {
+      varianceThreshold = 8.0;
     }
     
-    // Detect rep: significant motion variance indicates a rep
-    if (variance > varianceThreshold) {
+    // 🔧 FIX: Also require minimum magnitude change (direction detection)
+    const maxMag = Math.max(...magnitudes);
+    const minMag = Math.min(...magnitudes);
+    const magRange = maxMag - minMag;
+    
+    // Detect rep: significant motion variance AND magnitude range indicates a rep
+    if (variance > varianceThreshold && magRange > 2.0) {
       lastRepTime.current = now;
       return true;
     }
