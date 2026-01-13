@@ -1343,6 +1343,8 @@ export default function NewDashboard() {
             onOpenARScanner={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('AR_Scanner'); setShowARScanner(true); }}
             onOpenEmergency={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Emergency_Panel'); setShowEmergency(true); }}
             onOpenInsurance={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Insurance_Rewards'); setShowInsurance(true); }}
+            onOpenHeartRate={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Heart_Rate'); setShowHeartRateModal(true); }}
+            onOpenSleep={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Sleep_Tracker'); setShowSleepModal(true); }}
           />
         </Suspense>
       )}
