@@ -1636,6 +1636,8 @@ export default function NewDashboard() {
           analytics.trackFeatureUse('Quick_Food_Log');
           setShowFoodScanner(true);
         }}
+        title="Scan Food"
+        aria-label="Scan Food"
         style={{
           position: 'fixed',
           bottom: '90px',
@@ -1651,6 +1653,7 @@ export default function NewDashboard() {
           boxShadow: '0 8px 24px rgba(79, 172, 254, 0.5)',
           zIndex: 999,
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           transition: 'all 0.3s ease',
@@ -1666,6 +1669,7 @@ export default function NewDashboard() {
         }}
       >
         📸
+        <span style={{ fontSize: '8px', fontWeight: 'bold', marginTop: '2px' }}>SCAN</span>
       </button>
 
       {/* AI Assistant Modal - Rendered once above in Hierarchical Modal System section */}
@@ -1693,6 +1697,7 @@ export default function NewDashboard() {
           onClick={() => setActiveTab('scan')}
         >
           <span className="nav-icon-center">📸</span>
+          <span className="nav-label" style={{ fontSize: '9px', marginTop: '2px' }}>Scan</span>
         </button>
         
         <button 
