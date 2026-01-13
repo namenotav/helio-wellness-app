@@ -253,9 +253,15 @@ class AIMemoryService {
    */
   async saveConversationHistory() {
     try {
+      const historyJson = JSON.stringify(this.conversationHistory);
+      
+      // ⚡ Save to localStorage FIRST (instant) - for data export compatibility
+      localStorage.setItem('ai_conversation_history', historyJson);
+      
+      // 💾 Save to Preferences (persistent)
       await Preferences.set({
         key: 'ai_conversation_history',
-        value: JSON.stringify(this.conversationHistory)
+        value: historyJson
       });
     } catch (error) {
       console.error('Failed to save conversation history:', error);
