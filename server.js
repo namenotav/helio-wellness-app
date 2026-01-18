@@ -151,14 +151,14 @@ app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (
   }
 });
 
-// Helper function - Map Stripe price ID to plan name
-function mapStripePriceToPlan(priceId) {
+// Helper function - Map Stripe product ID to plan name
+function mapStripePriceToPlan(productId) {
   const priceMap = {
-    'prod_TZhdMJIuUuIxOP': 'essential',  // £4.99
-    'prod_TZhulmjk69SvVX': 'premium',    // £14.99
-    'prod_TZhmpYUG5KqUaK': 'vip'         // £29.99
+    [process.env.STRIPE_ESSENTIAL_PRICE_ID]: 'starter',   // £6.99 - Starter plan
+    [process.env.STRIPE_PREMIUM_PRICE_ID]: 'premium',     // £16.99 - Premium plan
+    [process.env.STRIPE_ULTIMATE_PRICE_ID]: 'ultimate'    // £34.99 - Ultimate plan
   };
-  return priceMap[priceId] || 'free';
+  return priceMap[productId] || 'free';
 }
 
 // Webhook handler - Subscription updated or created
