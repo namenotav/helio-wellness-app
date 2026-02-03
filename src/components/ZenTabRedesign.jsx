@@ -4,10 +4,26 @@ import './ZenTabRedesign.css'
 import syncService from '../services/syncService'
 import dataService from '../services/dataService' // 🎯 SINGLE SOURCE OF TRUTH
 import brainLearningService from '../services/brainLearningService'
+import subscriptionService from '../services/subscriptionService'
+import usageTrackingService from '../services/usageTrackingService'
 
-export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
+export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation, onShowPaywall }) {
   const { addPoints, PopupsRenderer } = usePointsPopup()
   const [stats, setStats] = useState({ minutesToday: 0, totalSessions: 0, streak: 0 })
+  const [breathingUsage, setBreathingUsage] = useState(null)
+  const [meditationUsage, setMeditationUsage] = useState(null)
+
+  useEffect(() => {
+    loadStats()
+    loadUsageLimits()
+  }, [])
+
+  const loadUsageLimits = async () => {
+    await usageTrackingService.initialize()
+    const plan = subscriptionService.getCurrentPlan()
+    setBreathingUsage(usageTrackingService.checkUsage('breathing', plan.id))
+    setMeditationUsage(usageTrackingService.checkUsage('meditation', plan.id))
+  }
 
   useEffect(() => {
     loadStats()
@@ -57,6 +73,22 @@ export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
   }
 
   const startBreathingExercise = async (exercise) => {
+    // Check usage limits for free users
+    const plan = subscriptionService.getCurrentPlan()
+    const usage = usageTrackingService.checkUsage('breathing', plan.id)
+    
+    if (!usage.allowed) {
+      if (onShowPaywall) {
+        const paywallData = usageTrackingService.getLimitPaywall('breathing')
+        onShowPaywall(paywallData)
+      }
+      return
+    }
+    
+    // Track usage
+    await usageTrackingService.trackUsage('breathing', plan.id)
+    setBreathingUsage(usageTrackingService.checkUsage('breathing', plan.id))
+    
     // Update challenges
     if (window.updateDailyChallenge) {
       window.updateDailyChallenge('meditate', exercise.duration)
@@ -118,6 +150,22 @@ export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
   }
 
   const startMeditation = async (duration) => {
+    // Check usage limits for free users
+    const plan = subscriptionService.getCurrentPlan()
+    const usage = usageTrackingService.checkUsage('meditation', plan.id)
+    
+    if (!usage.allowed) {
+      if (onShowPaywall) {
+        const paywallData = usageTrackingService.getLimitPaywall('meditation')
+        onShowPaywall(paywallData)
+      }
+      return
+    }
+    
+    // Track usage
+    await usageTrackingService.trackUsage('meditation', plan.id)
+    setMeditationUsage(usageTrackingService.checkUsage('meditation', plan.id))
+    
     // Update challenges
     if (window.updateDailyChallenge) {
       window.updateDailyChallenge('meditate', duration)
@@ -226,7 +274,16 @@ export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
 
       {/* Breathing Exercises */}
       <div className="zen-section">
-        <h3 className="section-title">Breathing Exercises</h3>
+        <h3 className="section-title">
+          Breathing Exercises
+          {breathingUsage && !breathingUsage.isUnlimited && (
+            <span className="usage-badge">
+              {breathingUsage.remaining > 0 
+                ? `${breathingUsage.remaining}/${breathingUsage.limit} free` 
+                : '⏰ Limit reached'}
+            </span>
+          )}
+        </h3>
         <div className="breathing-grid">
           {breathingExercises.map((exercise, idx) => (
             <button
@@ -246,7 +303,16 @@ export default function ZenTabRedesign({ onOpenBreathing, onOpenMeditation }) {
 
       {/* Guided Meditation */}
       <div className="zen-section">
-        <h3 className="section-title">Guided Meditation</h3>
+        <h3 className="section-title">
+          Guided Meditation
+          {meditationUsage && !meditationUsage.isUnlimited && (
+            <span className="usage-badge">
+              {meditationUsage.remaining > 0 
+                ? `${meditationUsage.remaining}/${meditationUsage.limit} free` 
+                : '⏰ Limit reached'}
+            </span>
+          )}
+        </h3>
         <div className="meditation-buttons">
           {meditationSessions.map((session, idx) => (
             <button

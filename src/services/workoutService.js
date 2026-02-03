@@ -122,10 +122,11 @@ class WorkoutService {
       // Save to localStorage (backward compatibility)
       localStorage.setItem('workoutHistory', JSON.stringify(recentWorkouts));
 
-      // Save to syncService (Preferences + Firebase) - background
-      firestoreService.save('workoutHistory', recentWorkouts, authService.getCurrentUser()?.uid)
-        .then(() => console.log('☁️ workoutHistory synced to Firestore (background)'))
-        .catch(err => console.warn('⚠️ workoutHistory sync failed:', err));
+      // Save to syncService (Preferences + Firebase) - ensure we await execution for data consistency
+      await firestoreService.save('workoutHistory', recentWorkouts, authService.getCurrentUser()?.uid)
+        .catch(err => {
+          if(import.meta.env.DEV)console.warn('⚠️ workoutHistory sync failed:', err);
+        });
 
       if(import.meta.env.DEV)console.log('💾 Workout history saved (localStorage + Preferences + Firebase)');
     } catch (error) {

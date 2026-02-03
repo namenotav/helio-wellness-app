@@ -112,6 +112,47 @@ public class StepCounterForegroundService extends Service implements SensorEvent
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             int totalSteps = (int) event.values[0];
             
+            // 🔥 NEW: Check if it's a new day - reset counters if so
+            String todayDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+            String savedDate = prefs.getString("lastResetDate", "");
+            int stepsBeforeReset = prefs.getInt("stepsBeforeReset", 0);
+            int savedStepCount = prefs.getInt("currentStepCount", 0);
+            
+            // Reset if: new day detected OR first run OR currentStepCount is abnormally high (>40000)
+            boolean needsReset = (!todayDate.equals(savedDate) && !savedDate.isEmpty()) || 
+                                 savedDate.isEmpty() || 
+                                 savedStepCount > 40000;
+            
+            if (needsReset) {
+                if (savedDate.isEmpty()) {
+                    android.util.Log.d("StepService", "🔧 FIRST RUN - Resetting to clean state");
+                } else if (savedStepCount > 40000) {
+                    android.util.Log.d("StepService", "🔧 CORRUPTED DATA DETECTED (" + savedStepCount + " steps) - Resetting");
+                } else {
+                    android.util.Log.d("StepService", "🌅 NEW DAY DETECTED! " + savedDate + " → " + todayDate);
+                }
+                
+                android.util.Log.d("StepService", "📊 Previous count: " + currentStepCount);
+                
+                // Reset all counters for new day
+                initialStepCount = totalSteps;
+                currentStepCount = 0;
+                prefs.edit()
+                    .putInt("initialStepCount", initialStepCount)
+                    .putInt("stepsBeforeReset", 0)
+                    .putInt("currentStepCount", 0)
+                    .putString("lastResetDate", todayDate)
+                    .apply();
+                
+                // 🔥 SYNC TO CAPACITOR STORAGE: Reset JavaScript storage too
+                SharedPreferences capacitorPrefs = getSharedPreferences("CapacitorStorage", MODE_PRIVATE);
+                capacitorPrefs.edit().putString("wellnessai_todaySteps", "0").apply();
+                
+                android.util.Log.d("StepService", "✅ Reset complete - Starting fresh with baseline: " + totalSteps);
+                updateNotification();
+                return; // Exit early, next reading will calculate from new baseline
+            }
+            
             // Initialize baseline on first reading
             if (initialStepCount == -1) {
                 initialStepCount = totalSteps;
@@ -127,7 +168,7 @@ public class StepCounterForegroundService extends Service implements SensorEvent
                     android.util.Log.d("StepService", "🔄 Preserving " + currentStepCount + " steps from before reset");
                     
                     // Save the accumulated steps before reset
-                    int stepsBeforeReset = currentStepCount;
+                    stepsBeforeReset = currentStepCount;
                     prefs.edit().putInt("stepsBeforeReset", stepsBeforeReset).apply();
                     
                     // Reset baseline to current sensor value
@@ -139,7 +180,7 @@ public class StepCounterForegroundService extends Service implements SensorEvent
                     android.util.Log.d("StepService", "✅ New baseline: " + initialStepCount + ", Continuing from: " + currentStepCount + " steps");
                 } else {
                     // Normal calculation: current sensor - baseline + any steps from before reset
-                    int stepsBeforeReset = prefs.getInt("stepsBeforeReset", 0);
+                    stepsBeforeReset = prefs.getInt("stepsBeforeReset", 0);
                     currentStepCount = (totalSteps - initialStepCount) + stepsBeforeReset;
                 }
                 
@@ -157,6 +198,11 @@ public class StepCounterForegroundService extends Service implements SensorEvent
                 
                 // Save and update notification every step (for real-time updates)
                 prefs.edit().putInt("currentStepCount", currentStepCount).apply();
+                
+                // 🔥 SYNC TO CAPACITOR STORAGE: Write to the key JavaScript reads from
+                SharedPreferences capacitorPrefs = getSharedPreferences("CapacitorStorage", MODE_PRIVATE);
+                capacitorPrefs.edit().putString("wellnessai_todaySteps", String.valueOf(currentStepCount)).apply();
+                
                 updateNotification();
                 
                 // Log every 10 steps to reduce log spam

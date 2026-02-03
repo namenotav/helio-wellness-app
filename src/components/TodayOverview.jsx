@@ -11,7 +11,7 @@ export default function TodayOverview({ todaySteps = 0 }) {
   console.log('🎨 [TodayOverview] Component mounted/updated - todaySteps prop:', todaySteps);
   
   // 🔥 FIX: Get data from DashboardContext (same source as everywhere else!)
-  const { waterCups, workoutsToday, sleepHours } = useDashboard();
+  const { waterCups, workoutsToday, sleepHours, mealsToday } = useDashboard();
   
   const [stats, setStats] = useState({
     streak: 0,
@@ -87,13 +87,8 @@ export default function TodayOverview({ todaySteps = 0 }) {
       console.log('🔥 [TodayOverview] Calories - Steps:', stepCalories, 'Workouts:', workoutCalories, 'Total Burned:', totalCaloriesBurned);
       
       // 🔥 FIX #7: Calculate net calories (consumed - burned)
-      const today = new Date().toISOString().split('T')[0];
-      const foodLog = authService.getCurrentUser()?.profile?.foodLog || [];
-      const foodToday = foodLog.filter(f => {
-        const foodDate = new Date(f.timestamp);
-        return foodDate.toISOString().split('T')[0] === today;
-      });
-      const caloriesConsumed = foodToday.reduce((sum, f) => sum + (f.calories || 0), 0);
+      // 🔥 FIX: Use mealsToday from Context (same source as everywhere else!)
+      const caloriesConsumed = mealsToday.reduce((sum, f) => sum + (f.calories || 0), 0);
       const netCalories = caloriesConsumed - totalCaloriesBurned;
       console.log('🍽️ [TodayOverview] Net Calories: Consumed', caloriesConsumed, '- Burned', totalCaloriesBurned, '= Net', netCalories);
       

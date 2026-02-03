@@ -3,14 +3,30 @@ import React, { useState, useEffect } from 'react';
 import { Preferences } from '@capacitor/preferences';
 import syncService from '../services/syncService';
 import gamificationService from '../services/gamificationService';
+import subscriptionService from '../services/subscriptionService';
+import usageTrackingService from '../services/usageTrackingService';
 import './BreathingExercises.css';
 
-const BreathingExercises = ({ onClose }) => {
+const BreathingExercises = ({ onClose, onShowPaywall }) => {
   const [isActive, setIsActive] = useState(false);
   const [phase, setPhase] = useState('inhale'); // inhale, hold, exhale
   const [timer, setTimer] = useState(4);
   const [sessionDuration, setSessionDuration] = useState(0);
   const [sessionHistory, setSessionHistory] = useState([]);
+  const [usageInfo, setUsageInfo] = useState(null);
+  const [hasUsedToday, setHasUsedToday] = useState(false);
+
+  // Check usage limits on mount
+  useEffect(() => {
+    const checkUsage = async () => {
+      await usageTrackingService.initialize();
+      const plan = subscriptionService.getCurrentPlan();
+      const info = usageTrackingService.checkUsage('breathing', plan.id);
+      setUsageInfo(info);
+      setHasUsedToday(info.used > 0 && !info.isUnlimited);
+    };
+    checkUsage();
+  }, []);
   
   useEffect(() => {
     // Load breathing session history
@@ -60,7 +76,24 @@ const BreathingExercises = ({ onClose }) => {
     return () => clearInterval(interval);
   }, [isActive, phase]);
 
-  const startExercise = () => {
+  const startExercise = async () => {
+    // Check if user has remaining uses
+    const plan = subscriptionService.getCurrentPlan();
+    const usage = usageTrackingService.checkUsage('breathing', plan.id);
+    
+    if (!usage.allowed) {
+      // Show limit paywall
+      if (onShowPaywall) {
+        const paywallData = usageTrackingService.getLimitPaywall('breathing');
+        onShowPaywall(paywallData);
+      }
+      return;
+    }
+    
+    // Track usage (only for free users)
+    await usageTrackingService.trackUsage('breathing', plan.id);
+    setUsageInfo(usageTrackingService.checkUsage('breathing', plan.id));
+    
     setIsActive(true);
     setPhase('inhale');
     setTimer(4);
@@ -109,7 +142,16 @@ const BreathingExercises = ({ onClose }) => {
 
         <div className="breathing-controls">
           {!isActive ? (
-            <button onClick={startExercise}>▶️ Start</button>
+            <>
+              <button onClick={startExercise}>▶️ Start</button>
+              {usageInfo && !usageInfo.isUnlimited && (
+                <p className="usage-info">
+                  {usageInfo.remaining > 0 
+                    ? `${usageInfo.remaining}/${usageInfo.limit} free session${usageInfo.limit > 1 ? 's' : ''} left today`
+                    : '⏰ Daily limit reached - resets at midnight'}
+                </p>
+              )}
+            </>
           ) : (
             <button onClick={stopExercise}>⏹️ Stop</button>
           )}

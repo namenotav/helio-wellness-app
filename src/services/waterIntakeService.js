@@ -96,7 +96,7 @@ class WaterIntakeService {
   /**
    * Remove last intake (undo)
    */
-  removeLastIntake() {
+  async removeLastIntake() {
     if (this.intakeHistory.length === 0) {
       return null;
     }
@@ -117,6 +117,27 @@ class WaterIntakeService {
 
     this.saveTodayIntake();
     this.saveHistory();
+
+    // 🔥 FIX: Remove from unified dataService (waterLog) to sync with DashboardContext
+    try {
+      const { default: dataService } = await import('./dataService');
+      const { default: authService } = await import('./authService');
+      const userId = authService.getCurrentUser()?.uid;
+      
+      let waterLog = await dataService.get('waterLog', userId) || [];
+      const logDate = new Date().toISOString().split('T')[0];
+      
+      // Find last entry for today
+      const lastIndex = waterLog.findLastIndex(w => w.date === logDate);
+      
+      if (lastIndex !== -1) {
+        waterLog.splice(lastIndex, 1);
+        await dataService.save('waterLog', waterLog, userId);
+        if(import.meta.env.DEV)console.log('✅ Removed water entry from unified dataService');
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to remove water from dataService:', err);
+    }
 
     if(import.meta.env.DEV)console.log(`↩️ Removed ${lastIntake.amount}ml water`);
 

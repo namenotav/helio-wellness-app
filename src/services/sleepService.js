@@ -124,10 +124,11 @@ class SleepService {
       // Save to localStorage (backward compatibility)
       localStorage.setItem('sleepLog', JSON.stringify(recentSleep));
 
-      // Save to syncService (Preferences + Firebase) - background
-      firestoreService.save('sleepLog', recentSleep, authService.getCurrentUser()?.uid)
-        .then(() => console.log('☁️ sleepLog synced to Firestore (background)'))
-        .catch(err => console.warn('⚠️ sleepLog sync failed:', err));
+      // Save to syncService (Preferences + Firebase) - ensure we await execution for data consistency
+      await firestoreService.save('sleepLog', recentSleep, authService.getCurrentUser()?.uid)
+        .catch(err => {
+          if(import.meta.env.DEV)console.warn('⚠️ sleepLog sync failed:', err);
+        });
 
       if(import.meta.env.DEV)console.log('💾 Sleep log saved (localStorage + Preferences + Firebase)');
     } catch (error) {

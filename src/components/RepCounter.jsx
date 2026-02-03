@@ -11,9 +11,10 @@ import dataService from '../services/dataService';
 import authService from '../services/authService';
 import gamificationService from '../services/gamificationService';
 import subscriptionService from '../services/subscriptionService';
+import usageTrackingService from '../services/usageTrackingService';
 import './RepCounter.css';
 
-const RepCounter = ({ onClose, onWorkoutComplete }) => {
+const RepCounter = ({ onClose, onWorkoutComplete, onShowPaywall }) => {
   const [exercise, setExercise] = useState('pushups');
   const [isTracking, setIsTracking] = useState(false);
   const [repCount, setRepCount] = useState(0);
@@ -165,16 +166,23 @@ const RepCounter = ({ onClose, onWorkoutComplete }) => {
       }
 
       // Check workout limit (free users: 1/day)
-      try {
-        const limitCheck = subscriptionService.checkLimit('workouts');
-        if (!limitCheck || !limitCheck.allowed) {
-          alert(limitCheck?.message || 'Workout limit reached for today');
-          return;
+      await usageTrackingService.initialize();
+      const plan = subscriptionService.getCurrentPlan();
+      const usage = usageTrackingService.checkUsage('workoutVideos', plan.id);
+      
+      if (!usage.allowed) {
+        // Show limit paywall
+        if (onShowPaywall) {
+          const paywallData = usageTrackingService.getLimitPaywall('workoutVideos');
+          onShowPaywall(paywallData);
+        } else {
+          alert('Workout limit reached for today. Upgrade to Starter for unlimited workouts!');
         }
-      } catch (error) {
-        console.error('Subscription check failed:', error);
-        // Continue anyway if check fails - don't block user
+        return;
       }
+      
+      // Track usage
+      await usageTrackingService.trackUsage('workoutVideos', plan.id);
 
       // Reset motion buffer and counters
       motionDataBuffer.current = [];

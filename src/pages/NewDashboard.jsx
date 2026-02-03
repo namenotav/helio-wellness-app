@@ -349,6 +349,16 @@ export default function NewDashboard() {
     setShowSleepModal(true)
   }
 
+  const handleOpenEmergency = () => {
+    if (!subscriptionService.hasAccess('emergencyPanel')) {
+      const paywallInfo = subscriptionService.showPaywall('emergencyPanel', () => setShowStripePayment(true))
+      setPaywallData(paywallInfo)
+      return
+    }
+    analytics.trackFeatureUse('Emergency_Panel')
+    setShowEmergency(true)
+  }
+
   // Rep Counter Handler - Using useCallback for stable reference
   const handleOpenRepCounter = useCallback(() => {
     console.log('🔥 REP COUNTER HANDLER CALLED');
@@ -690,6 +700,48 @@ export default function NewDashboard() {
           if(import.meta.env.DEV)console.log('📊 Real-time step update:', stats.todaySteps, '→', todaySteps)
           // ✅ REMOVED: setStats() call - stats is now computed from Context
         }
+        
+        // 📊 UPDATE STEP HISTORY for ProgressModal chart (real-time)
+        if (todaySteps > 0) {
+          console.log('🔍 STEP HISTORY UPDATE TRIGGERED:', todaySteps)
+          try {
+            const historyKey = 'wellnessai_stepHistory'
+            const historyData = await Preferences.get({ key: historyKey })
+            let stepHistory = []
+            
+            if (historyData.value) {
+              try {
+                stepHistory = JSON.parse(historyData.value)
+              } catch (parseErr) {
+                if(import.meta.env.DEV)console.warn('Failed to parse stepHistory, starting fresh', parseErr)
+              }
+            }
+            
+            const today = new Date().toISOString().split('T')[0]
+            const existingIndex = stepHistory.findIndex(entry => entry.date === today)
+            
+            if (existingIndex >= 0) {
+              // Update existing entry
+              stepHistory[existingIndex].steps = todaySteps
+            } else {
+              // Add new entry
+              stepHistory.push({ date: today, steps: todaySteps })
+            }
+            
+            // Keep only last 30 days
+            stepHistory.sort((a, b) => new Date(b.date) - new Date(a.date))
+            stepHistory = stepHistory.slice(0, 30)
+            
+            await Preferences.set({ 
+              key: historyKey, 
+              value: JSON.stringify(stepHistory) 
+            })
+            
+            console.log('✅ STEP HISTORY SAVED:', today, todaySteps, 'steps')
+          } catch (historyErr) {
+            console.error('❌ STEP HISTORY ERROR:', historyErr)
+          }
+        }
       } catch (err) {
         if(import.meta.env.DEV)console.warn('Step sync error:', err)
       }
@@ -698,7 +750,7 @@ export default function NewDashboard() {
     // Poll every 3 seconds
     const interval = setInterval(syncStepsFromNotification, 3000)
     return () => clearInterval(interval)
-  }, [stats.todaySteps])
+  }, [])
 
   // Handle developer unlock
   const handleDevUnlock = async (password) => {
@@ -718,10 +770,9 @@ export default function NewDashboard() {
   }
   
   // Handle developer mode disable
-  const handleDisableDevMode = () => {
+  const handleDisableDevMode = async () => {
     if (confirm('🔒 Disable Developer Mode?\n\nThis will lock all premium features and require password to re-enable.')) {
-      localStorage.removeItem('helio_dev_mode')
-      devAuthService.isDevMode = false
+      await devAuthService.lockDevMode()
       setIsDevMode(false)
       alert('🔒 Developer mode disabled. App will reload.')
       window.location.reload()
@@ -1341,7 +1392,7 @@ export default function NewDashboard() {
             onClose={() => setShowHealthToolsModal(false)}
             onOpenHealthAvatar={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Health_Avatar'); setShowHealthAvatar(true); }}
             onOpenARScanner={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('AR_Scanner'); setShowARScanner(true); }}
-            onOpenEmergency={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Emergency_Panel'); setShowEmergency(true); }}
+            onOpenEmergency={() => { setShowHealthToolsModal(false); handleOpenEmergency(); }}
             onOpenInsurance={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Insurance_Rewards'); setShowInsurance(true); }}
             onOpenHeartRate={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Heart_Rate'); setShowHeartRateModal(true); }}
             onOpenSleep={() => { setShowHealthToolsModal(false); analytics.trackFeatureUse('Sleep_Tracker'); setShowSleepModal(true); }}
@@ -1592,7 +1643,7 @@ export default function NewDashboard() {
             stats={stats}
             onOpenHealthAvatar={() => { analytics.trackFeatureUse('Health_Avatar'); setShowHealthAvatar(true); }}
             onOpenARScanner={() => { analytics.trackFeatureUse('AR_Scanner'); setShowARScanner(true); }}
-            onOpenEmergency={() => { analytics.trackFeatureUse('Emergency_Panel'); setShowEmergency(true); }}
+            onOpenEmergency={handleOpenEmergency}
             onOpenInsurance={() => { analytics.trackFeatureUse('Insurance_Rewards'); setShowInsurance(true); }}
             onOpenDNA={() => { analytics.trackFeatureUse('DNA_Analysis'); setShowDNA(true); }}
             onOpenBattles={() => { analytics.trackFeatureUse('Social_Battles'); setShowBattles(true); }}

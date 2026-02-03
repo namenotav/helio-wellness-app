@@ -191,11 +191,16 @@ export default function MonthlyStatsModal({ onClose }) {
         'Yoga': 3, 'HIIT': 13, 'Walking': 5, 'Sports': 9, 'Other': 7
       };
       
+      // 🔥 FIX: Add weight factor for personalized calorie calculation (consistent with TodayOverview)
+      const userProfile = authService.getCurrentUser()?.profile || {};
+      const userWeight = userProfile.weight || 150; // Default 150 lbs
+      const weightFactor = userWeight / 150;
+      
       let workoutCalories = 0;
       monthWorkouts.forEach(workout => {
         const type = workout.type || workout.activity || 'Other';
         const rate = calorieRateMap[type] || 7;
-        workoutCalories += (workout.duration || 0) * rate;
+        workoutCalories += (workout.duration || 0) * rate * weightFactor;
       });
       
       const totalCaloriesBurned = Math.round(stepCalories + workoutCalories);

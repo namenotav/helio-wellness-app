@@ -39,6 +39,46 @@ export default function QuickLogModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
+  // 🔥 FIX: Add undo water function
+  const handleUndoWater = async () => {
+    // Add visual feedback immediately
+    const btn = document.querySelector('.undo-btn');
+    if(btn) {
+       btn.style.opacity = '0.5';
+       btn.innerText = '⏳ Undoing...';
+    }
+
+    console.log('↩️ [QuickLog] Undoing last water entry...');
+    const { default: waterIntakeService } = await import('../services/waterIntakeService');
+    const removed = await waterIntakeService.removeLastIntake();
+    
+    if (removed) {
+      const cupsRemoved = Math.round(removed.amount / 250);
+      setWaterAmount(prev => Math.max(0, prev - cupsRemoved));
+      console.log('✅ [QuickLog] Removed', cupsRemoved, 'cups');
+      
+      // Force UI refresh
+      window.dispatchEvent(new Event('quickLogUpdated'));
+      await loadAllData(); 
+      
+      // Reset button
+      if(btn) {
+         btn.style.opacity = '1';
+         btn.innerText = '✅ Undo Successful!';
+         setTimeout(() => btn.innerText = '↩️ Undo Last Water Entry', 1500);
+      }
+    } else {
+      console.log('⚠️ [QuickLog] No water entry to undo');
+      alert('No water entries found to undo for today.');
+      
+      // Reset button
+      if(btn) {
+         btn.style.opacity = '1';
+         btn.innerText = '↩️ Undo Last Water Entry';
+      }
+    }
+  };
+
   const handleLogWater = async (cups) => {
     console.log('💧 [QuickLog] Logging water:', cups, 'cups');
     const { default: waterIntakeService } = await import('../services/waterIntakeService');
@@ -256,6 +296,17 @@ export default function QuickLogModal({ isOpen, onClose }) {
                     ✅ Logged {waterAmount} cup{waterAmount > 1 ? 's' : ''} today!
                   </div>
                 )}
+                
+                <button className="undo-btn" onClick={handleUndoWater} style={{
+                  background: 'rgba(255,100,100,0.2)',
+                  border: '1px solid rgba(255,100,100,0.4)',
+                  color: '#ff6b6b',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  marginBottom: '10px',
+                  width: '100%',
+                  cursor: 'pointer'
+                }}>↩️ Undo Last Water Entry</button>
                 
                 <button className="back-btn" onClick={() => setActiveLog(null)}>← Back</button>
               </div>

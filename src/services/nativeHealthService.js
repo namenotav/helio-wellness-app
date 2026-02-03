@@ -475,7 +475,7 @@ class NativeHealthService {
       }
     });
     
-    // ✅ FIX: Update Firebase weeklySteps in real-time (every 10 steps)
+    // ✅ FIX: Update Firebase weeklySteps + stepHistory in real-time (every 10 steps)
     if (this.stepCount > 0 && this.stepCount % 10 === 0) {
       try {
         const syncService = (await import('./syncService.js')).default;
@@ -495,11 +495,39 @@ class NativeHealthService {
           date: todayDate
         };
         
+        // 🔥 NEW: Also update stepHistory for ProgressModal chart
+        let stepHistory = [];
+        try {
+          const storedHistory = localStorage.getItem('wellnessai_stepHistory');
+          const parsed = storedHistory ? JSON.parse(storedHistory) : [];
+          stepHistory = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          stepHistory = [];
+        }
+        
+        // Update or add today's entry
+        const todayIndex2 = stepHistory.findIndex(entry => entry.date === todayDate);
+        if (todayIndex2 >= 0) {
+          stepHistory[todayIndex2].steps = this.stepCount;
+        } else {
+          stepHistory.push({ date: todayDate, steps: this.stepCount });
+        }
+        
+        // Keep last 30 days
+        if (stepHistory.length > 30) {
+          stepHistory = stepHistory.slice(-30);
+        }
+        
         // Save to Firebase (localStorage-first pattern - INSTANT UI)
         localStorage.setItem('wellnessai_weeklySteps', JSON.stringify(weeklyStepsData));
+        localStorage.setItem('wellnessai_stepHistory', JSON.stringify(stepHistory));
         Preferences.set({ key: 'wellnessai_weeklySteps', value: JSON.stringify(weeklyStepsData) })
           .catch(err => console.error('Preferences save failed:', err));
+        Preferences.set({ key: 'wellnessai_stepHistory', value: JSON.stringify(stepHistory) })
+          .catch(err => console.error('Preferences save failed:', err));
         firestoreService.save('weeklySteps', weeklyStepsData, authService.getCurrentUser()?.uid)
+          .catch(err => console.error('Firestore sync failed:', err));
+        firestoreService.save('stepHistory', stepHistory, authService.getCurrentUser()?.uid)
           .catch(err => console.error('Firestore sync failed:', err));
       } catch (error) {
         // Silent fail - don't spam console

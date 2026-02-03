@@ -1,34 +1,47 @@
-// ElevenLabs Voice Generation Service
+// ElevenLabs Voice Generation Service - Secure Backend Proxy
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 class ElevenLabsVoiceService {
   constructor() {
-    // Get API key from environment or user settings
-    this.apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY || '';
-    this.voiceId = 'EXAVITQu4vr4xnSDxMaL'; // Nicole voice ID (the voice you downloaded)
-    this.baseUrl = 'https://api.elevenlabs.io/v1';
+    // 🔒 SECURITY: No API key stored client-side
+    this.voiceId = 'EXAVITQu4vr4xnSDxMaL'; // Nicole voice ID
     this.audioCache = new Map();
+    this.functions = null;
+    this.isEnabled = false;
     
-    // Auto-enable if API key is present
-    if (this.apiKey) {
-      console.log('✅ ElevenLabs API key loaded from environment');
+    // Initialize Firebase Functions
+    this.initializeFunctions();
+  }
+
+  /**
+   * Initialize Firebase Functions connection
+   */
+  async initializeFunctions() {
+    try {
+      const { app } = await import('./firebase.js');
+      this.functions = getFunctions(app);
+      this.isEnabled = true;
+      console.log('✅ ElevenLabs backend proxy initialized');
+    } catch (error) {
+      console.warn('⚠️ ElevenLabs backend unavailable, TikTok TTS will be used');
+      this.isEnabled = false;
     }
   }
 
   /**
-   * Set ElevenLabs API key
+   * @deprecated Legacy method for compatibility
    */
   setApiKey(apiKey) {
-    this.apiKey = apiKey;
-    console.log('✅ ElevenLabs API key set');
+    console.warn('⚠️ setApiKey() is deprecated - using secure backend proxy');
   }
 
   /**
-   * Generate speech from text using ElevenLabs Nicole voice
+   * Generate speech from text using secure backend proxy
    */
   async generateSpeech(text) {
-    if (!this.apiKey) {
-      console.error('❌ ElevenLabs API key not set');
+    if (!this.isEnabled) {
+      console.log('⚠️ ElevenLabs unavailable, use TikTok TTS fallback');
       return null;
     }
 
@@ -39,43 +52,33 @@ class ElevenLabsVoiceService {
     }
 
     try {
-      console.log(`🎤 Generating ElevenLabs voice for: "${text}"`);
+      console.log(`🎤 Requesting speech generation via secure proxy: "${text}"`);
 
-      const response = await fetch(`${this.baseUrl}/text-to-speech/${this.voiceId}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': this.apiKey
-        },
-        body: JSON.stringify({
-          text: text,
-          model_id: 'eleven_multilingual_v2', // Use newer model for better quality
-          voice_settings: {
-            stability: 0.50,        // Exact match from your download (s50)
-            similarity_boost: 0.75, // Exact match from your download (sb75)
-            style: 0.0,             // Exact match from your download (se0)
-            use_speaker_boost: true
-          }
-        })
+      // Call Firebase Cloud Function (API key is server-side only)
+      const generateSpeechFunc = httpsCallable(this.functions, 'generateSpeech');
+      const result = await generateSpeechFunc({ 
+        text: text, 
+        voiceId: this.voiceId 
       });
 
-      if (!response.ok) {
-        throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+      // Convert base64 back to blob URL
+      const base64Audio = result.data.audioData;
+      const binaryString = atob(base64Audio);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
       }
-
-      // Get audio blob
-      const audioBlob = await response.blob();
+      const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
 
       // Cache the audio URL
       this.audioCache.set(text, audioUrl);
 
-      console.log(`✅ Generated voice for: "${text}"`);
+      console.log(`✅ Generated voice via secure proxy: "${text}"`);
       return audioUrl;
 
     } catch (error) {
-      console.error('❌ ElevenLabs voice generation error:', error);
+      console.error('❌ ElevenLabs proxy error:', error);
       return null;
     }
   }

@@ -14,18 +14,10 @@ class DirectAudioService {
     // Load voice preferences from localStorage
     this.loadVoicePreferences();
     
-    // Auto-enable ElevenLabs if API key is available
-    const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
-    if(import.meta.env.DEV)console.log('🔑 Checking for ElevenLabs API key...', apiKey ? 'FOUND' : 'NOT FOUND');
-    if (apiKey) {
-      this.useElevenLabs = true;
-      elevenLabsVoiceService.setApiKey(apiKey);
-      if(import.meta.env.DEV)console.log('✅ ElevenLabs voice automatically enabled with key:', apiKey.substring(0, 10) + '...');
-    } else {
-      this.useElevenLabs = false;
-      if(import.meta.env.DEV)console.log('✅ TikTok TTS enabled (FREE, ultra-realistic voice)');
-    }
-    
+    // 🔒 SECURITY: ElevenLabs uses secure backend proxy (no client-side API key)
+    this.useElevenLabs = false; // Will be enabled if backend is available
+    this.checkElevenLabsAvailability();
+
     // Voice configurations - IMPOSSIBLY SLOW (5% speed), audible whisper
     this.voiceConfig = {
       female: {
@@ -43,6 +35,26 @@ class DirectAudioService {
         volume: 0.4 // Soft but audible at extreme slowness
       }
     };
+  }
+
+  /**
+   * Check if ElevenLabs backend is available
+   */
+  async checkElevenLabsAvailability() {
+    try {
+      // Test if service can initialize
+      await elevenLabsVoiceService.initializeFunctions();
+      this.useElevenLabs = elevenLabsVoiceService.isEnabled;
+      
+      if (this.useElevenLabs) {
+        if(import.meta.env.DEV)console.log('✅ ElevenLabs backend proxy available');
+      } else {
+        if(import.meta.env.DEV)console.log('✅ Using TikTok TTS (FREE, ultra-realistic)');
+      }
+    } catch (e) {
+      this.useElevenLabs = false;
+      if(import.meta.env.DEV)console.log('✅ TikTok TTS enabled (backend unavailable)');
+    }
   }
 
   /**
@@ -154,11 +166,11 @@ class DirectAudioService {
 
   /**
    * Enable ElevenLabs voice generation
+   * @deprecated Backend proxy is used automatically
    */
   enableElevenLabs(apiKey) {
-    this.useElevenLabs = true;
-    elevenLabsVoiceService.setApiKey(apiKey);
-    if(import.meta.env.DEV)console.log('✅ ElevenLabs voice generation enabled');
+    console.warn('⚠️ enableElevenLabs() is deprecated - backend proxy used automatically');
+    this.useElevenLabs = elevenLabsVoiceService.isEnabled;
   }
 
   /**

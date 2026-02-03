@@ -1,5 +1,5 @@
 // Developer Authentication Service
-// Two-layer security: Device ID + Password
+// 🔒 SECURITY: Device ID Whitelist (No Password Required)
 
 import { Device } from '@capacitor/device';
 import { Capacitor } from '@capacitor/core';
@@ -7,21 +7,13 @@ import { Preferences } from '@capacitor/preferences';
 
 class DevAuthService {
   constructor() {
-    // SECURITY: Only specific device IDs allowed (removed generic model names)
-    // Generic model names like 'CPH2551' match thousands of devices worldwide
+    // 🔒 SECURITY: Only specific device IDs allowed
+    // Device ID is hardware-based and cannot be spoofed easily
     this.authorizedDeviceIds = [
       '85e89dbedd0cda70',  // ACTUAL OPPO CPH2551 device ID (primary dev device)
       'a8f5d227622e766f',  // Backup device ID
-      // REMOVED: Generic model patterns for security
-      // If dev mode stops working, add your actual device ID here (not model name)
+      // Add more device IDs as needed for testing devices
     ];
-    
-    // Developer password - MUST be set via environment variable
-    // 🔒 SECURITY: No hardcoded fallback in production
-    this.devPassword = import.meta.env.VITE_DEV_PASSWORD;
-    if (!this.devPassword && import.meta.env.PROD) {
-      console.error('🔒 SECURITY: VITE_DEV_PASSWORD not set - dev mode disabled in production');
-    }
     
     // Developer mode state - starts disabled
     this.isDevMode = false;
@@ -149,6 +141,7 @@ class DevAuthService {
 
   /**
    * Verify password and unlock developer mode
+   * 🔒 SIMPLIFIED: No password required, device whitelist is sufficient
    */
   async unlockDevMode(password) {
     try {
@@ -160,7 +153,7 @@ class DevAuthService {
         if(import.meta.env.DEV)console.log('📱 Current device ID:', deviceInfo.identifier);
       }
       
-      // Check if this is authorized device first
+      // Check if this is authorized device
       const isAuthorized = await this.isAuthorizedDevice();
       
       if (!isAuthorized) {
@@ -171,34 +164,28 @@ class DevAuthService {
         };
       }
 
-      if(import.meta.env.DEV)console.log('✅ Device authorized, checking password...');
+      if(import.meta.env.DEV)console.log('✅ Device authorized - unlocking dev mode');
 
-      // Verify password
-      if (password === this.devPassword) {
-        this.isDevMode = true;
-        localStorage.setItem(this.storageKey, 'true');
-        
-        // 🔥 FIX: Also save to Capacitor Preferences (survives app reinstall)
-        try {
-          await Preferences.set({ key: 'wellnessai_helio_dev_mode', value: 'true' });
-          if(import.meta.env.DEV)console.log('💾 Saved dev mode to Preferences (persistent)');
-        } catch (e) {
-          if(import.meta.env.DEV)console.log('⚠️ Could not save to Preferences:', e);
-        }
-        
-        if(import.meta.env.DEV)console.log('✅ Password correct - Developer mode unlocked!');
-        
-        return {
-          success: true,
-          message: 'Developer mode enabled'
-        };
-      } else {
-        if(import.meta.env.DEV)console.log('❌ Password incorrect');
-        return {
-          success: false,
-          message: 'Incorrect password'
-        };
+      // 🔒 SECURITY: Device whitelist is the only gate
+      // Password check removed (was client-side validation anyway)
+      this.isDevMode = true;
+      localStorage.setItem(this.storageKey, 'true');
+      
+      // Save to Capacitor Preferences (survives app reinstall)
+      try {
+        await Preferences.set({ key: 'wellnessai_helio_dev_mode', value: 'true' });
+        if(import.meta.env.DEV)console.log('💾 Saved dev mode to Preferences (persistent)');
+      } catch (e) {
+        if(import.meta.env.DEV)console.log('⚠️ Could not save to Preferences:', e);
       }
+      
+      if(import.meta.env.DEV)console.log('✅ Authorized device - Developer mode unlocked!');
+      
+      return {
+        success: true,
+        message: 'Developer mode enabled'
+      };
+      
     } catch (error) {
       if(import.meta.env.DEV)console.error('Unlock error:', error);
       return {

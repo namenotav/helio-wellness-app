@@ -1,0 +1,141 @@
+.breathing-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.breathing-content {
+  background: linear-gradient(135deg, #1a1f35 0%, #2d3250 100%);
+  border-radius: 24px;
+  padding: 32px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.breathing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.breathing-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: white;
+}
+
+.breathing-header .close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.breathing-circle {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+.breathing-circle .circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s ease;
+}
+
+.breathing-circle .circle.inhale {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transform: scale(1);
+  box-shadow: 0 0 40px rgba(102, 126, 234, 0.4);
+}
+
+.breathing-circle .circle.hold {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  transform: scale(1.1);
+  box-shadow: 0 0 60px rgba(168, 237, 234, 0.5);
+}
+
+.breathing-circle .circle.exhale {
+  background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+  transform: scale(0.9);
+  box-shadow: 0 0 30px rgba(48, 207, 208, 0.3);
+}
+
+.breathing-circle .circle h1 {
+  font-size: 48px;
+  color: white;
+  margin: 0;
+}
+
+.breathing-circle .circle p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 8px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.session-stats {
+  margin: 16px 0;
+}
+
+.session-stats p {
+  color: #b8b5d1;
+  font-size: 14px;
+  margin: 0;
+}
+
+.breathing-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.breathing-controls button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 16px 48px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.breathing-controls button:active {
+  transform: scale(0.95);
+}
+
+.usage-info {
+  font-size: 12px;
+  color: #a8edea;
+  background: rgba(168, 237, 234, 0.15);
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 237, 234, 0.3);
+  margin-top: 8px;
+}

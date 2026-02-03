@@ -1,5 +1,6 @@
 // Subscription Management Service
 // Handles user plan, feature access, and paywalls
+// "Full Taste" Strategy: Free users can taste ALL features with daily limits
 
 class SubscriptionService {
   constructor() {
@@ -9,34 +10,57 @@ class SubscriptionService {
         name: 'Free',
         price: 0,
         features: {
+          // ✅ FULL ACCESS (unlimited)
           basicTracking: true,
           stepCounter: true,
-          foodScanner: 'limited',
-          meditation: false,
-          aiVoiceCoach: false,
           waterTracking: true,
-          breathing: true,
-          emergencyPanel: true,
-          // LOCKED
+          moodTracking: true,
+          journaling: true,
+          calorieTracking: true,
+          manualWorkouts: true,
+          dashboard: true,
+          gamification: true,
+          achievements: true,
+          healthAvatar: true,
+          
+          // ⚠️ LIMITED ACCESS (daily limits via usageTrackingService)
+          foodScanner: 'limited',      // 5/day
+          aiVoiceCoach: 'limited',     // 10/day
+          meditation: 'limited',        // 1/day
+          breathing: 'limited',         // 1/day
+          workouts: 'limited',          // 1 video/day
+          habits: 'limited',            // Max 2 habits
+          arScanner: 'limited',         // 3/day
+          
+          // 👀 VIEW ONLY (can see but not participate)
+          challenges: 'viewOnly',
+          leaderboard: 'viewOnly',
+          socialBattles: 'viewOnly',
+          
+          // 🔒 LOCKED (Premium+ only)
           dnaAnalysis: false,
-          socialBattles: false,
+          emergencyPanel: false,
+          mealAutomation: false,
+          insuranceRewards: false,
           appleHealthSync: false,
           wearableSync: false,
           exportReports: false,
-          heartRate: false,
-          sleepTracking: false,
-          workouts: 'limited',
           pdfExport: false,
           prioritySupport: false,
           betaAccess: false,
-          vipBadge: false
+          vipBadge: false,
+          heartRate: false,
+          sleepTracking: false
         },
         limits: {
-          aiMessages: 5,
-          foodScans: 3,
-          barcodeScans: 3,
+          aiMessages: 10,
+          foodScans: 5,
+          barcodeScans: 5,
           arScans: 3,
-          workouts: 1
+          workouts: 1,
+          breathing: 1,
+          meditation: 1,
+          habits: 2
         }
       },
       starter: {
@@ -45,27 +69,39 @@ class SubscriptionService {
         price: 6.99,
         billing: 'monthly',
         features: {
+          // ✅ FULL ACCESS - Everything from Free + More
           basicTracking: true,
           stepCounter: true,
-          foodScanner: true,
-          meditation: true,
+          foodScanner: true,           // Unlimited
+          meditation: true,            // Unlimited
           waterTracking: true,
-          aiVoiceCoach: 'limited',
-          breathing: true,
-          socialBattles: false,
-          workouts: true,
-          // LOCKED
+          aiVoiceCoach: true,          // 25/day
+          breathing: true,             // Unlimited
+          workouts: true,              // Unlimited
+          habits: true,                // Unlimited
+          challenges: true,            // Can participate
+          leaderboard: true,           // Can compete
+          socialBattles: true,         // Can battle
+          heartRate: true,
+          sleepTracking: true,
+          moodTracking: true,
+          journaling: true,
+          calorieTracking: true,
+          manualWorkouts: true,
+          dashboard: true,
+          gamification: true,
+          achievements: true,
+          healthAvatar: true,
+          arScanner: 'limited',        // Limited AR
+          
+          // 🔒 LOCKED (Premium+ only)
           dnaAnalysis: false,
           insuranceRewards: false,
           mealAutomation: false,
-          healthAvatar: false,
-          arScanner: false,
-          emergencyPanel: true,
+          emergencyPanel: false,
           appleHealthSync: false,
           wearableSync: false,
           exportReports: false,
-          heartRate: true,
-          sleepTracking: true,
           pdfExport: false,
           prioritySupport: false,
           betaAccess: false,
@@ -75,8 +111,11 @@ class SubscriptionService {
           aiMessages: 25,
           foodScans: 999999,
           barcodeScans: 999999,
-          arScans: 0,
-          workouts: 999999
+          arScans: 10,
+          workouts: 999999,
+          breathing: 999999,
+          meditation: 999999,
+          habits: 999999
         }
       },
       premium: {
@@ -248,6 +287,8 @@ class SubscriptionService {
   }
 
   // Check if user has access to a feature (SYNCHRONOUS - no breaking changes)
+  // Returns true for: true, 'unlimited', 'limited', 'viewOnly'
+  // 'limited' and 'viewOnly' grant access but components should check limits/viewOnly mode
   hasAccess(featureName) {
     // Check if developer mode is active
     try {
@@ -266,9 +307,32 @@ class SubscriptionService {
       return this.plans.free.features[featureName] === true;
     }
     
-    // Check local subscription status
-    // Server verification happens on app launch via verifySubscriptionWithServer()
-    return plan.features[featureName] === true || plan.features[featureName] === 'unlimited';
+    const featureValue = plan.features[featureName];
+    
+    // Feature access granted for: true, 'unlimited', 'limited', 'viewOnly'
+    // Components should use isLimited() and isViewOnly() to handle restrictions
+    return featureValue === true || 
+           featureValue === 'unlimited' || 
+           featureValue === 'limited' || 
+           featureValue === 'viewOnly';
+  }
+
+  // Check if feature has daily limits (Free tier "taste" system)
+  isLimited(featureName) {
+    const plan = this.getCurrentPlan();
+    return plan.features[featureName] === 'limited';
+  }
+
+  // Check if feature is view-only (Free tier can see but not use)
+  isViewOnly(featureName) {
+    const plan = this.getCurrentPlan();
+    return plan.features[featureName] === 'viewOnly';
+  }
+
+  // Get feature limit for current plan
+  getFeatureLimit(featureName) {
+    const plan = this.getCurrentPlan();
+    return plan.limits?.[featureName] || 999999;
   }
   
   // SECURITY: Server verification (call this on feature unlock for critical features)
