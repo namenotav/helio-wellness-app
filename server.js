@@ -369,7 +369,9 @@ if (!API_KEY) {
 }
 if(process.env.NODE_ENV!=="production")console.log('✅ API key loaded from environment variables');
 
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+// Use a valid, stable Gemini model by default. Override via env var when needed.
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // Health check endpoint
 app.get('/', (req, res) => {
@@ -378,7 +380,7 @@ app.get('/', (req, res) => {
     message: 'WellnessAI API Server Running',
     database: db ? (db.memory ? 'memory' : 'connected') : 'disconnected',
     version: '2.0.0',
-    endpoints: ['/api/chat', '/api/vision', '/api/backup', '/api/user/delete', '/api/battles', '/api/feedback']
+    endpoints: ['/api/chat', '/api/v1/chat', '/api/vision', '/api/v1/vision', '/api/backup', '/api/user/delete', '/api/battles', '/api/feedback']
   });
 });
 
@@ -540,7 +542,7 @@ app.post('/api/feedback', async (req, res) => {
 });
 
 // Chat endpoint
-app.post('/api/chat', async (req, res) => {
+const chatHandler = async (req, res) => {
   try {
     const { message } = req.body;
     
@@ -584,10 +586,14 @@ Keep it simple, friendly, and motivating!`;
     if(process.env.NODE_ENV!=="production")console.error('❌ Server error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-});
+};
+
+// Backwards compatible routes (some app builds call /api/v1/*)
+app.post('/api/chat', chatHandler);
+app.post('/api/v1/chat', chatHandler);
 
 // Vision endpoint for food scanning
-app.post('/api/vision', async (req, res) => {
+const visionHandler = async (req, res) => {
   try {
     const { prompt, imageData } = req.body;
     
@@ -614,14 +620,11 @@ app.post('/api/vision', async (req, res) => {
 
     if(process.env.NODE_ENV!=="production")console.log('🤖 Calling Gemini Vision API...');
     
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      }
-    );
+    const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -644,7 +647,11 @@ app.post('/api/vision', async (req, res) => {
     if(process.env.NODE_ENV!=="production")console.error('❌ Vision server error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-});
+};
+
+// Backwards compatible routes (some app builds call /api/v1/*)
+app.post('/api/vision', visionHandler);
+app.post('/api/v1/vision', visionHandler);
 
 // Stripe Payment Intent Creation
 app.post('/api/create-payment-intent', async (req, res) => {
@@ -684,60 +691,8 @@ app.post('/api/create-payment-intent', async (req, res) => {
   }
 });
 
-// Stripe Webhook Endpoint
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  try {
-    const sig = req.headers['stripe-signature'];
-    const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!STRIPE_WEBHOOK_SECRET) {
-      if(process.env.NODE_ENV!=="production")console.warn('⚠️ STRIPE_WEBHOOK_SECRET not set');
-      return res.status(400).json({ error: 'Webhook secret not configured' });
-    }
-
-    // In production, verify signature with Stripe
-    // const event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
-
-    const event = req.body;
-
-    if(process.env.NODE_ENV!=="production")console.log('💳 Stripe webhook received:', event.type);
-
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        if(process.env.NODE_ENV!=="production")console.log('✅ Payment succeeded');
-        // Update user subscription status
-        break;
-      
-      case 'payment_intent.payment_failed':
-        if(process.env.NODE_ENV!=="production")console.log('❌ Payment failed');
-        // Notify user of payment failure
-        break;
-      
-      case 'customer.subscription.created':
-        if(process.env.NODE_ENV!=="production")console.log('✅ Subscription created');
-        // Activate user premium features
-        break;
-      
-      case 'customer.subscription.deleted':
-        if(process.env.NODE_ENV!=="production")console.log('❌ Subscription canceled');
-        // Deactivate premium features
-        break;
-      
-      case 'customer.subscription.updated':
-        if(process.env.NODE_ENV!=="production")console.log('🔄 Subscription updated');
-        // Update subscription details
-        break;
-      
-      default:
-        if(process.env.NODE_ENV!=="production")console.log('ℹ️ Unhandled event type:', event.type);
-    }
-
-    res.json({ received: true });
-  } catch (error) {
-    if(process.env.NODE_ENV!=="production")console.error('❌ Stripe webhook error:', error);
-    res.status(400).json({ error: error.message });
-  }
-});
+// NOTE: Stripe webhook is implemented earlier in this file with proper signature verification.
+// Do not re-register the same route here, as it can cause body parsing/signature issues.
 
 // Push Notification Endpoint
 app.post('/api/notifications/send', async (req, res) => {
