@@ -4,6 +4,7 @@ import { chatWithAI, analyzeProgressPhoto, analyzeFoodPhoto, generateWorkoutPlan
 import { SpeechRecognition } from '@capacitor-community/speech-recognition'
 import { TextToSpeech } from '@capacitor-community/text-to-speech'
 import { Capacitor } from '@capacitor/core'
+import { showToast } from '../components/Toast'
 import devAuthService from '../services/devAuthService'
 import authService from '../services/authService'
 import subscriptionService from '../services/subscriptionService'
@@ -647,7 +648,7 @@ function AICoachTab() {
         if(import.meta.env.DEV)console.log('Speech recognition available:', available)
         
         if (!available.available) {
-          alert('Speech recognition is not available on this device.')
+          showToast('Speech recognition is not available on this device.', 'error')
           return
         }
         
@@ -656,7 +657,7 @@ function AICoachTab() {
         if(import.meta.env.DEV)console.log('Permission status:', permStatus)
         
         if (permStatus.speechRecognition !== 'granted') {
-          alert('Microphone permission is required for voice input.')
+          showToast('Microphone permission is required for voice input.', 'warning')
           return
         }
         
@@ -721,16 +722,16 @@ function AICoachTab() {
         setMessages(prev => prev.filter(m => m.type !== 'system'))
         
         if (error.message && error.message.includes('Missing permissions')) {
-          alert('Microphone permission is required. Please enable it in your device settings.')
+          showToast('Microphone permission required. Enable it in device settings.', 'warning')
         } else {
-          alert('Speech recognition failed. Please try again.')
+          showToast('Speech recognition failed. Please try again.', 'error')
         }
       }
       
     } else {
       // Use Web Speech API for web/desktop
       if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        alert('Voice recognition not supported in this browser.')
+        showToast('Voice recognition not supported in this browser.', 'error')
         return
       }
 
@@ -739,7 +740,7 @@ function AICoachTab() {
         if(import.meta.env.DEV)console.log('✅ Microphone permission granted')
       } catch (error) {
         if(import.meta.env.DEV)console.error('❌ Microphone permission denied:', error)
-        alert('Microphone access is required for voice input.')
+        showToast('Microphone access is required for voice input.', 'warning')
         return
       }
 
@@ -829,11 +830,11 @@ function AICoachTab() {
         setMessages(prev => prev.filter(m => m.type !== 'system'))
         
         if (event.error === 'not-allowed') {
-          alert('Microphone permission denied.')
+          showToast('Microphone permission denied.', 'error')
         } else if (event.error === 'no-speech') {
-          alert('No speech detected. Please try again.')
+          showToast('No speech detected. Please try again.', 'warning')
         } else {
-          alert(`Voice input error: ${event.error}`)
+          showToast(`Voice input error: ${event.error}`, 'error')
         }
       }
 
@@ -841,7 +842,7 @@ function AICoachTab() {
         recognition.start()
       } catch (error) {
         if(import.meta.env.DEV)console.error('Failed to start recognition:', error)
-        alert('Failed to start voice input. Please try again.')
+        showToast('Failed to start voice input. Please try again.', 'error')
         setIsListening(false)
       }
     }

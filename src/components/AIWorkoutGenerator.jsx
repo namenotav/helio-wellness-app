@@ -1,6 +1,7 @@
 // AI Workout Generator - Beta Feature
 // Generates personalized workout plans using Gemini AI
 import { useState } from 'react';
+import { showToast } from './Toast';
 import BetaFeatureWrapper from './BetaFeatureWrapper';
 import dataService from '../services/dataService'; // 🎯 SINGLE SOURCE OF TRUTH
 import authService from '../services/authService';
@@ -58,7 +59,7 @@ Format as JSON with this structure:
 Make it challenging but achievable for ${fitnessLevel} level.`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -70,7 +71,8 @@ Make it challenging but achievable for ${fitnessLevel} level.`;
               temperature: 0.8,
               maxOutputTokens: 2048
             }
-          })
+          }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 
@@ -134,10 +136,10 @@ Make it challenging but achievable for ${fitnessLevel} level.`;
       await dataService.save('workoutHistory', workoutHistory, userId);
       localStorage.setItem('workoutHistory', JSON.stringify(workoutHistory));
 
-      alert('✅ Workout saved! Go to Workouts tab to start training.');
+      showToast('Workout saved! Go to Workouts tab to start training.', 'success');
     } catch (err) {
       console.error('Failed to save workout:', err);
-      alert('Failed to save workout');
+      showToast('Failed to save workout', 'error');
     }
   };
 

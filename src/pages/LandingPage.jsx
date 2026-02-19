@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { checkoutStarter, checkoutPremium, checkoutUltimate } from '../services/stripeService'
 import { Capacitor } from '@capacitor/core'
+import { showToast } from '../components/Toast'
 import AuthModal from '../components/AuthModal'
 import authService from '../services/authService'
 import '../styles/LandingPage.css'
@@ -22,9 +23,9 @@ export default function LandingPage() {
   useEffect(() => {
     const payment = searchParams.get('payment')
     if (payment === 'success') {
-      alert('🎉 Payment successful! Welcome to Helio! Your subscription is now active.')
+      showToast('Payment successful! Welcome to Helio! Your subscription is now active.', 'success')
     } else if (payment === 'cancelled') {
-      alert('Payment was cancelled. You can try again anytime!')
+      showToast('Payment was cancelled. You can try again anytime!', 'warning')
     }
   }, [searchParams])
 
@@ -75,7 +76,7 @@ export default function LandingPage() {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
-      alert('To install:\n\niPhone: Tap Share → Add to Home Screen\nAndroid: Tap menu → Install app\nPC: Click install icon in address bar')
+      showToast('To install: use Share → Add to Home Screen (iOS) or Menu → Install (Android)', 'info')
       return
     }
     deferredPrompt.prompt()

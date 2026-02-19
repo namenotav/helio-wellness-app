@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import './FamilyMembers.css';
@@ -43,12 +44,12 @@ const FamilyMembers = ({ user, planType }) => {
 
   const handleAddMember = async () => {
     if (!newMember.name || !newMember.age) {
-      alert('Please fill in name and age');
+      showToast('Please fill in name and age', 'warning');
       return;
     }
 
     if (familyMembers.length >= maxSlots) {
-      alert(`You can only add ${maxSlots} family members on ${planType} plan`);
+      showToast(`Max ${maxSlots} family members on ${planType} plan`, 'warning');
       return;
     }
 
@@ -67,7 +68,7 @@ const FamilyMembers = ({ user, planType }) => {
       loadFamilyMembers();
     } catch (error) {
       console.error('Error adding family member:', error);
-      alert('Failed to add family member');
+      showToast('Failed to add family member', 'error');
     }
   };
 

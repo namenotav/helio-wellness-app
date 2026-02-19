@@ -530,7 +530,8 @@ class NativeHealthService {
         firestoreService.save('stepHistory', stepHistory, authService.getCurrentUser()?.uid)
           .catch(err => console.error('Firestore sync failed:', err));
       } catch (error) {
-        // Silent fail - don't spam console
+        // Silent fail
+        if(import.meta.env.DEV) console.warn('Health service:', error.message);
       }
     }
   }
@@ -961,7 +962,13 @@ class NativeHealthService {
 
   saveToHistory(data) {
     try {
-      const history = JSON.parse(localStorage.getItem('health_history') || '[]');
+      let history = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('health_history') || '[]');
+        history = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        history = [];
+      }
       
       history.push({
         date: new Date().toISOString().split('T')[0],

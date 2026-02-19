@@ -240,7 +240,7 @@ class UsageTrackingService {
           devMode: true
         }
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) { /* ignore */ if(import.meta.env.DEV) console.warn('Usage tracking error:', e); }
 
     const limit = this.freeLimits[featureName]
     

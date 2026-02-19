@@ -380,8 +380,36 @@ app.get('/', (req, res) => {
     message: 'WellnessAI API Server Running',
     database: db ? (db.memory ? 'memory' : 'connected') : 'disconnected',
     version: '2.0.0',
-    endpoints: ['/api/chat', '/api/v1/chat', '/api/vision', '/api/v1/vision', '/api/backup', '/api/user/delete', '/api/battles', '/api/feedback']
+    endpoints: ['/api/chat', '/api/v1/chat', '/api/vision', '/api/v1/vision', '/api/backup', '/api/user/delete', '/api/battles', '/api/feedback', '/api/logs']
   });
+});
+
+// Client Log Ingestion Endpoint
+app.post('/api/logs', (req, res) => {
+  try {
+    const { sessionId, logs, timestamp } = req.body;
+    if (!Array.isArray(logs) || logs.length === 0) {
+      return res.status(400).json({ error: 'No logs provided' });
+    }
+
+    // Structured output to Railway log drain / console
+    const errors = logs.filter(l => l.level === 'ERROR');
+    const warnings = logs.filter(l => l.level === 'WARN');
+
+    if (errors.length > 0) {
+      console.error(`[CLIENT-ERROR] session=${sessionId} count=${errors.length}`, JSON.stringify(errors));
+    }
+    if (warnings.length > 0) {
+      console.warn(`[CLIENT-WARN] session=${sessionId} count=${warnings.length}`, JSON.stringify(warnings));
+    }
+    // Summary line for all batches
+    console.log(`[CLIENT-LOGS] session=${sessionId} total=${logs.length} errors=${errors.length} warns=${warnings.length} at=${timestamp}`);
+
+    res.json({ received: logs.length });
+  } catch (error) {
+    console.error('Log ingestion error:', error);
+    res.status(500).json({ error: 'Failed to process logs' });
+  }
 });
 
 // Cloud Backup Endpoints
@@ -653,43 +681,7 @@ const visionHandler = async (req, res) => {
 app.post('/api/vision', visionHandler);
 app.post('/api/v1/vision', visionHandler);
 
-// Stripe Payment Intent Creation
-app.post('/api/create-payment-intent', async (req, res) => {
-  try {
-    const { planId, userId, amount } = req.body;
-
-    if (!planId || !userId || !amount) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    if(process.env.NODE_ENV!=="production")console.log(`💳 Creating payment intent: Plan=${planId}, User=${userId}, Amount=$${amount/100}`);
-
-    // In production, use real Stripe API:
-    // const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-    // const paymentIntent = await stripe.paymentIntents.create({
-    //   amount: amount,
-    //   currency: 'usd',
-    //   metadata: { planId, userId }
-    // });
-
-    // Mock response for development
-    const mockPaymentIntent = {
-      id: `pi_mock_${Date.now()}`,
-      clientSecret: `pi_mock_secret_${Date.now()}`,
-      amount: amount,
-      currency: 'usd',
-      status: 'succeeded',
-      success: true
-    };
-
-    if(process.env.NODE_ENV!=="production")console.log('✅ Payment intent created (mock)');
-
-    res.json(mockPaymentIntent);
-  } catch (error) {
-    if(process.env.NODE_ENV!=="production")console.error('❌ Payment intent creation error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+// Mock /api/create-payment-intent removed — use /api/stripe/create-checkout for real payments
 
 // NOTE: Stripe webhook is implemented earlier in this file with proper signature verification.
 // Do not re-register the same route here, as it can cause body parsing/signature issues.

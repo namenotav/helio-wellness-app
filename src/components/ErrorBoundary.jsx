@@ -60,7 +60,7 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary-container">
+        <div className="error-boundary-container" role="alert">
           <div className="error-boundary-content">
             <div className="error-icon">⚠️</div>
             <h2>Oops! Something went wrong</h2>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, serverTimestamp, getDoc, getDocs } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '../config/firebase';
+import { showToast } from '../components/Toast';
 import './AdminSupportDashboard.css';
 
 const AdminSupportDashboard = () => {
@@ -131,7 +132,7 @@ const AdminSupportDashboard = () => {
     
     if (!auth.currentUser) {
       console.error('❌ [ADMIN REPLY] No authenticated user! Auth state lost.');
-      alert('Authentication expired. Please refresh and login again.');
+      showToast('Authentication expired. Please refresh and login again.', 'error');
       setIsSubmitting(false);
       setIsAuthenticated(false);
       return;
@@ -143,7 +144,7 @@ const AdminSupportDashboard = () => {
       // Check if document exists before updating
       const ticketSnap = await getDoc(ticketRef);
       if (!ticketSnap.exists()) {
-        alert('This ticket no longer exists. It may have been deleted. Refreshing ticket list...');
+        showToast('Ticket no longer exists. Refreshing list...', 'warning');
         // Refresh tickets list
         const ticketsRef = collection(db, 'support_tickets');
         const q = query(ticketsRef, orderBy('createdAt', 'desc'));
@@ -187,16 +188,17 @@ const AdminSupportDashboard = () => {
           subject: selectedTicket.subject,
           replyMessage: replyMessage.trim(),
           adminName: adminName
-        })
+        }),
+        signal: AbortSignal.timeout(10000)
       }).catch(err => console.warn('Email notification failed (non-critical):', err));
 
       setReplyMessage('');
-      alert('Reply sent successfully!');
+      showToast('Reply sent successfully!', 'success');
     } catch (error) {
       console.error('❌ [ADMIN REPLY] Error sending reply:', error);
       console.error('❌ [ADMIN REPLY] Error code:', error.code);
       console.error('❌ [ADMIN REPLY] Error message:', error.message);
-      alert(`Failed to send reply: ${error.message}`);
+      showToast(`Failed to send reply: ${error.message}`, 'error');
     } finally {
       setIsSubmitting(false);
     }

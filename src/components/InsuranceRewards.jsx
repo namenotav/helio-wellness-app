@@ -1,5 +1,6 @@
 // Insurance Rewards Component - Premium Discounts
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import './InsuranceRewards.css';
 import insuranceService from '../services/insuranceService';
 
@@ -32,9 +33,9 @@ export default function InsuranceRewards({ onClose }) {
     setApplying(true);
     try {
       const result = await insuranceService.applyForDiscount(selectedPartner);
-      alert(`✅ Application Submitted!\n\nApplication ID: ${result.applicationId}\n\nEstimated Savings:\n$${result.estimatedSavings.monthly}/month\n$${result.estimatedSavings.yearly}/year\n\nYou'll receive an email with next steps within 2-3 business days.`);
+      showToast(`Application submitted! ID: ${result.applicationId}`, 'success');
     } catch (error) {
-      alert('Failed to apply: ' + error.message);
+      showToast('Failed to apply: ' + error.message, 'error');
     }
     setApplying(false);
   };

@@ -20,8 +20,8 @@ const PaywallModal = ({ isOpen, onClose, featureName, message, currentPlan }) =>
 
   return (
     <div className="paywall-overlay" onClick={onClose}>
-      <div className="paywall-modal-new" onClick={(e) => e.stopPropagation()}>
-        <button className="paywall-close" onClick={onClose}>✕</button>
+      <div className="paywall-modal-new" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <button className="paywall-close" onClick={onClose} aria-label="Close paywall modal">✕</button>
 
         <div className="paywall-header">
           <div className="paywall-icon">🔒</div>

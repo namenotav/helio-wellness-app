@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import './AvatarGenerator.css';
 
@@ -60,7 +61,7 @@ const AvatarGenerator = ({ user, userData, planType }) => {
 
   const generateAvatar = async () => {
     if (!canUpdate()) {
-      alert(`You can update avatar once per week on Starter plan. Next update in ${daysUntilUpdate} days. Upgrade to Premium for unlimited updates!`);
+      showToast(`Avatar updates weekly on Starter. Next in ${daysUntilUpdate} days.`, 'warning');
       return;
     }
 
@@ -149,7 +150,7 @@ const AvatarGenerator = ({ user, userData, planType }) => {
 
     } catch (error) {
       console.error('Error generating avatar:', error);
-      alert('Failed to generate avatar. Please try again.');
+      showToast('Failed to generate avatar. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

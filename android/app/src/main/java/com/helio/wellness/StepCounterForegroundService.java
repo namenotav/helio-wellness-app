@@ -134,6 +134,69 @@ public class StepCounterForegroundService extends Service implements SensorEvent
                 
                 android.util.Log.d("StepService", "📊 Previous count: " + currentStepCount);
                 
+                // 🔥 FIX: Save PREVIOUS day's steps to stepHistory BEFORE resetting
+                // This ensures steps are never lost even if the app wasn't opened that day
+                if (!savedDate.isEmpty() && savedStepCount > 0 && savedStepCount <= 40000) {
+                    try {
+                        SharedPreferences capacitorPrefs = getSharedPreferences("CapacitorStorage", MODE_PRIVATE);
+                        String historyJson = capacitorPrefs.getString("wellnessai_stepHistory", "[]");
+                        
+                        // Parse existing history
+                        org.json.JSONArray historyArray;
+                        try {
+                            historyArray = new org.json.JSONArray(historyJson);
+                        } catch (org.json.JSONException e) {
+                            historyArray = new org.json.JSONArray();
+                        }
+                        
+                        // Check if previous date already exists in history
+                        boolean found = false;
+                        for (int i = 0; i < historyArray.length(); i++) {
+                            org.json.JSONObject entry = historyArray.getJSONObject(i);
+                            if (savedDate.equals(entry.optString("date", ""))) {
+                                // Update existing entry with final step count
+                                entry.put("steps", savedStepCount);
+                                entry.put("timestamp", System.currentTimeMillis());
+                                found = true;
+                                android.util.Log.d("StepService", "📊 Updated stepHistory for " + savedDate + ": " + savedStepCount + " steps");
+                                break;
+                            }
+                        }
+                        
+                        if (!found) {
+                            // Add new entry for previous day
+                            org.json.JSONObject newEntry = new org.json.JSONObject();
+                            newEntry.put("date", savedDate);
+                            newEntry.put("steps", savedStepCount);
+                            newEntry.put("timestamp", System.currentTimeMillis());
+                            historyArray.put(newEntry);
+                            android.util.Log.d("StepService", "📊 Added stepHistory for " + savedDate + ": " + savedStepCount + " steps");
+                        }
+                        
+                        // Sort by date descending and keep only last 30 days
+                        // Simple approach: convert to list, sort, trim
+                        java.util.List<org.json.JSONObject> list = new java.util.ArrayList<>();
+                        for (int i = 0; i < historyArray.length(); i++) {
+                            list.add(historyArray.getJSONObject(i));
+                        }
+                        list.sort((a, b) -> b.optString("date", "").compareTo(a.optString("date", "")));
+                        if (list.size() > 30) {
+                            list = list.subList(0, 30);
+                        }
+                        
+                        org.json.JSONArray trimmedArray = new org.json.JSONArray();
+                        for (org.json.JSONObject obj : list) {
+                            trimmedArray.put(obj);
+                        }
+                        
+                        capacitorPrefs.edit().putString("wellnessai_stepHistory", trimmedArray.toString()).apply();
+                        android.util.Log.d("StepService", "✅ Step history saved to CapacitorStorage (" + trimmedArray.length() + " entries)");
+                        
+                    } catch (Exception e) {
+                        android.util.Log.e("StepService", "❌ Failed to save step history", e);
+                    }
+                }
+                
                 // Reset all counters for new day
                 initialStepCount = totalSteps;
                 currentStepCount = 0;

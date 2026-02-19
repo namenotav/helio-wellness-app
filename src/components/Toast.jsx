@@ -54,7 +54,7 @@ export default function Toast() {
   };
 
   return (
-    <div className="toast-container">
+    <div className="toast-container" role="alert" aria-live="polite">
       {toasts.map(toast => (
         <div 
           key={toast.id} 

@@ -264,6 +264,14 @@ class SocialLoginService {
       localStorage.removeItem('social_login_provider');
       localStorage.removeItem('social_login_token');
       
+      // Also clean secure storage
+      try {
+        const { Preferences } = await import('@capacitor/preferences');
+        await Preferences.remove({ key: 'social_login_provider' });
+        await Preferences.remove({ key: 'social_login_token' });
+        await Preferences.remove({ key: 'social_login_data' });
+      } catch (e) { /* cleanup only */ }
+      
       console.log(`✅ Signed out from ${provider}`);
       return { success: true };
     } catch (error) {
@@ -309,8 +317,8 @@ class SocialLoginService {
   /**
    * Check if user is signed in via social
    */
-  isSocialSignedIn() {
-    return !!this.getSocialSession();
+  async isSocialSignedIn() {
+    return !!(await this.getSocialSession());
   }
 }
 

@@ -1,5 +1,6 @@
 // AR Scanner Component - Augmented Reality Food Overlay
 import { useState } from 'react';
+import { showToast } from './Toast';
 import './ARScanner.css';
 import arScannerService from '../services/arScannerService';
 import subscriptionService from '../services/subscriptionService';
@@ -21,7 +22,7 @@ export default function ARScanner({ onClose }) {
     // Check usage limit
     const limitCheck = subscriptionService.checkLimit('arScans');
     if (!limitCheck.allowed) {
-      alert(limitCheck.message);
+      showToast(limitCheck.message, 'warning');
       setShowPaywall(true);
       return;
     }
@@ -53,7 +54,13 @@ export default function ARScanner({ onClose }) {
       // Read from Preferences first, fallback to localStorage
       const { Preferences } = await import('@capacitor/preferences');
       const { value: prefsScans } = await Preferences.get({ key: 'wellnessai_ar_scans' });
-      const existingScans = JSON.parse(prefsScans || localStorage.getItem('ar_scans') || '[]');
+      let existingScans = [];
+      try {
+        const stored = JSON.parse(prefsScans || localStorage.getItem('ar_scans') || '[]');
+        existingScans = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        existingScans = [];
+      }
       existingScans.push(scanResult);
       
       // Write to both storages
@@ -68,7 +75,7 @@ export default function ARScanner({ onClose }) {
       if(import.meta.env.DEV)console.log('📊 AR scan saved to storage');
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ AR scan error:', error);
-      alert('Failed to start AR scan: ' + error.message);
+      showToast('Failed to start AR scan: ' + error.message, 'error');
     }
     setScanning(false);
   };

@@ -312,7 +312,13 @@ class SleepTrackingService {
       };
       
       // Load existing sleep log from localStorage
-      const sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]');
+      let sleepLog = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('sleepLog') || '[]');
+        sleepLog = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        sleepLog = [];
+      }
       sleepLog.push(sleepEntry);
       
       // ✅ FIX: Save to 'sleepLog' (correct key) instead of 'sleep_history'

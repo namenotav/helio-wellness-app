@@ -2,6 +2,8 @@
 // Handles user plan, feature access, and paywalls
 // "Full Taste" Strategy: Free users can taste ALL features with daily limits
 
+import productionLogger from './productionLogger';
+
 class SubscriptionService {
   constructor() {
     this.plans = {
@@ -244,7 +246,8 @@ class SubscriptionService {
       const API_URL = import.meta.env.VITE_API_URL || 'https://helio-wellness-app-production.up.railway.app';
       try {
         const response = await fetch(`${API_URL}/api/subscription/status/${userId}`, {
-          timeout: 5000 // 5 second timeout to prevent hanging
+          timeout: 5000, // 5 second timeout to prevent hanging
+          signal: AbortSignal.timeout(10000)
         });
         
         if (!response.ok) {
@@ -259,12 +262,14 @@ class SubscriptionService {
           localStorage.setItem('subscription_status', data.status);
           localStorage.setItem('subscription_period_end', data.currentPeriodEnd);
           localStorage.setItem('subscription_verified', 'true');
+          productionLogger.action('subscription_verified', { plan: data.plan, status: data.status });
           if(import.meta.env.DEV) console.log(`✅ Subscription verified: ${data.plan} (${data.status})`);
         } else {
           // Subscription expired or inactive - downgrade to free
           localStorage.setItem('subscription_plan', 'free');
           localStorage.setItem('subscription_status', 'none');
           localStorage.removeItem('subscription_verified');
+          productionLogger.action('subscription_downgraded', { reason: 'expired_or_inactive' });
           if(import.meta.env.DEV) console.log('⚠️ Subscription expired or inactive, downgraded to free');
         }
 
@@ -282,6 +287,7 @@ class SubscriptionService {
     } catch (error) {
       // Final catch-all to prevent any errors from propagating
       console.error('⚠️ Subscription verification error (non-blocking):', error.message);
+      productionLogger.error('Subscription verification failed', error, { userId });
       // Do not rethrow - let app continue
     }
   }
@@ -290,16 +296,7 @@ class SubscriptionService {
   // Returns true for: true, 'unlimited', 'limited', 'viewOnly'
   // 'limited' and 'viewOnly' grant access but components should check limits/viewOnly mode
   hasAccess(featureName) {
-    // Check if developer mode is active
-    try {
-      const devMode = localStorage.getItem('helio_dev_mode') === 'true';
-      if (devMode) {
-        if(import.meta.env.DEV)console.log(`✅ Dev mode: Granting access to ${featureName}`);
-        return true; // Developer mode grants all access
-      }
-    } catch (error) {
-      if(import.meta.env.DEV)console.error('Dev mode check error:', error);
-    }
+    // Dev mode removed for security — use admin dashboard for testing
 
     const plan = this.getCurrentPlan();
     if (!plan || !plan.features) {

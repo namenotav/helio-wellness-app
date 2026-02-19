@@ -3,6 +3,7 @@
 import firebaseService from './firebaseService.js';
 import { Preferences } from '@capacitor/preferences';
 import { getDatabase, ref, get, set } from 'firebase/database';
+import productionLogger from './productionLogger.js';
 
 class SyncService {
   constructor() {
@@ -195,6 +196,7 @@ class SyncService {
         return false;
       }
     } catch (error) {
+      productionLogger.error('Sync service initialization failed', error, { phase: 'initialize' });
       console.error('❌ SYNC SERVICE: Initialization failed:', error);
       return false;
     }
@@ -737,10 +739,12 @@ class SyncService {
       }
       
       console.log(`🎯 SYNC: Aggressive sync complete - ${syncedCount} synced, ${failedCount} failed`);
+      productionLogger.action('sync_complete', { syncedCount, failedCount });
 
       console.log('✅ SYNC: Aggressive full sync complete');
       this.lastSyncTime = new Date().toISOString();
     } catch (error) {
+      productionLogger.error('Sync failed', error, { phase: 'aggressiveSyncAllData' });
       if(import.meta.env.DEV)console.error('❌ Aggressive sync failed:', error);
       // Retry on failure
       this.startAggressiveRetry();
@@ -788,7 +792,8 @@ class SyncService {
             pulledCount++;
           }
         } catch (error) {
-          // Silently continue if key doesn't exist in Firebase
+          // Key doesn't exist in Firebase
+          if(import.meta.env.DEV) console.warn('Sync key missing:', error.message);
         }
       }
 
@@ -894,7 +899,8 @@ class SyncService {
             console.log(`🔒 Restored from Preferences: ${key}`);
           }
         } catch (error) {
-          // Silently continue if key doesn't exist
+          // Key doesn't exist
+          if(import.meta.env.DEV) console.warn('Sync key missing:', error.message);
         }
       }
       console.log(`✅ RESTORATION: Restored ${restoredCount} items from Preferences`);

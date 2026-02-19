@@ -37,4 +37,26 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      // These are optional peer deps of @tensorflow-models/pose-detection
+      // and brain.js. They are dynamically imported at runtime, so safe to skip.
+      external: [
+        '@mediapipe/pose',
+        '@tensorflow/tfjs-backend-webgpu',
+      ],
+      output: {
+        // Map externals to empty modules in case they're referenced
+        globals: {
+          '@mediapipe/pose': 'globalThis',
+          '@tensorflow/tfjs-backend-webgpu': 'globalThis',
+        }
+      }
+    }
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'],
+  },
 })

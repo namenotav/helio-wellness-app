@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { showToast } from './Toast'
 import { usePointsPopup } from './PointsPopup'
 import './ScanTabRedesign.css'
 
@@ -96,7 +97,7 @@ export default function ScanTabRedesign({ onOpenFoodScanner, onOpenARScanner, on
         if (onOpenBarcodeScanner) onOpenBarcodeScanner()
         break
       default:
-        alert(`${option.label} coming soon!`)
+        showToast(`${option.label} coming soon!`, 'info')
     }
   }
 

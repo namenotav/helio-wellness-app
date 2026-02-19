@@ -1,5 +1,6 @@
 // Emergency Alert Component - GPS SOS
 import React, { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import { Preferences } from '@capacitor/preferences';
 import syncService from '../services/syncService';
 import nativeGPSService from '../services/nativeGPSService';
@@ -56,11 +57,11 @@ const EmergencyAlert = ({ onClose }) => {
       setAlertHistory(updatedHistory);
 
       // In production, send SMS to emergency contacts
-      alert('Emergency alert sent! Location shared with emergency contacts.');
+      showToast('Emergency alert sent! Location shared.', 'success');
 
     } catch (error) {
       console.error('Emergency alert failed:', error);
-      alert('Failed to send emergency alert');
+      showToast('Failed to send emergency alert', 'error');
     } finally {
       setIsTriggering(false);
     }

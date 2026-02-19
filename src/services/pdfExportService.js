@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
+import { showToast } from '../components/Toast';
 
 class PDFExportService {
   // Helper to save PDF on mobile devices
@@ -29,14 +30,14 @@ class PDFExportService {
           dialogTitle: 'Share your report'
         });
         
-        alert('✅ PDF ready to share!');
+        showToast('PDF ready to share!', 'success');
       } else {
         // Browser - use normal download
         doc.save(filename);
       }
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ PDF save error:', error);
-      alert('Failed to save PDF: ' + error.message);
+      showToast('Failed to save PDF: ' + error.message, 'error');
     }
   }
 
@@ -534,7 +535,7 @@ class PDFExportService {
       const today = new Date().toLocaleDateString().replace(/\//g, '-');
       
       if (workoutHistory.length === 0) {
-        alert('No workout data to export');
+        showToast('No workout data to export', 'warning');
         return;
       }
       
@@ -571,7 +572,7 @@ class PDFExportService {
           dialogTitle: 'Share workout data'
         });
         
-        alert('✅ CSV ready to share!');
+        showToast('CSV ready to share!', 'success');
       } else {
         // Browser download
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -582,7 +583,7 @@ class PDFExportService {
       }
     } catch (error) {
       console.error('❌ CSV export error:', error);
-      alert('Failed to export CSV: ' + error.message);
+      showToast('Failed to export CSV: ' + error.message, 'error');
     }
   }
 
@@ -601,7 +602,7 @@ class PDFExportService {
       }).sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
       
       if (recentFoods.length === 0) {
-        alert('No food data to export');
+        showToast('No food data to export', 'warning');
         return;
       }
       
@@ -639,7 +640,7 @@ class PDFExportService {
           dialogTitle: 'Share nutrition data'
         });
         
-        alert('✅ CSV ready to share!');
+        showToast('CSV ready to share!', 'success');
       } else {
         // Browser download
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -650,7 +651,7 @@ class PDFExportService {
       }
     } catch (error) {
       console.error('❌ CSV export error:', error);
-      alert('Failed to export CSV: ' + error.message);
+      showToast('Failed to export CSV: ' + error.message, 'error');
     }
   }
 }

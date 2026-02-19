@@ -12,6 +12,7 @@ import authService from '../services/authService';
 import gamificationService from '../services/gamificationService';
 import subscriptionService from '../services/subscriptionService';
 import usageTrackingService from '../services/usageTrackingService';
+import { showToast } from './Toast';
 import './RepCounter.css';
 
 const RepCounter = ({ onClose, onWorkoutComplete, onShowPaywall }) => {
@@ -161,7 +162,7 @@ const RepCounter = ({ onClose, onWorkoutComplete, onShowPaywall }) => {
   const startTracking = async () => {
     try {
       if (!Capacitor.isNativePlatform()) {
-        alert('Rep counting requires native mobile device with motion sensors');
+        showToast('Rep counting requires a native mobile device', 'warning');
         return;
       }
 
@@ -176,7 +177,7 @@ const RepCounter = ({ onClose, onWorkoutComplete, onShowPaywall }) => {
           const paywallData = usageTrackingService.getLimitPaywall('workoutVideos');
           onShowPaywall(paywallData);
         } else {
-          alert('Workout limit reached for today. Upgrade to Starter for unlimited workouts!');
+          showToast('Workout limit reached. Upgrade for unlimited workouts!', 'warning');
         }
         return;
       }
@@ -253,7 +254,7 @@ const RepCounter = ({ onClose, onWorkoutComplete, onShowPaywall }) => {
 
     } catch (error) {
       if(import.meta.env.DEV)console.error('Failed to start tracking:', error);
-      alert('Failed to start rep counting: ' + error.message);
+      showToast('Failed to start rep counting: ' + error.message, 'error');
     }
   };
 

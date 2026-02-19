@@ -1,6 +1,8 @@
 // Stripe Payment Service - Server-side checkout with subscription verification
 
 import { auth } from '../config/firebase';
+import { showToast } from '../components/Toast';
+import productionLogger from './productionLogger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://helio-wellness-app-production.up.railway.app';
 
@@ -12,27 +14,18 @@ async function createCheckoutSession(priceId, plan) {
       throw new Error('User must be logged in to subscribe');
     }
 
-    // Fetch CSRF token for security
-    console.log('🔒 Fetching CSRF token...');
-    const csrfResponse = await fetch(`${API_URL}/api/csrf-token`);
-    if (!csrfResponse.ok) {
-      throw new Error('Failed to get security token. Please check your connection.');
-    }
-    const { csrfToken } = await csrfResponse.json();
-    console.log('✅ CSRF token received');
-
-    // Create checkout session with CSRF token
+    // Create checkout session
     const response = await fetch(`${API_URL}/api/stripe/create-checkout`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-csrf-token': csrfToken
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         userId: user.uid,
         priceId: priceId,
         plan: plan
       }),
+      signal: AbortSignal.timeout(15000)
     });
 
     if (!response.ok) {
@@ -41,10 +34,12 @@ async function createCheckoutSession(priceId, plan) {
     }
 
     const data = await response.json();
+    productionLogger.action('checkout_initiated', { plan, priceId });
     window.location.href = data.url;
   } catch (error) {
     console.error('❌ Error creating checkout:', error);
-    alert('Failed to start checkout. Please try again.\n\n' + error.message);
+    productionLogger.error('Checkout failed', error, { plan, priceId });
+    showToast('Failed to start checkout. Please try again. ' + error.message, 'error');
   }
 }
 

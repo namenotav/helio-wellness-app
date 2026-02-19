@@ -4,6 +4,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
+import { showToast } from '../components/Toast';
 import authService from './authService';
 import { getCurrentPosition, startGPSTracking, stopGPSTracking } from './nativeGPSService';
 import motionListenerService from './motionListenerService.js';
@@ -84,7 +85,7 @@ class EmergencyService {
       });
     } catch (error) {
       if(import.meta.env.DEV)console.error('GPS tracking failed:', error);
-      alert('⚠️ Unable to access GPS. Emergency location sharing may be limited.');
+      showToast('Unable to access GPS. Emergency location sharing may be limited.', 'warning');
     }
     
     // Check health metrics every 5 minutes
@@ -378,7 +379,13 @@ class EmergencyService {
       location: medicalData.location
     };
     
-    const history = JSON.parse(localStorage.getItem('emergencyHistory') || '[]');
+    let history = [];
+    try {
+      const stored = JSON.parse(localStorage.getItem('emergencyHistory') || '[]');
+      history = Array.isArray(stored) ? stored : [];
+    } catch (e) {
+      history = [];
+    }
     history.push(emergencyRecord);
     localStorage.setItem('emergencyHistory', JSON.stringify(history));
     
@@ -439,7 +446,8 @@ class EmergencyService {
         {
           headers: {
             'User-Agent': 'WellnessAI-EmergencyApp/1.0'
-          }
+          },
+          signal: AbortSignal.timeout(10000)
         }
       );
       const data = await response.json();
@@ -691,7 +699,7 @@ class EmergencyService {
       return { success: true };
     } catch (error) {
       if(import.meta.env.DEV)console.error('Fall detection error:', error);
-      alert('⚠️ Fall detection requires motion sensor access');
+      showToast('Fall detection requires motion sensor access', 'warning');
       return { success: false, error };
     }
   }
@@ -757,7 +765,7 @@ class EmergencyService {
   async callPrimaryContact() {
     const primaryContact = this.emergencyContacts.find(c => c.primary);
     if (!primaryContact) {
-      alert('⚠️ No primary emergency contact set. Please add one in settings.');
+      showToast('No primary emergency contact set. Please add one in settings.', 'warning');
       return;
     }
     
@@ -767,11 +775,11 @@ class EmergencyService {
         if(import.meta.env.DEV)console.log(`📞 Calling primary contact: ${primaryContact.name} at ${primaryContact.phone}`);
       } else {
         if(import.meta.env.DEV)console.log(`📞 Would call: ${primaryContact.name} at ${primaryContact.phone}`);
-        alert(`📞 Calling ${primaryContact.name} at ${primaryContact.phone}`);
+        showToast(`Calling ${primaryContact.name} at ${primaryContact.phone}`, 'info');
       }
     } catch (error) {
       if(import.meta.env.DEV)console.error('Call error:', error);
-      alert('Failed to place call: ' + error.message);
+      showToast('Failed to place call: ' + error.message, 'error');
     }
   }
 
@@ -783,11 +791,11 @@ class EmergencyService {
         if(import.meta.env.DEV)console.log('📞 Calling 999 emergency services');
       } else {
         if(import.meta.env.DEV)console.log('📞 Would call 999 emergency services');
-        alert('📞 Calling 999');
+        showToast('Calling 999', 'info');
       }
     } catch (error) {
       if(import.meta.env.DEV)console.error('Emergency call error:', error);
-      alert('Failed to place emergency call: ' + error.message);
+      showToast('Failed to place emergency call: ' + error.message, 'error');
     }
   }
 

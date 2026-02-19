@@ -88,7 +88,8 @@ Return as JSON array:
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt })
+          body: JSON.stringify({ message: prompt }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 
@@ -140,7 +141,8 @@ Return as JSON array.`;
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt })
+          body: JSON.stringify({ message: prompt }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 
@@ -191,7 +193,8 @@ Return as JSON array.`;
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt })
+          body: JSON.stringify({ message: prompt }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 
@@ -257,7 +260,8 @@ Return as JSON:
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt })
+          body: JSON.stringify({ message: prompt }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 
@@ -315,7 +319,8 @@ Return as JSON:
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt })
+          body: JSON.stringify({ message: prompt }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 
@@ -360,7 +365,8 @@ Return as JSON array of strings: ["snack1", "snack2", ...]`;
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt })
+          body: JSON.stringify({ message: prompt }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 

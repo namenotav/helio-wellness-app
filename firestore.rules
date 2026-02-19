@@ -1,15 +1,28 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow authenticated users to read/write ONLY their own data
-    // Security Fix: Added exact UID match check
+    // Users can only read/write their own data (must be authenticated)
     match /users/{userId}/data/{dataKey} {
-      allow read, write: if (request.auth != null && request.auth.uid == userId) || userId.matches('device_.*');
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Fallback: Allow device-based IDs for offline-first functionality (no auth required)
+    // Users can only access their own sub-collections
     match /users/{userId}/{document=**} {
-      allow read, write: if userId.matches('device_.*');
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Support tickets: authenticated users can create, admins can read/write
+    match /support_tickets/{ticketId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null && request.auth.uid == 'k1m4yEWtsZdMFOMfwtANij9eugi2';
+    }
+    
+    // Community recipes: authenticated users can read; create own; admin can moderate
+    match /recipes/{recipeId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && 
+        (resource.data.authorUid == request.auth.uid || request.auth.uid == 'k1m4yEWtsZdMFOMfwtANij9eugi2');
     }
     
     // Deny all other access

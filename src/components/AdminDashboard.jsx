@@ -1,8 +1,32 @@
 // Admin Dashboard for Monitoring & Management
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import './AdminDashboard.css';import monitoringService from '../services/monitoringService';
+import { getAuth } from 'firebase/auth';
+
+// Only this Firebase UID can access admin
+const ADMIN_UID = 'k1m4yEWtsZdMFOMfwtANij9eugi2';
 
 export default function AdminDashboard() {
+  const [authorized, setAuthorized] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsub = auth.onAuthStateChanged((user) => {
+      if (user && user.uid === ADMIN_UID) {
+        setAuthorized(true);
+      } else {
+        setAuthorized(false);
+      }
+      setChecking(false);
+    });
+    return () => unsub();
+  }, []);
+
+  if (checking) return <div style={{padding:'2rem',textAlign:'center',color:'#fff'}}>Checking authorization...</div>;
+  if (!authorized) return <div style={{padding:'2rem',textAlign:'center',color:'#ff4444',fontSize:'1.2rem'}}>⛔ Access Denied — Admin only</div>;
+
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeUsers: 0,
@@ -102,7 +126,7 @@ export default function AdminDashboard() {
     
     // In production, call server API
     if(import.meta.env.DEV)console.log('Deleting user:', userId);
-    alert('User deleted (demo mode)');
+    showToast('User deleted (demo mode)', 'info');
   };
 
   const handleExportData = () => {

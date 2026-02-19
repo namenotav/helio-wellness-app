@@ -239,7 +239,7 @@ export default function ProfileSetup({ onComplete }) {
       onComplete();
     } catch (error) {
       if(import.meta.env.DEV)console.error('❌ ERROR saving profile:', error);
-      alert('Error saving profile: ' + error.message + '\n\nPlease try again or contact support.');
+      showToast('Error saving profile: ' + error.message, 'error');
     }
   };
 

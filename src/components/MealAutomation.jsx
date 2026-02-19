@@ -223,69 +223,17 @@ export default function MealAutomation({ onClose }) {
     }
 
     // Coming Soon Alert
-    alert(`🚀 COMING SOON!
-
-🛒 Auto Grocery Delivery
-
-We're partnering with:
-🇬🇧 Tesco | Sainsbury's | Ocado
-🇺🇸 Instacart | Amazon Fresh
-
-Features:
-✅ One-click ordering
-✅ Same-day delivery
-✅ Auto-restock essentials
-✅ Price comparison
-
-📅 Launch: Q1 2026
-
-💡 Your meal plan is ready - you'll be able to order all ingredients with one tap soon!`);
+    showToast('Auto grocery delivery coming soon! Stay tuned.', 'info');
   };
 
   const handleSendToAppliance = async (mealName, applianceType) => {
     // Coming Soon Alert
-    alert(`🔥 COMING SOON!
-
-👨‍🍳 Smart Appliance Control
-
-Supported devices:
-🍟 Air Fryers (Ninja, Cosori)
-🍲 Instant Pots (Smart WiFi)
-🔥 Smart Ovens (June, Samsung)
-🥘 Slow Cookers (Crock-Pot)
-
-How it works:
-✅ Connect via WiFi
-✅ Send recipe wirelessly
-✅ Auto-set temp & time
-✅ Get cooking notifications
-
-📅 Launch: Q2 2026
-
-💡 For now, follow the recipe steps manually for "${mealName}"!`);
+    showToast(`Smart appliance control coming soon! Follow steps manually for "${mealName}".`, 'info');
   };
 
   const handleConnectAppliance = async () => {
     // Coming Soon Alert
-    alert(`🔌 COMING SOON!
-
-⚡ Smart Appliance Pairing
-
-Compatible brands:
-🔥 Ninja Foodi
-🍟 Cosori Smart
-🍲 Instant Pot WiFi
-🔥 Tefal Cook4Me
-
-Setup process:
-1️⃣ Connect appliance to WiFi
-2️⃣ Scan QR code in app
-3️⃣ Authorize WellnessAI
-4️⃣ Start cooking!
-
-📅 Launch: Q2 2026
-
-💡 Stay tuned for wireless cooking control!`);
+    showToast('Smart appliance pairing coming soon!', 'info');
   };
 
   return (
@@ -680,7 +628,7 @@ Setup process:
           <div className="grocery-view">
             <div className="grocery-header">
               <h3>📋 Shopping List</h3>
-              <button className="export-grocery-btn" onClick={() => alert('Grocery list exported!')}>
+              <button className="export-grocery-btn" onClick={() => showToast('Grocery list exported!', 'success')}>
                 📤 Export
               </button>
             </div>

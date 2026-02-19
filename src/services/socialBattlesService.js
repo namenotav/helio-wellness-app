@@ -459,7 +459,7 @@ class SocialBattlesService {
           if(import.meta.env.DEV)console.log('💾 Got steps from stepHistory:', todayEntry.steps);
           return todayEntry.steps;
         }
-      } catch (e) { /* ignore */ }
+      } catch (e) { /* ignore */ if(import.meta.env.DEV) console.warn('Battles cache error:', e); }
       return 0; // Return 0 if no real data available
     }
   }

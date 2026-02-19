@@ -1,7 +1,8 @@
 // Gamification Service - Streaks, XP, Levels, Achievements
 import firestoreService from './firestoreService';
 import authService from './authService';
-import * as brain from 'brain.js';
+// brain.js loaded dynamically to avoid build-time resolution issues
+let brain = null;
 
 const GAMIFICATION_STORAGE_KEY = 'wellnessai_gamification'
 
@@ -115,6 +116,9 @@ class GamificationService {
   // Initialize Brain.js neural network for AI predictions
   async initializeAI() {
     try {
+      if (!brain) {
+        brain = await import('brain.js');
+      }
       this.neuralNetwork = new brain.NeuralNetwork({
         hiddenLayers: [4, 3],
         activation: 'sigmoid'
@@ -123,7 +127,12 @@ class GamificationService {
       // Load training data from storage
       const storedData = localStorage.getItem('ai_training_data');
       if (storedData) {
-        this.trainingData = JSON.parse(storedData);
+        try {
+          const parsed = JSON.parse(storedData);
+          this.trainingData = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          this.trainingData = [];
+        }
         
         // Train network if we have enough data
         if (this.trainingData.length >= 10) {
@@ -280,11 +289,19 @@ class GamificationService {
     
     // 🔄 SYNC COUNTERS: Always recalculate from source of truth (real data arrays)
     try {
-      const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
-      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
-      const waterLog = JSON.parse(localStorage.getItem('waterLog') || '[]');
-      const meditationLog = JSON.parse(localStorage.getItem('meditationLog') || '[]');
-      const stepHistory = JSON.parse(localStorage.getItem('stepHistory') || '[]');
+      const safeParseArray = (key) => {
+        try {
+          const stored = JSON.parse(localStorage.getItem(key) || '[]');
+          return Array.isArray(stored) ? stored : [];
+        } catch (e) {
+          return [];
+        }
+      };
+      const workoutHistory = safeParseArray('workoutHistory');
+      const foodLog = safeParseArray('foodLog');
+      const waterLog = safeParseArray('waterLog');
+      const meditationLog = safeParseArray('meditationLog');
+      const stepHistory = safeParseArray('stepHistory');
       const totalScans = parseInt(localStorage.getItem('total_scans') || '0');
       
       // Update counters to match reality
@@ -313,7 +330,15 @@ class GamificationService {
   // 🔄 Migrate old localStorage keys from ProfileTabRedesign
   async migrateOldData() {
     try {
-      const oldAchievements = JSON.parse(localStorage.getItem('unlocked_achievements') || '[]');
+      const safeParseArray = (key) => {
+        try {
+          const stored = JSON.parse(localStorage.getItem(key) || '[]');
+          return Array.isArray(stored) ? stored : [];
+        } catch (e) {
+          return [];
+        }
+      };
+      const oldAchievements = safeParseArray('unlocked_achievements');
       const oldLevel = parseInt(localStorage.getItem('user_level') || '0');
       const oldXP = parseInt(localStorage.getItem('user_xp') || '0');
       const oldStreak = parseInt(localStorage.getItem('login_streak') || '0');
@@ -321,7 +346,7 @@ class GamificationService {
       const oldMealsLogged = parseInt(localStorage.getItem('meals_logged') || '0');
       
       // 🍽️ Count ACTUAL meals from foodLog array (the real meal storage)
-      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      const foodLog = safeParseArray('foodLog');
       const actualMealCount = foodLog.length;
       
       // Check if any old data exists

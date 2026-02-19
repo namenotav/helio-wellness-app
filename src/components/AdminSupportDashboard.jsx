@@ -1,5 +1,6 @@
 // Admin Support Dashboard - Manage and respond to support tickets
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import { collection, query, orderBy, onSnapshot, updateDoc, doc, arrayUnion, serverTimestamp, getDoc, getDocs } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '../config/firebase';
@@ -15,7 +16,8 @@ const AdminSupportDashboard = () => {
   const [adminName, setAdminName] = useState('Support Team');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Admin authentication - require email/password login
+  // Admin authentication - require email/password login + UID check
+  const ADMIN_UID = 'k1m4yEWtsZdMFOMfwtANij9eugi2';
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +28,7 @@ const AdminSupportDashboard = () => {
     e.preventDefault();
     setLoginError('');
     
-    console.log('🔐 [ADMIN LOGIN] Attempting login with:', email);
+    if(import.meta.env.DEV) console.log('🔐 [ADMIN LOGIN] Attempting login with:', email);
     
     try {
       if (!auth) {
@@ -35,9 +37,17 @@ const AdminSupportDashboard = () => {
         return;
       }
       
-      console.log('🔐 [ADMIN LOGIN] Calling signInWithEmailAndPassword...');
+      if(import.meta.env.DEV) console.log('🔐 [ADMIN LOGIN] Calling signInWithEmailAndPassword...');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('✅ [ADMIN LOGIN] Success!', userCredential.user.email);
+      
+      // UID check: only allow the admin UID
+      if (userCredential.user.uid !== ADMIN_UID) {
+        if(import.meta.env.DEV) console.log('⛔ [ADMIN LOGIN] UID mismatch:', userCredential.user.uid);
+        setLoginError('Access denied — not an admin account');
+        return;
+      }
+      
+      if(import.meta.env.DEV) console.log('✅ [ADMIN LOGIN] Success!', userCredential.user.email);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('❌ [ADMIN LOGIN] Error:', error.code, error.message);
@@ -131,7 +141,7 @@ const AdminSupportDashboard = () => {
     
     if (!auth.currentUser) {
       console.error('❌ [ADMIN REPLY] No authenticated user! Auth state lost.');
-      alert('Authentication expired. Please refresh and login again.');
+      showToast('Authentication expired. Please refresh and login again.', 'warning');
       setIsSubmitting(false);
       setIsAuthenticated(false);
       return;
@@ -143,7 +153,7 @@ const AdminSupportDashboard = () => {
       // Check if document exists before updating
       const ticketSnap = await getDoc(ticketRef);
       if (!ticketSnap.exists()) {
-        alert('This ticket no longer exists. It may have been deleted. Refreshing ticket list...');
+        showToast('Ticket no longer exists. Refreshing list...', 'warning');
         // Refresh tickets list
         const ticketsRef = collection(db, 'support_tickets');
         const q = query(ticketsRef, orderBy('createdAt', 'desc'));
@@ -187,16 +197,17 @@ const AdminSupportDashboard = () => {
           subject: selectedTicket.subject,
           replyMessage: replyMessage.trim(),
           adminName: adminName
-        })
+        }),
+        signal: AbortSignal.timeout(10000)
       }).catch(err => console.warn('Email notification failed (non-critical):', err));
 
       setReplyMessage('');
-      alert('Reply sent successfully!');
+      showToast('Reply sent successfully!', 'success');
     } catch (error) {
       console.error('❌ [ADMIN REPLY] Error sending reply:', error);
       console.error('❌ [ADMIN REPLY] Error code:', error.code);
       console.error('❌ [ADMIN REPLY] Error message:', error.message);
-      alert(`Failed to send reply: ${error.message}`);
+      showToast(`Failed to send reply: ${error.message}`, 'error');
     } finally {
       setIsSubmitting(false);
     }

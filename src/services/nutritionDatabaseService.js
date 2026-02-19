@@ -36,7 +36,8 @@ class NutritionDatabaseService {
           query: query,
           pageSize: pageSize,
           dataType: ['Branded', 'Survey (FNDDS)'].join(',')
-        })
+        }),
+        { signal: AbortSignal.timeout(10000) }
       );
 
       if (!response.ok) {
@@ -105,7 +106,8 @@ class NutritionDatabaseService {
       console.log('📊 Fetching food details:', fdcId);
 
       const response = await fetch(
-        `${this.baseUrl}/food/${fdcId}?api_key=${this.apiKey}`
+        `${this.baseUrl}/food/${fdcId}?api_key=${this.apiKey}`,
+        { signal: AbortSignal.timeout(10000) }
       );
 
       if (!response.ok) {

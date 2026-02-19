@@ -116,7 +116,7 @@ class ElevenLabsVoiceService {
 
     try {
       // Fetch the audio blob
-      const response = await fetch(audioUrl);
+      const response = await fetch(audioUrl, { signal: AbortSignal.timeout(15000) });
       const blob = await response.blob();
       const reader = new FileReader();
 

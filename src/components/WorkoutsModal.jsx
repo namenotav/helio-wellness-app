@@ -1,5 +1,6 @@
 // Workouts Quick Access Modal
 import { useState } from 'react';
+import { showToast } from './Toast';
 import './WorkoutsModal.css';
 
 export default function WorkoutsModal({ isOpen, onClose, onOpenRepCounter, onOpenWorkouts }) {
@@ -37,7 +38,7 @@ export default function WorkoutsModal({ isOpen, onClose, onOpenRepCounter, onOpe
                   option.action();
                   onClose();
                 } else {
-                  alert(`${option.title} coming soon!`);
+                  showToast(`${option.title} coming soon!`, 'info');
                 }
               }}
             >

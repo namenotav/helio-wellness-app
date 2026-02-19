@@ -268,7 +268,13 @@ class BreathingService {
    * Log session to history
    */
   async logSession(patternId, durationMinutes) {
-    const history = JSON.parse(localStorage.getItem('breathing_history') || '[]');
+    let history = [];
+    try {
+      const stored = JSON.parse(localStorage.getItem('breathing_history') || '[]');
+      history = Array.isArray(stored) ? stored : [];
+    } catch (e) {
+      history = [];
+    }
     const session = {
       pattern: this.patterns[patternId].name,
       patternId,

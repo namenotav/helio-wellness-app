@@ -1,5 +1,6 @@
 // Emergency Panel Component - 24/7 Health Monitoring
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import './EmergencyPanel.css';
 import emergencyService from '../services/emergencyService';
 import healthMonitoringService from '../services/healthMonitoringService';
@@ -96,7 +97,7 @@ export default function EmergencyPanel({ onClose }) {
       }, 1000);
     } catch (error) {
       if(import.meta.env.DEV)console.error('Toggle monitoring error:', error);
-      alert('⚠️ Error: ' + error.message);
+      showToast('Error: ' + error.message, 'warning');
     }
   };
 
@@ -146,11 +147,11 @@ export default function EmergencyPanel({ onClose }) {
     try {
       await emergencyService.triggerManualEmergency();
       setPlayingAlarm(false);
-      alert('🚨 Emergency protocol activated!\n• Calling 999\n• Contacts notified\n• Location shared');
+      showToast('Emergency protocol activated! Calling 999, contacts notified.', 'success');
     } catch (error) {
       setPlayingAlarm(false);
       emergencyService.stopEmergencyAlarm();
-      alert('Failed to trigger emergency: ' + error.message);
+      showToast('Failed to trigger emergency: ' + error.message, 'error');
     }
     setTriggeringEmergency(false);
   };
@@ -176,7 +177,7 @@ export default function EmergencyPanel({ onClose }) {
         : error.message.includes('timeout')
         ? 'GPS timeout. Make sure location services are enabled and try again.'
         : 'Failed to get location: ' + error.message;
-      alert(errorMsg);
+      showToast(errorMsg, 'error');
     }
     setSharingLocation(false);
   };
@@ -267,7 +268,7 @@ export default function EmergencyPanel({ onClose }) {
                   }
                 } catch (error) {
                   console.error('Health monitoring toggle error:', error);
-                  alert('⚠️ Error: ' + error.message);
+                  showToast('Error: ' + error.message, 'warning');
                 }
               }}
             >

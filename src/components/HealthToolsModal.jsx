@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { showToast } from './Toast'
 import './HealthToolsModal.css'
 
 // Import sub-modals (will be lazy loaded in NewDashboard)
@@ -63,7 +64,7 @@ const HealthToolsModal = ({ onClose, onOpenHealthAvatar, onOpenARScanner, onOpen
           </button>
 
           <button className="health-tool-card premium" onClick={() => {
-            alert('🚧 Coming Soon!\n\nBody Scanner feature is currently under development. Stay tuned!');
+            showToast('Body Scanner coming soon! Stay tuned.', 'info');
           }}>
             <div className="tool-icon">📱</div>
             <h3>Body Scanner</h3>

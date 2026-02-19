@@ -90,7 +90,8 @@ class ElevenLabsService {
             style: voice.style,
             use_speaker_boost: voice.useSpeakerBoost
           }
-        })
+        }),
+        signal: AbortSignal.timeout(15000)
       });
 
       if (!response.ok) {

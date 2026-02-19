@@ -129,7 +129,8 @@ class SupportTicketService {
           priority: ticket.priority,
           planTier: ticket.planTier,
           slaHours: ticket.slaHours
-        })
+        }),
+        signal: AbortSignal.timeout(10000)
       });
 
       if (!response.ok) {
@@ -284,7 +285,13 @@ class SupportTicketService {
   saveTicketLocally(ticket) {
     try {
       // localStorage FIRST (instant)
-      const tickets = JSON.parse(localStorage.getItem(this.localStorageKey) || '[]');
+      let tickets = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem(this.localStorageKey) || '[]');
+        tickets = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        tickets = [];
+      }
       tickets.push(ticket);
       localStorage.setItem(this.localStorageKey, JSON.stringify(tickets));
       

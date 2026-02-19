@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import './ExerciseDetailModal.css';
 import '../styles/exerciseAnimations.css';
 
@@ -50,11 +51,11 @@ export default function ExerciseDetailModal({ exercise, onClose }) {
       });
       
       // Show success
-      alert(`✅ Logged ${cleanName}! +${exercise.calories * parseInt(sets)} calories`);
+      showToast(`Logged ${cleanName}! +${exercise.calories * parseInt(sets)} cal`, 'success');
       onClose();
     } catch (error) {
       console.error('Failed to log workout:', error);
-      alert('❌ Failed to log workout');
+      showToast('Failed to log workout', 'error');
     } finally {
       setIsLogging(false);
     }

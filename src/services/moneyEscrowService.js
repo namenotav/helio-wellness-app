@@ -85,7 +85,8 @@ class MoneyEscrowService {
           amount: Math.round(amount * 100), // Convert to cents
           userId: user.uid,
           participants
-        })
+        }),
+        signal: AbortSignal.timeout(15000)
       });
 
       if (!response.ok) {
@@ -180,7 +181,8 @@ class MoneyEscrowService {
           battleId,
           winnerId,
           amount: escrow.amount
-        })
+        }),
+        signal: AbortSignal.timeout(15000)
       });
 
       if (!response.ok) {
@@ -243,7 +245,8 @@ class MoneyEscrowService {
           escrowId: escrow.escrowId,
           paymentIntentId: escrow.paymentIntentId,
           reason
-        })
+        }),
+        signal: AbortSignal.timeout(15000)
       });
 
       if (!response.ok) {
@@ -294,7 +297,8 @@ class MoneyEscrowService {
           email: user.email,
           returnUrl: `${window.location.origin}/dashboard?connect=success`,
           refreshUrl: `${window.location.origin}/dashboard?connect=refresh`
-        })
+        }),
+        signal: AbortSignal.timeout(15000)
       });
 
       if (!response.ok) {

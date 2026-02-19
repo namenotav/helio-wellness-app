@@ -23,7 +23,7 @@ class USDAService {
         api_key: USDA_API_KEY
       });
 
-      const response = await fetch(`${USDA_BASE_URL}/foods/search?${params}`);
+      const response = await fetch(`${USDA_BASE_URL}/foods/search?${params}`, { signal: AbortSignal.timeout(10000) });
       
       if (!response.ok) {
         throw new Error(`USDA API error: ${response.status}`);
@@ -62,7 +62,7 @@ class USDAService {
    */
   async getFoodDetails(fdcId) {
     try {
-      const response = await fetch(`${USDA_BASE_URL}/food/${fdcId}?api_key=${USDA_API_KEY}`);
+      const response = await fetch(`${USDA_BASE_URL}/food/${fdcId}?api_key=${USDA_API_KEY}`, { signal: AbortSignal.timeout(10000) });
       
       if (!response.ok) {
         throw new Error(`USDA API error: ${response.status}`);
@@ -179,7 +179,8 @@ class USDAService {
         },
         body: JSON.stringify({
           fdcIds: fdcIds.slice(0, 20) // Limit to 20 foods per batch
-        })
+        }),
+        signal: AbortSignal.timeout(10000)
       });
 
       if (!response.ok) {

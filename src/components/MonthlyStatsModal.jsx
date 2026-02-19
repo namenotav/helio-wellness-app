@@ -1,6 +1,7 @@
 // Monthly Stats Modal - Show 30-day totals and trends
 // 🔥 FIX: Use Firestore + Preferences as single source of truth
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import './MonthlyStatsModal.css';
 import authService from '../services/authService';
 import firestoreService from '../services/firestoreService';
@@ -347,13 +348,13 @@ export default function MonthlyStatsModal({ onClose }) {
           url: result.uri,
           dialogTitle: 'Share monthly report'
         });
-        alert('✅ Monthly report ready to share!');
+        showToast('Monthly report ready to share!', 'success');
       } else {
         doc.save(`helio-monthly-${timestamp}.pdf`);
       }
     } catch (error) {
       console.error('Failed to export monthly report:', error);
-      alert('Export failed: ' + error.message);
+      showToast('Export failed: ' + error.message, 'error');
     }
   };
 

@@ -1,5 +1,6 @@
 // DNA Upload Component - Genetic Personalization
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import './DNAUpload.css';
 import dnaService from '../services/dnaService';
 import subscriptionService from '../services/subscriptionService';
@@ -57,7 +58,7 @@ export default function DNAUpload({ onClose }) {
       
       reader.onerror = (error) => {
         if(import.meta.env.DEV)console.error('FileReader error:', error);
-        alert('Failed to read file: ' + error);
+        showToast('Failed to read file: ' + error, 'error');
         setUploading(false);
       };
       
@@ -83,15 +84,15 @@ export default function DNAUpload({ onClose }) {
             if(import.meta.env.DEV)console.log('Analysis complete:', analysisData);
             setAnalysis(analysisData);
             
-            alert(`✅ DNA Analysis Complete!\n${result.traitsFound || 0} genetic markers analyzed`);
+            showToast(`DNA analysis complete! ${result.traitsFound || 0} markers analyzed`, 'success');
           } else {
-            alert('❌ Failed to parse DNA file: ' + (result.error || 'Unknown error'));
+            showToast('Failed to parse DNA file: ' + (result.error || 'Unknown error'), 'error');
           }
           
           setUploading(false);
         } catch (error) {
           if(import.meta.env.DEV)console.error('DNA processing error:', error);
-          alert('Failed to process DNA data: ' + error.message);
+          showToast('Failed to process DNA data: ' + error.message, 'error');
           setUploading(false);
         }
       };
@@ -99,7 +100,7 @@ export default function DNAUpload({ onClose }) {
       reader.readAsText(file);
     } catch (error) {
       if(import.meta.env.DEV)console.error('DNA upload error:', error);
-      alert('Failed to upload DNA data: ' + error.message);
+      showToast('Failed to upload DNA data: ' + error.message, 'error');
       setUploading(false);
     }
   };
@@ -114,7 +115,7 @@ export default function DNAUpload({ onClose }) {
   const handleConfirmReplace = async () => {
     // Verify both consents are checked
     if (!replaceConsent1 || !replaceConsent2) {
-      alert('❌ You must accept both statements to proceed');
+      showToast('You must accept both statements to proceed', 'error');
       return;
     }
 
@@ -122,7 +123,7 @@ export default function DNAUpload({ onClose }) {
       // Clear existing DNA data
       const result = await dnaService.clearDNAData();
       if (!result.success) {
-        alert('⚠️ Error clearing previous DNA data: ' + result.error);
+        showToast('Error clearing previous DNA data: ' + result.error, 'warning');
         return;
       }
 
@@ -137,14 +138,14 @@ export default function DNAUpload({ onClose }) {
       document.getElementById('dna-file-input')?.click();
     } catch (error) {
       if(import.meta.env.DEV)console.error('Error during replacement:', error);
-      alert('❌ Error preparing for new upload: ' + error.message);
+      showToast('Error preparing for new upload: ' + error.message, 'error');
     }
   };
 
   const handleExportResults = () => {
     const report = dnaService.getFullDNAReport();
     if (!report) {
-      alert('No DNA data to export');
+      showToast('No DNA data to export', 'warning');
       return;
     }
 
@@ -164,7 +165,7 @@ export default function DNAUpload({ onClose }) {
     a.click();
     URL.revokeObjectURL(url);
     
-    alert('✅ DNA results saved to Downloads!');
+    showToast('DNA results saved to Downloads!', 'success');
   };
 
   return (

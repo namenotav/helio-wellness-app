@@ -567,7 +567,7 @@ class HeartRateService {
         if (saved) {
           this.heartRateHistory = JSON.parse(saved);
         }
-      } catch (e) { /* ignore */ }
+      } catch (e) { /* ignore */ if(import.meta.env.DEV) console.warn('Heart rate cleanup:', e); }
     }
   }
 

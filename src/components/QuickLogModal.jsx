@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import { useDashboard } from '../context/DashboardContext';
 import dataService from '../services/dataService'; // 🎯 SINGLE SOURCE OF TRUTH
 import './QuickLogModal.css';
@@ -69,7 +70,7 @@ export default function QuickLogModal({ isOpen, onClose }) {
       }
     } else {
       console.log('⚠️ [QuickLog] No water entry to undo');
-      alert('No water entries found to undo for today.');
+      showToast('No water entries found to undo for today.', 'warning');
       
       // Reset button
       if(btn) {

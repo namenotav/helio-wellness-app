@@ -69,7 +69,8 @@ class AIVisionService {
               prompt: prompt,
               imageData: imageBase64
             }),
-            mode: 'cors'
+            mode: 'cors',
+            signal: AbortSignal.timeout(30000)
           }
         );
 
@@ -430,7 +431,8 @@ Look for Halal logos: JAKIM, MUI, HFA, IFANCA, Islamic symbols
               prompt: prompt,
               imageData: imageBase64
             }),
-            mode: 'cors'
+            mode: 'cors',
+            signal: AbortSignal.timeout(30000)
           }
         );
 
@@ -533,7 +535,8 @@ Return as JSON with same format as food analysis.`;
               prompt: prompt,
               imageData: imageBase64
             }),
-            mode: 'cors'
+            mode: 'cors',
+            signal: AbortSignal.timeout(30000)
           }
         );
 
@@ -620,8 +623,14 @@ Return as JSON with same format as food analysis.`;
         date: new Date().toISOString().split('T')[0]
       };
 
-      // Save to localStorage
-      const existing = JSON.parse(localStorage.getItem('foodScans') || '[]');
+      // Save to localStorage - defensive check to prevent crash if data is corrupted
+      let existing = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('foodScans') || '[]');
+        existing = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        existing = [];
+      }
       existing.push(scanData);
       localStorage.setItem('foodScans', JSON.stringify(existing));
 

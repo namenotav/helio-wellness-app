@@ -2,6 +2,7 @@
 // Catch and log all errors before users see them
 
 import ENV from '../config/environment'
+import { showToast } from '../components/Toast'
 
 class ErrorHandler {
   constructor() {
@@ -87,10 +88,10 @@ class ErrorHandler {
       
       if (!ENV.isProduction()) {
         // Development: Show detailed error
-        alert(`🐛 Error: ${error.message}\n\nCheck console for details`)
+        showToast(`Error: ${error.message} - Check console for details`, 'error')
       } else {
         // Production: Show friendly message
-        alert('Something went wrong. Please try again.')
+        showToast('Something went wrong. Please try again.', 'error')
       }
     }
   }

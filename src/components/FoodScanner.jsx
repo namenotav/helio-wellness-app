@@ -159,7 +159,13 @@ export default function FoodScanner({ onClose, initialMode = null, lockMode = fa
         
         // 🎯 Update recent scans via Preferences (4-system architecture)
         const { value: recentScansVal } = await Preferences.get({ key: 'wellnessai_recent_scans' });
-        const recentScans = JSON.parse(recentScansVal || '[]');
+        let recentScans = [];
+        try {
+          const stored = JSON.parse(recentScansVal || '[]');
+          recentScans = Array.isArray(stored) ? stored : [];
+        } catch (e) {
+          recentScans = [];
+        }
         recentScans.unshift({
           name: analysisResult.analysis.foodName,
           calories: scanCalories,

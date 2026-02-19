@@ -1,5 +1,6 @@
 // Voice Installer - Helps user install premium Google TTS voices
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { showToast } from '../components/Toast';
 
 class VoiceInstaller {
   /**
@@ -65,7 +66,7 @@ The UK English female voice has a warm, gentle, healing quality that will give y
       );
       
       if (shouldOpen) {
-        alert(this.showVoiceInstallationGuide());
+        showToast(this.showVoiceInstallationGuide(), 'info');
       }
     } catch (error) {
       console.error('Error opening TTS settings:', error);

@@ -1,5 +1,6 @@
 // DNA Analysis Component - 23andMe Integration
 import React, { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import { Preferences } from '@capacitor/preferences';
 import syncService from '../services/syncService';
 import gamificationService from '../services/gamificationService';
@@ -65,7 +66,7 @@ const DNAAnalysis = ({ onClose }) => {
       
     } catch (error) {
       console.error('DNA analysis failed:', error);
-      alert('Failed to analyze DNA file');
+      showToast('Failed to analyze DNA file', 'error');
     } finally {
       setIsAnalyzing(false);
     }

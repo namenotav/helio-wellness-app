@@ -1,5 +1,6 @@
 // GDPR/HIPAA Consent Modal
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import './ConsentModal.css';
 
 export default function ConsentModal({ onAccept }) {
@@ -23,7 +24,7 @@ export default function ConsentModal({ onAccept }) {
 
   const handleAccept = () => {
     if (!acceptedTerms || !acceptedPrivacy || !acceptedHealth) {
-      alert('Please accept all required consents to continue');
+      showToast('Please accept all required consents to continue', 'warning');
       return;
     }
 
@@ -48,9 +49,8 @@ export default function ConsentModal({ onAccept }) {
   };
 
   const handleDecline = () => {
-    alert('You must accept the terms to use WellnessAI. The app will close.');
-    // In production, this would close the app or redirect to exit page
-    window.location.href = 'about:blank';
+    // Close modal but don't destroy WebView — user can re-open settings to accept later
+    setShowModal(false);
   };
 
   if (!showModal) {
@@ -59,7 +59,7 @@ export default function ConsentModal({ onAccept }) {
 
   return (
     <div className="consent-overlay">
-      <div className="consent-modal">
+      <div className="consent-modal" role="dialog" aria-modal="true" aria-label="Consent modal">
         <h2>Welcome to WellnessAI</h2>
         <p className="consent-intro">
           Before you begin, please review and accept our terms and policies.
@@ -130,13 +130,14 @@ export default function ConsentModal({ onAccept }) {
         </div>
 
         <div className="consent-buttons">
-          <button onClick={handleDecline} className="decline-btn">
+          <button onClick={handleDecline} className="decline-btn" aria-label="Decline consent">
             Decline
           </button>
           <button 
             onClick={handleAccept} 
             className="accept-btn"
             disabled={!acceptedTerms || !acceptedPrivacy || !acceptedHealth}
+            aria-label="Accept consent and continue"
           >
             Accept & Continue
           </button>

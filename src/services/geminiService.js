@@ -26,7 +26,8 @@ export const chatWithAI = async (userMessage, userContext = {}) => {
         'Accept': 'application/json'
       },
       body: JSON.stringify({ message: contextualPrompt }),
-      mode: 'cors'
+      mode: 'cors',
+      signal: AbortSignal.timeout(30000)
     });
 
     if(import.meta.env.DEV)console.log('📡 Response status:', response.status);

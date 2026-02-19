@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { showToast } from './Toast'
 import { Preferences } from '@capacitor/preferences'
 import gamificationService from '../services/gamificationService'
 
@@ -92,7 +93,7 @@ export default function GratitudeJournalModal({ onClose }) {
     setView('list')
     
     // Show success feedback
-    alert('✨ Gratitude entry saved! +10 XP')
+    showToast('Gratitude entry saved! +10 XP', 'success')
   }
 
   const deleteEntry = async (id) => {

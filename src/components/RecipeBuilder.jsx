@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import './RecipeBuilder.css';
 import { recipeService } from '../services/recipeService';
 import { barcodeScannerService } from '../services/barcodeScannerService';
@@ -116,12 +117,12 @@ export default function RecipeBuilder({ onClose, editingRecipe = null }) {
 
   const handleSave = async () => {
     if (!recipeName.trim()) {
-      alert('Please enter a recipe name');
+      showToast('Please enter a recipe name', 'warning');
       return;
     }
 
     if (ingredients.length === 0) {
-      alert('Please add at least one ingredient');
+      showToast('Please add at least one ingredient', 'warning');
       return;
     }
 
@@ -149,10 +150,10 @@ export default function RecipeBuilder({ onClose, editingRecipe = null }) {
     setSaving(false);
 
     if (result.success) {
-      alert(editingRecipe ? 'Recipe updated!' : 'Recipe created!');
+      showToast(editingRecipe ? 'Recipe updated!' : 'Recipe created!', 'success');
       onClose();
     } else {
-      alert('Failed to save recipe: ' + result.error);
+      showToast('Failed to save recipe: ' + result.error, 'error');
     }
   };
 

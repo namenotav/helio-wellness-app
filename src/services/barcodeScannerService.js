@@ -101,7 +101,8 @@ Return format: Just the barcode number (e.g., "012345678901")`;
             prompt: prompt,
             imageData: imageBase64
           }),
-          mode: 'cors'
+          mode: 'cors',
+          signal: AbortSignal.timeout(10000)
         }
       );
 
@@ -348,7 +349,8 @@ Return format: Just the barcode number (e.g., "012345678901")`;
       if(import.meta.env.DEV)console.log('🔍 Searching OpenFoodFacts for:', query);
       
       const response = await fetch(
-        `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&page=${page}&page_size=25&json=1&fields=product_name,nutriments,serving_size,brands,image_url,code`
+        `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&page=${page}&page_size=25&json=1&fields=product_name,nutriments,serving_size,brands,image_url,code`,
+        { signal: AbortSignal.timeout(10000) }
       );
 
       if (!response.ok) {
@@ -414,7 +416,8 @@ Return format: Just the barcode number (e.g., "012345678901")`;
       }
 
       const response = await fetch(
-        `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=20&api_key=${this.apiKey}`
+        `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=20&api_key=${this.apiKey}`,
+        { signal: AbortSignal.timeout(10000) }
       );
 
       if (!response.ok) {

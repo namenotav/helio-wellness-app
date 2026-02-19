@@ -157,7 +157,8 @@ IMPORTANT: Generate ALL ${days} days. Each day needs breakfast, lunch, and dinne
           'Accept': 'application/json'
         },
         body: JSON.stringify({ message: prompt }),
-        mode: 'cors'
+        mode: 'cors',
+        signal: AbortSignal.timeout(30000)
       });
 
       if (!response.ok) {
@@ -385,7 +386,8 @@ Return ONLY valid JSON with modified days.`;
           'Accept': 'application/json'
         },
         body: JSON.stringify({ message: prompt }),
-        mode: 'cors'
+        mode: 'cors',
+        signal: AbortSignal.timeout(30000)
       });
 
       if (!response.ok) {

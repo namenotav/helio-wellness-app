@@ -1,5 +1,6 @@
 // Human Voice Service - Real calming human voices using ElevenLabs-style audio
 import { Howl } from 'howler';
+import { showToast } from '../components/Toast';
 
 class HumanVoiceService {
   constructor() {
@@ -39,7 +40,7 @@ class HumanVoiceService {
       
       if (!window.speechSynthesis) {
         if(import.meta.env.DEV)console.error('❌❌❌ speechSynthesis NOT SUPPORTED');
-        alert('Speech not supported on this device');
+        showToast('Speech not supported on this device', 'error');
         resolve();
         return;
       }
@@ -54,7 +55,7 @@ class HumanVoiceService {
         
         if (voices.length === 0) {
           if(import.meta.env.DEV)console.error('❌❌❌ NO VOICES AVAILABLE');
-          alert('No voices available on this device');
+          showToast('No voices available on this device', 'error');
           resolve();
           return;
         }
@@ -158,7 +159,7 @@ class HumanVoiceService {
           if(import.meta.env.DEV)console.log('✅✅✅ speak() called successfully');
         } catch (error) {
           if(import.meta.env.DEV)console.error('❌❌❌ Error calling speak():', error);
-          alert('Speech error: ' + error.message);
+          showToast('Speech error: ' + error.message, 'error');
           resolve();
         }
       }, 100);

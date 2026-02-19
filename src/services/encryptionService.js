@@ -13,21 +13,33 @@ class EncryptionService {
    */
   async initialize() {
     try {
-      // Generate or retrieve device-specific key
-      let keyMaterial = localStorage.getItem('__encryption_key__');
+      // Store key in Capacitor Preferences (more secure than localStorage)
+      const { Preferences } = await import('@capacitor/preferences');
+      const { value: keyMaterial } = await Preferences.get({ key: '__encryption_key__' });
       
       if (!keyMaterial) {
-        // First time - generate new key
-        const key = await this.generateKey();
-        keyMaterial = await this.exportKey(key);
-        localStorage.setItem('__encryption_key__', keyMaterial);
-        this.encryptionKey = key;
+        // Check localStorage for migration from old storage
+        const legacyKey = localStorage.getItem('__encryption_key__');
+        if (legacyKey) {
+          // Migrate from localStorage to Preferences
+          await Preferences.set({ key: '__encryption_key__', value: legacyKey });
+          localStorage.removeItem('__encryption_key__');
+          this.encryptionKey = await this.importKey(legacyKey);
+        } else {
+          // First time - generate new key
+          const key = await this.generateKey();
+          const exported = await this.exportKey(key);
+          await Preferences.set({ key: '__encryption_key__', value: exported });
+          this.encryptionKey = key;
+        }
       } else {
-        // Import existing key
+        // Import existing key from secure storage
         this.encryptionKey = await this.importKey(keyMaterial);
+        // Clean up any leftover localStorage key
+        try { localStorage.removeItem('__encryption_key__'); } catch(e) {}
       }
       
-      console.log('🔐 Encryption initialized');
+      if(import.meta.env.DEV) console.log('🔐 Encryption initialized (secure storage)');
       return true;
     } catch (error) {
       console.error('Encryption init error:', error);

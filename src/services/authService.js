@@ -607,7 +607,13 @@ class AuthService {
     foodLog.push(logEntry);
     
     // 🎯 OPTIMISTIC UI: Save via dataService (handles all 4 systems)
-    const dashboardFoodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+    let dashboardFoodLog = [];
+    try {
+      const stored = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      dashboardFoodLog = Array.isArray(stored) ? stored : [];
+    } catch (e) {
+      dashboardFoodLog = [];
+    }
     dashboardFoodLog.push({
       name: foodItem.name || 'Food item',
       calories: foodItem.calories || 0,

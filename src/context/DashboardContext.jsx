@@ -6,6 +6,7 @@ import authService from '../services/authService';
 import syncService from '../services/syncService';
 import firestoreService from '../services/firestoreService';
 import dataService from '../services/dataService'; // 🎯 SINGLE SOURCE OF TRUTH
+import productionLogger from '../services/productionLogger';
 
 const DashboardContext = createContext(null);
 
@@ -233,7 +234,13 @@ export const DashboardProvider = ({ children }) => {
       console.log('💪 [CONTEXT] Workout logged:', workout.type, '(UI updated instantly)');
 
       // ⚡ OPTIMISTIC UI: Save to localStorage FIRST (instant persistence)
-      const workoutHistory = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+      let workoutHistory = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('workoutHistory') || '[]');
+        workoutHistory = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        workoutHistory = [];
+      }
       workoutHistory.push({ ...workout, date: today, timestamp: Date.now() });
       localStorage.setItem('workoutHistory', JSON.stringify(workoutHistory));
       console.log('💾 [CONTEXT] Workout saved to localStorage (INSTANT)');
@@ -269,7 +276,13 @@ export const DashboardProvider = ({ children }) => {
       console.log('😴 [CONTEXT] Sleep logged:', hours, 'hours (UI updated instantly)');
 
       // ⚡ OPTIMISTIC UI: Save to localStorage FIRST (instant persistence)
-      const sleepLog = JSON.parse(localStorage.getItem('sleepLog') || '[]');
+      let sleepLog = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('sleepLog') || '[]');
+        sleepLog = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        sleepLog = [];
+      }
       const existingIndex = sleepLog.findIndex(s => s.date === today);
       if (existingIndex >= 0) {
         sleepLog[existingIndex] = { hours, date: today, timestamp: Date.now() };
@@ -310,7 +323,13 @@ export const DashboardProvider = ({ children }) => {
       console.log('🍽️ [CONTEXT] Meal logged:', meal.name, '(UI updated instantly)');
 
       // ⚡ OPTIMISTIC UI: Save to localStorage FIRST (instant persistence) - FIX: consistent with other log functions
-      const foodLog = JSON.parse(localStorage.getItem('foodLog') || '[]');
+      let foodLog = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('foodLog') || '[]');
+        foodLog = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        foodLog = [];
+      }
       foodLog.push({
         ...meal,
         date: today,
@@ -357,7 +376,13 @@ export const DashboardProvider = ({ children }) => {
       console.log('🧘 [CONTEXT] Meditation logged:', duration, 'min (UI updated instantly)');
 
       // ⚡ OPTIMISTIC UI: Save to localStorage FIRST (instant persistence)
-      const meditationLog = JSON.parse(localStorage.getItem('meditationLog') || '[]');
+      let meditationLog = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('meditationLog') || '[]');
+        meditationLog = Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        meditationLog = [];
+      }
       meditationLog.push({ duration, date: today, timestamp: Date.now() });
       localStorage.setItem('meditationLog', JSON.stringify(meditationLog));
       console.log('💾 [CONTEXT] Meditation saved to localStorage (INSTANT)');
@@ -489,8 +514,10 @@ export const DashboardProvider = ({ children }) => {
 
         setInitialized(true);
         console.log('✅ [CONTEXT] Initialization complete');
+        productionLogger.action('app_initialized', { platform: native ? 'native' : 'web', userId: currentUser?.uid || 'anonymous' });
       } catch (error) {
         console.error('❌ [CONTEXT] Initialization error:', error);
+        productionLogger.error('App initialization failed', error);
         setInitialized(true); // Still mark as initialized so UI can render
       }
     };

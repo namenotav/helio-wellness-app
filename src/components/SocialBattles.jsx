@@ -1,5 +1,6 @@
 // Social Battles Component - Competitive Health Challenges (PRO)
 import { useState, useEffect } from 'react';
+import { showToast } from './Toast';
 import { Preferences } from '@capacitor/preferences';
 import './SocialBattles.css';
 import socialBattlesService from '../services/socialBattlesService';
@@ -257,7 +258,7 @@ export default function SocialBattles({ onClose }) {
       }
     } catch (error) {
       if(import.meta.env.DEV)console.error('Create battle error:', error);
-      alert('Failed to create battle: ' + error.message);
+      showToast('Failed to create battle: ' + error.message, 'error');
     }
   };
 
@@ -277,11 +278,11 @@ export default function SocialBattles({ onClose }) {
       // Fallback: Copy to clipboard
       try {
         await navigator.clipboard.writeText(battleInfo.shareCode);
-        alert(`📋 Share Code Copied!\n\n${battleInfo.shareCode}\n\nPaste this code to your friends via WhatsApp, SMS, or any messaging app!`);
+        showToast(`Share code ${battleInfo.shareCode} copied to clipboard!`, 'success');
       } catch (clipError) {
         if(import.meta.env.DEV)console.log('Clipboard not available:', clipError);
         // Just show the code again
-        alert(`Share Code: ${battleInfo.shareCode}\n\nSend this to your friends manually!`);
+        showToast(`Share code: ${battleInfo.shareCode}`, 'info');
       }
     }
   };
@@ -294,13 +295,13 @@ export default function SocialBattles({ onClose }) {
       const result = await socialBattlesService.joinByShareCode(code.toUpperCase());
       
       if (result.success) {
-        alert(`✅ Joined Battle!\n\nThe battle will start when all participants are ready.\n\nGood luck! 🔥`);
+        showToast('Joined battle! Starts when all participants are ready.', 'success');
         loadBattles();
       } else {
         throw new Error(result.error || 'Failed to join battle');
       }
     } catch (error) {
-      alert('Failed to join battle: ' + error.message);
+      showToast('Failed to join battle: ' + error.message, 'error');
     }
   };
 
@@ -309,11 +310,11 @@ export default function SocialBattles({ onClose }) {
       const result = await socialBattlesService.syncBattleProgress(battleId);
       
       if (result.success) {
-        alert(`📊 Progress Updated!\n\nCurrent Steps: ${(result.currentSteps || 0).toLocaleString()}\nProgress: +${(result.progress || 0).toLocaleString()}\nRank: #${result.rank || '-'}\n\nKeep moving! 💪`);
+        showToast(`Progress updated! Rank #${result.rank || '-'}`, 'success');
         loadBattles();
       }
     } catch (error) {
-      alert('Failed to sync: ' + error.message);
+      showToast('Failed to sync: ' + error.message, 'error');
     }
   };
 
@@ -339,7 +340,7 @@ export default function SocialBattles({ onClose }) {
       const result = await socialBattlesService.createBattle(quickBattle);
       
       if (result.success) {
-        alert('⚡ Quick Match Created!\n\nFinding opponents...\n\nBattle starts when 2+ players join!');
+        showToast('Quick match created! Finding opponents...', 'success');
         
         // Send notification
         import('../services/battleNotificationsService').then(({ default: notificationService }) => {
@@ -353,14 +354,14 @@ export default function SocialBattles({ onClose }) {
         await loadBattles();
       }
     } catch (error) {
-      alert('Quick Match failed: ' + error.message);
+      showToast('Quick match failed: ' + error.message, 'error');
     }
   };
 
   const handleClaimReward = async (reward) => {
     try {
       if (rewards.userCoins < reward.cost) {
-        alert(`❌ Not enough coins!\n\nYou need ${reward.cost - rewards.userCoins} more coins.`);
+        showToast(`Not enough coins! Need ${reward.cost - rewards.userCoins} more.`, 'error');
         return;
       }
       
@@ -389,9 +390,9 @@ export default function SocialBattles({ onClose }) {
       // Update rewards display
       setRewards({ ...rewards, userCoins: newCoins });
       
-      alert(`✅ ${reward.name} activated!\n\n${reward.description}\n\nExpires in 24 hours.`);
+      showToast(`${reward.name} activated! Expires in 24 hours.`, 'success');
     } catch (error) {
-      alert('Failed to claim reward: ' + error.message);
+      showToast('Failed to claim reward: ' + error.message, 'error');
     }
   };
 

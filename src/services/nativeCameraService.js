@@ -67,7 +67,7 @@ export const pickPhotosFromGallery = async () => {
 
 // Convert DataUrl to File for Gemini API
 export const dataUrlToFile = async (dataUrl, filename = 'photo.jpg') => {
-  const response = await fetch(dataUrl);
+  const response = await fetch(dataUrl, { signal: AbortSignal.timeout(8000) });
   const blob = await response.blob();
   return new File([blob], filename, { type: blob.type });
 };

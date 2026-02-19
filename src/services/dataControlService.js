@@ -1,6 +1,9 @@
 // GDPR/CCPA Data Control Service
 // Handles data access, export, and deletion requests
 
+import { showToast } from '../components/Toast';
+import productionLogger from './productionLogger';
+
 class DataControlService {
   constructor() {
     this.SERVER_URL = import.meta.env.VITE_SERVER_URL || 'https://helio-wellness-app-production.up.railway.app';
@@ -28,9 +31,11 @@ class DataControlService {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      productionLogger.action('gdpr_data_exported', { exportDate: data.exportDate });
       if(import.meta.env.DEV)console.log('✅ User data exported successfully');
       return data;
     } catch (error) {
+      productionLogger.error('GDPR data export failed', error, { action: 'exportUserData' });
       if(import.meta.env.DEV)console.error('❌ Export failed:', error);
       throw error;
     }
@@ -197,20 +202,23 @@ class DataControlService {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-          }
+          },
+          signal: AbortSignal.timeout(10000)
         });
       } catch (error) {
         if(import.meta.env.DEV)console.warn('Could not delete server data:', error);
       }
 
+      productionLogger.action('gdpr_data_deleted', { keysDeleted: keysToDelete.length });
       if(import.meta.env.DEV)console.log('✅ All user data deleted');
       
       // Redirect to goodbye page
-      alert('Your data has been deleted. Thank you for using WellnessAI.');
+      showToast('Your data has been deleted. Thank you for using WellnessAI.', 'success');
       window.location.href = '/';
       
       return true;
     } catch (error) {
+      productionLogger.error('GDPR data deletion failed', error, { action: 'deleteAllUserData' });
       if(import.meta.env.DEV)console.error('❌ Deletion failed:', error);
       throw error;
     }
@@ -241,7 +249,7 @@ class DataControlService {
       
       localStorage.setItem('user_consent', JSON.stringify(consent));
       
-      alert('Consent revoked. You will need to accept terms again to use the app.');
+      showToast('Consent revoked. You will need to accept terms again to use the app.', 'warning');
       window.location.reload();
       
       return true;

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { showToast } from './Toast'
 import { Preferences } from '@capacitor/preferences'
 import './AIAssistantModal.css'
 
@@ -191,13 +192,13 @@ function AIAssistantModal({ userName, initialPrompt, onClose }) {
         if(import.meta.env.DEV)console.log('Permission result:', permResult)
         
         if (permResult.speechRecognition !== 'granted') {
-          alert('Please allow microphone access in your phone settings')
+          showToast('Please allow microphone access in your phone settings', 'warning')
           setIsListening(false)
           return
         }
       } catch (permError) {
         if(import.meta.env.DEV)console.error('Permission request failed:', permError)
-        alert('Microphone permission required. Please enable it in Settings.')
+        showToast('Microphone permission required. Please enable it in Settings.', 'warning')
         setIsListening(false)
         return
       }

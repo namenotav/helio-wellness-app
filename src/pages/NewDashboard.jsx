@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { BarcodeScanner as BarcodeScannerPlugin } from '@capacitor-community/barcode-scanner'
 import { Preferences } from '@capacitor/preferences'
 import { useDashboard } from '../context/DashboardContext'
+import { showToast } from '../components/Toast'
 import authService from '../services/authService'
 import syncService from '../services/syncService'
 import firestoreService from '../services/firestoreService'
@@ -759,7 +760,7 @@ export default function NewDashboard() {
       if (result.success) {
         setIsDevMode(true)
         setShowDevUnlock(false)
-        alert('✅ Developer Mode Activated!\n\nAll premium features unlocked for testing.')
+        showToast('Developer Mode Activated! All premium features unlocked.', 'success')
         return { success: true }
       } else {
         return { success: false, message: result.message }
@@ -774,7 +775,7 @@ export default function NewDashboard() {
     if (confirm('🔒 Disable Developer Mode?\n\nThis will lock all premium features and require password to re-enable.')) {
       await devAuthService.lockDevMode()
       setIsDevMode(false)
-      alert('🔒 Developer mode disabled. App will reload.')
+      showToast('Developer mode disabled. App will reload.', 'info')
       window.location.reload()
     }
   }
@@ -806,10 +807,10 @@ export default function NewDashboard() {
       // Stats automatically reload from Context after page reload
       // ✅ REMOVED: setStats() call - page reload will refresh all Context data
       
-      alert(`✅ Step Counter Reset!\n\nBaseline: ${currentSteps}\nDate: ${todayDate}\n\nToday's steps will now start from 0.`)
+      showToast(`Step counter reset! Baseline: ${currentSteps}. Steps start from 0.`, 'success')
       window.location.reload() // Reload to apply changes
     } catch (error) {
-      alert('❌ Reset failed: ' + error.message)
+      showToast('Reset failed: ' + error.message, 'error')
     }
   }
 
@@ -832,7 +833,7 @@ export default function NewDashboard() {
         console.log('Notification permission result:', requestResult)
         
         if (requestResult.display !== 'granted') {
-          alert('❌ Notification Permission Required\n\nForeground services need notification permission to run 24/7.\n\nPlease grant notification permission in the next dialog.')
+          showToast('Notification permission required for 24/7 tracking.', 'error')
           setNativeServiceStarting(false)
           return
         }
@@ -886,15 +887,15 @@ export default function NewDashboard() {
           await loadAllData()
           loadActivities()
           console.log('✅ [STARTUP] Initial data loaded')
-          alert('✅ 24/7 Step Tracking Enabled!\n\n✓ Persistent notification showing\n✓ Steps count even when app is closed\n✓ Dashboard syncs every 30 seconds\n\nWalk around and watch both notification and dashboard update!')
+          showToast('24/7 Step Tracking enabled! Dashboard syncs every 30s.', 'success')
         }, 500)
       } else {
-        alert('❌ Failed to Start Service\n\nPossible reasons:\n• No step counter sensor on device\n• Permission denied\n• Service already running\n\nCheck notification area for "🏃 Helio Active"')
+        showToast('Failed to start service. Check permissions or sensor.', 'error')
       }
       
     } catch (error) {
       console.error('❌ Failed to start background tracking:', error)
-      alert('❌ Error Starting Service\n\n' + error.message + '\n\nTry restarting the app or checking app permissions in settings.')
+      showToast('Error starting service: ' + error.message, 'error')
     } finally {
       setNativeServiceStarting(false)
     }
@@ -1726,10 +1727,13 @@ export default function NewDashboard() {
       {/* AI Assistant Modal - Rendered once above in Hierarchical Modal System section */}
 
       {/* Bottom Navigation */}
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" role="tablist" aria-label="Main navigation">
         <button 
           className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
           onClick={() => setActiveTab('home')}
+          role="tab"
+          aria-selected={activeTab === 'home'}
+          aria-label="Home tab"
         >
           <span className="nav-icon">🏠</span>
           <span className="nav-label">Home</span>
@@ -1738,6 +1742,9 @@ export default function NewDashboard() {
         <button 
           className={`nav-item ${activeTab === 'voice' ? 'active' : ''}`}
           onClick={() => setActiveTab('voice')}
+          role="tab"
+          aria-selected={activeTab === 'voice'}
+          aria-label="Voice tab"
         >
           <span className="nav-icon">🎤</span>
           <span className="nav-label">Voice</span>
@@ -1746,6 +1753,9 @@ export default function NewDashboard() {
         <button 
           className={`nav-item center ${activeTab === 'scan' ? 'active' : ''}`}
           onClick={() => setActiveTab('scan')}
+          role="tab"
+          aria-selected={activeTab === 'scan'}
+          aria-label="Scan tab"
         >
           <span className="nav-icon-center">📸</span>
           <span className="nav-label" style={{ fontSize: '9px', marginTop: '2px' }}>Scan</span>
@@ -1754,6 +1764,9 @@ export default function NewDashboard() {
         <button 
           className={`nav-item ${activeTab === 'zen' ? 'active' : ''}`}
           onClick={() => setActiveTab('zen')}
+          role="tab"
+          aria-selected={activeTab === 'zen'}
+          aria-label="Zen tab"
         >
           <span className="nav-icon">🧘</span>
           <span className="nav-label">Zen</span>
@@ -1762,6 +1775,9 @@ export default function NewDashboard() {
         <button 
           className={`nav-item ${activeTab === 'me' ? 'active' : ''}`}
           onClick={() => setActiveTab('me')}
+          role="tab"
+          aria-selected={activeTab === 'me'}
+          aria-label="Me tab"
         >
           <span className="nav-icon">👤</span>
           <span className="nav-label">Me</span>
@@ -2213,7 +2229,7 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
             }
             } catch (err) {
               console.error('Failed to stop native service:', err);
-              alert('Failed to stop tracking service');
+              showToast('Failed to stop tracking service', 'error');
             }
           }}
           style={{
@@ -2254,7 +2270,7 @@ function HomeTab({ stats, greeting, motivation, onGoalComplete, recentActivities
           gap: '12px',
           boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
           cursor: 'pointer'
-        }} onClick={() => alert(`${window.dnaDailyTip.tip}\n\nBased on your ${window.dnaDailyTip.gene} gene (${window.dnaDailyTip.trait}: ${window.dnaDailyTip.value})`)}>
+        }} onClick={() => showToast(`${window.dnaDailyTip.tip} (Gene: ${window.dnaDailyTip.gene})`, 'info')}>
           <span style={{fontSize: '32px'}}>{window.dnaDailyTip.icon}</span>
           <div style={{flex: 1}}>
             <div style={{color: 'white', fontWeight: 'bold', fontSize: '14px', marginBottom: '4px'}}>
@@ -2443,13 +2459,13 @@ function VoiceTab({ userName }) {
         if(import.meta.env.DEV)console.log('Permission result:', permResult)
         
         if (permResult.speechRecognition !== 'granted') {
-          alert('Please allow microphone access in your phone settings')
+          showToast('Please allow microphone access in your phone settings', 'warning')
           setIsListening(false)
           return
         }
       } catch (permError) {
         if(import.meta.env.DEV)console.error('Permission request failed:', permError)
-        alert('Microphone permission required. Please enable it in Settings.')
+        showToast('Microphone permission required. Enable it in Settings.', 'warning')
         setIsListening(false)
         return
       }
@@ -3104,7 +3120,7 @@ function MeTab({ user, stats, onOpenHealthAvatar, onOpenARScanner, onOpenEmergen
           <span className="icon-label">Backup/Restore</span>
         </button>
 
-        <button className="me-icon-btn premium-feature" onClick={() => alert('🚧 Apple Health Sync\n\nComing Soon!\n\nWe are working on native Apple Health integration. Stay tuned for updates!')}>
+        <button className="me-icon-btn premium-feature" onClick={() => showToast('Apple Health Sync coming soon! Stay tuned.', 'info')}>
           <div className="icon-circle">
             <span>❤️</span>
           </div>
@@ -3112,7 +3128,7 @@ function MeTab({ user, stats, onOpenHealthAvatar, onOpenARScanner, onOpenEmergen
           <span className="premium-tag" style={{background: '#FFB84D', color: '#000'}}>🔜</span>
         </button>
 
-        <button className="me-icon-btn premium-feature" onClick={() => alert('🚧 Wearable Integration\n\nComing Soon!\n\nFitbit, Garmin, and other wearables will be supported in a future update!')}>
+        <button className="me-icon-btn premium-feature" onClick={() => showToast('Wearable integration coming soon! Fitbit, Garmin & more.', 'info')}>
           <div className="icon-circle">
             <span>⌚</span>
           </div>
@@ -3161,7 +3177,7 @@ function FullStatsModal({ user, stats, onClose }) {
       const { default: html2canvas } = await import('html2canvas');
       const modalElement = document.querySelector('.full-stats-modal-content');
       if (!modalElement) {
-        alert('Unable to capture stats. Please try again.');
+        showToast('Unable to capture stats. Please try again.', 'error');
         return;
       }
       
@@ -3198,7 +3214,7 @@ function FullStatsModal({ user, stats, onClose }) {
       }, 'image/png');
     } catch (error) {
       console.error('Failed to share stats:', error);
-      alert('Failed to share stats. Make sure you have an internet connection.');
+      showToast('Failed to share stats. Check your internet connection.', 'error');
     }
   };
   
@@ -3720,19 +3736,19 @@ function NotificationsModal({ user, onClose }) {
       const permission = await LocalNotifications.requestPermissions()
       if (permission.display === 'granted') {
         setPermissionGranted(true)
-        alert('✅ Notification permission granted!')
+        showToast('Notification permission granted!', 'success')
       } else {
-        alert('⚠️ Please enable notifications in your device settings.')
+        showToast('Please enable notifications in your device settings.', 'warning')
       }
     } catch (error) {
       console.error('Failed to request permission:', error)
-      alert('❌ Failed to request notification permission')
+      showToast('Failed to request notification permission', 'error')
     }
   }
 
   const sendTestNotification = async () => {
     if (!permissionGranted) {
-      alert('⚠️ Please grant notification permission first')
+      showToast('Please grant notification permission first', 'warning')
       return
     }
 
@@ -3740,16 +3756,16 @@ function NotificationsModal({ user, onClose }) {
       await notificationSchedulerService.testNotification('dailyReminders')
       setTestingSent(true)
       setTimeout(() => setTestingSent(false), 3000)
-      alert('✅ Test notification sent! Check your notification bar in 2 seconds.')
+      showToast('Test notification sent! Check your notification bar.', 'success')
     } catch (error) {
       console.error('Failed to send test notification:', error)
-      alert('❌ Failed to send test notification')
+      showToast('Failed to send test notification', 'error')
     }
   }
 
   const handleSave = async () => {
     if (!permissionGranted) {
-      alert('⚠️ Please grant notification permission first to enable notifications.')
+      showToast('Please grant notification permission first.', 'warning')
       return
     }
 
@@ -3774,10 +3790,10 @@ function NotificationsModal({ user, onClose }) {
     if (healthTips) enabled.push('Health Tips (10 AM, 3 PM, 7 PM)')
     
     const summary = enabled.length > 0 
-      ? `✅ Scheduled:\n\n${enabled.join('\n')}`
-      : '✅ All notifications disabled'
+      ? `Scheduled: ${enabled.join(', ')}`
+      : 'All notifications disabled'
     
-    alert(summary)
+    showToast(summary, 'success')
     onClose()
   }
 
@@ -4540,9 +4556,9 @@ function HeartRateModal({ onClose }) {
       const result = await heartRateService.connectDevice()
       setConnected(true)
       setMeasurementSource('bluetooth')
-      alert(`✅ Connected to ${result.deviceName}!`)
+      showToast(`Connected to ${result.deviceName}!`, 'success')
     } catch (error) {
-      alert(`❌ Connection failed: ${error.message}`)
+      showToast(`Connection failed: ${error.message}`, 'error')
     } finally {
       setConnecting(false)
     }
@@ -4557,11 +4573,11 @@ function HeartRateModal({ onClose }) {
         setHeartRate(result.bpm)
         setMeasurementSource('camera')
       } else {
-        alert('⚠️ Could not detect heart rate.\nMake sure your finger covers the camera lens completely.')
+        showToast('Could not detect heart rate. Cover the camera lens fully.', 'warning')
       }
     } catch (error) {
       console.error('Heart rate measurement error:', error)
-      alert(`❌ Measurement failed: ${error.message || 'Unknown error'}`)
+      showToast(`Measurement failed: ${error.message || 'Unknown error'}`, 'error')
     } finally {
       setMeasuring(false)
       setProgress(0)
@@ -4756,14 +4772,14 @@ function SleepModal({ onClose }) {
   const startTracking = async () => {
     await sleepTrackingService.startTracking()
     setTracking(true)
-    alert('😴 Sleep tracking started! Leave your phone on the nightstand.')
+    showToast('Sleep tracking started! Leave your phone on the nightstand.', 'info')
   }
 
   const stopTracking = async () => {
     const result = await sleepTrackingService.stopTracking()
     setTracking(false)
     if (result) {
-      alert(`✅ Slept for ${result.duration} hours! Quality: ${result.quality}/100`)
+      showToast(`Slept for ${result.duration} hours! Quality: ${result.quality}/100`, 'success')
     }
   }
 
@@ -4868,7 +4884,7 @@ function WaterModal({ onClose }) {
     const result = waterIntakeService.addIntake(amount)
     setProgress(result)
     if (result.goalReached) {
-      alert('🎉 Daily water goal reached!')
+      showToast('Daily water goal reached!', 'success')
     }
   }
 

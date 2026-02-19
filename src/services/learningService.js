@@ -238,7 +238,8 @@ Return as JSON array:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }]
-          })
+          }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 
@@ -313,7 +314,8 @@ Return JSON: {"safe": true/false, "reason": "explanation", "confidence": 0-100, 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }]
-          })
+          }),
+          signal: AbortSignal.timeout(30000)
         }
       );
 

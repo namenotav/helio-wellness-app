@@ -150,7 +150,8 @@ class ProductionLogger {
           sessionId: this.sessionId,
           logs: logsToSend,
           timestamp: new Date().toISOString()
-        })
+        }),
+        signal: AbortSignal.timeout(5000)
       });
 
       if (!response.ok) {
