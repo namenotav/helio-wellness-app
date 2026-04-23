@@ -370,7 +370,7 @@ if (!API_KEY) {
 if(process.env.NODE_ENV!=="production")console.log('✅ API key loaded from environment variables');
 
 // Use a valid, stable Gemini model by default. Override via env var when needed.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // Health check endpoint
