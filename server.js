@@ -67,7 +67,7 @@ connectDB();
 // SECURITY: Rate limiting to prevent abuse
 const rateLimiter = new Map();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
-const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per 15 minutes per IP (generous for legitimate users)
+const MAX_REQUESTS_PER_WINDOW = 500; // 500 requests per 15 minutes per IP
 
 // Rate limiting middleware
 function rateLimit(req, res, next) {

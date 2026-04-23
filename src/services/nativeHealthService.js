@@ -4,6 +4,7 @@
 
 import { Motion } from '@capacitor/motion';
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 import multiSensorService from './multiSensorService.js';
 import motionListenerService from './motionListenerService.js';
 import firestoreService from './firestoreService';
@@ -1068,8 +1069,13 @@ class NativeHealthService {
       // Update or add today's steps
       const todayIndex = stepHistory.findIndex(entry => entry.date === today);
       if (todayIndex >= 0) {
-        stepHistory[todayIndex].steps = realStepCount;
-        console.log(`💾 Updated stepHistory for ${today}:`, realStepCount);
+        // Only overwrite if we have real steps — never overwrite a positive count with 0
+        if (realStepCount > 0) {
+          stepHistory[todayIndex].steps = realStepCount;
+          console.log(`💾 Updated stepHistory for ${today}:`, realStepCount);
+        } else {
+          console.log(`⏭️ Skipped stepHistory update — realStepCount is 0, keeping existing:`, stepHistory[todayIndex].steps);
+        }
       } else {
         stepHistory.push({ date: today, steps: realStepCount });
         console.log(`💾 Added new stepHistory entry for ${today}:`, realStepCount);
