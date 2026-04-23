@@ -5,7 +5,7 @@ nixPkgs = ["nodejs"]
 cmds = ["cp package-server.json package.json", "npm install --omit=dev"]
 
 [phases.build]
-cmds = ["echo 'Server only - no build step'"]
+cmds = ["mkdir -p dist && echo '{\"status\":\"api-server\"}' > dist/index.html"]
 
 [start]
 cmd = "node server.js"
