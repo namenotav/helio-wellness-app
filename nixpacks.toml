@@ -8,4 +8,4 @@ cmds = ["cp package-server.json package.json", "npm install --omit=dev"]
 cmds = ["mkdir -p dist && echo '{\"status\":\"api-server\"}' > dist/index.html"]
 
 [start]
-cmd = "node server.js"
+cmd = "mkdir -p dist && echo '{\"status\":\"ok\"}' > dist/index.html && node server.js"
