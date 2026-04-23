@@ -1,11 +1,10 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "mkdir -p dist && echo '{\"status\":\"api-server\"}' > dist/index.html"
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "mkdir -p dist && echo '{\"status\":\"ok\"}' > dist/index.html && node server.js",
+    "startCommand": "node server.js",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

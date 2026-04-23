@@ -19,12 +19,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 // Initialize Firebase Admin (for Firestore access)
 let firebaseInitialized = false;
 try {
+  // Firebase Admin will use default credentials from environment
   if (!admin.apps.length) {
-    const credJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
-    const credential = credJson
-      ? admin.credential.cert(JSON.parse(credJson))
-      : admin.credential.applicationDefault();
-    admin.initializeApp({ credential, projectId: 'wellnessai-app-e01be' });
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      projectId: 'wellnessai-app-e01be'
+    });
   }
   firebaseInitialized = true;
   if(process.env.NODE_ENV!=="production")console.log('✅ Firebase Admin initialized');
