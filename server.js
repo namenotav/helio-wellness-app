@@ -378,7 +378,7 @@ app.get('/', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'WellnessAI API Server Running',
-    database: db ? (db.memory ? 'memory' : 'connected') : 'disconnected',
+    database: db ? (db.memory ? (db_firebase ? 'firebase-proxy' : 'memory') : 'connected') : 'disconnected',
     version: '2.0.0',
     endpoints: ['/api/chat', '/api/v1/chat', '/api/vision', '/api/v1/vision', '/api/backup', '/api/user/delete', '/api/battles', '/api/feedback', '/api/logs']
   });
@@ -496,7 +496,10 @@ app.delete('/api/user/delete', async (req, res) => {
 app.get('/api/battles', async (req, res) => {
   try {
     let battles;
-    if (db.memory) {
+    if (db_firebase) {
+      const snapshot = await db_firebase.collection('battles').get();
+      battles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } else if (db.memory) {
       battles = battlesCollection.data;
     } else {
       battles = await battlesCollection.find({}).toArray();
@@ -511,13 +514,16 @@ app.get('/api/battles', async (req, res) => {
 
 app.post('/api/battles', async (req, res) => {
   try {
+    const battleId = Date.now().toString();
     const battle = {
       ...req.body,
       createdAt: new Date().toISOString(),
-      id: Date.now().toString()
+      id: battleId
     };
 
-    if (db.memory) {
+    if (db_firebase) {
+      await db_firebase.collection('battles').doc(battleId).set(battle);
+    } else if (db.memory) {
       battlesCollection.data.push(battle);
     } else {
       await battlesCollection.insertOne(battle);
@@ -535,7 +541,9 @@ app.put('/api/battles/:id', async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    if (db.memory) {
+    if (db_firebase) {
+      await db_firebase.collection('battles').doc(id).set(updates, { merge: true });
+    } else if (db.memory) {
       const index = battlesCollection.data.findIndex(b => b.id === id);
       if (index >= 0) {
         battlesCollection.data[index] = { ...battlesCollection.data[index], ...updates };
@@ -723,7 +731,7 @@ app.listen(PORT, '0.0.0.0', () => {
    - Notifications: http://YOUR_COMPUTER_IP:${PORT}/api/notifications/send
    - Stripe Webhook: http://YOUR_COMPUTER_IP:${PORT}/api/stripe/webhook
 
-Database: ${db ? (db.memory ? 'In-Memory (fallback)' : 'MongoDB Connected') : 'Not Connected'}
+Database: ${db_firebase ? 'Firebase Connected' : (db ? (db.memory ? 'In-Memory (fallback)' : 'MongoDB Connected') : 'Not Connected')}
 
 To find your computer's IP address:
   Windows: ipconfig
