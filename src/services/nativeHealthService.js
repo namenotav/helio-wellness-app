@@ -957,7 +957,7 @@ class NativeHealthService {
     // We just reset our display counter to 0 for the new day
     if(import.meta.env.DEV)console.log('✅ Counters reset - Sensors stay active and calibrated');
     
-    this.saveHealthData();
+    this.saveHealthData(true);
     if(import.meta.env.DEV)console.log('✅ Daily reset complete - Ready for new day!');
   }
 
@@ -995,7 +995,7 @@ class NativeHealthService {
     }
   }
 
-  async saveHealthData() {
+  async saveHealthData(forceReset = false) {
     try {
       // 🔥 FIX: Get REAL steps from native service (same source as dashboard!)
       const syncService = (await import('./syncService.js')).default;
@@ -1070,7 +1070,8 @@ class NativeHealthService {
       const todayIndex = stepHistory.findIndex(entry => entry.date === today);
       if (todayIndex >= 0) {
         // Only overwrite if we have real steps — never overwrite a positive count with 0
-        if (realStepCount > 0) {
+        // Exception: forceReset=true means this is an intentional midnight reset, allow writing 0
+        if (realStepCount > 0 || forceReset) {
           stepHistory[todayIndex].steps = realStepCount;
           console.log(`💾 Updated stepHistory for ${today}:`, realStepCount);
         } else {
