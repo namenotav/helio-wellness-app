@@ -3,6 +3,7 @@
 
 import encryptionService from './encryptionService.js';
 import productionLogger from './productionLogger.js';
+import authService from './authService.js';
 
 class CloudBackupService {
   constructor() {
@@ -70,9 +71,14 @@ class CloudBackupService {
       
       // Send to server
       try {
+        const currentUser = authService.getCurrentUser();
+        const idToken = currentUser ? await currentUser.getIdToken() : null;
         const response = await fetch(`${this.serverUrl}/api/backup`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {})
+          },
           body: JSON.stringify({
             userId: this.userId,
             data: encryptedData || healthData,
@@ -114,7 +120,10 @@ class CloudBackupService {
       // Try server backup first
       if (this.userId) {
         try {
+          const currentUser = authService.getCurrentUser();
+          const idToken = currentUser ? await currentUser.getIdToken() : null;
           const response = await fetch(`${this.serverUrl}/api/backup/${this.userId}`, {
+            headers: idToken ? { 'Authorization': `Bearer ${idToken}` } : {},
             signal: AbortSignal.timeout(10000)
           });
           if (response.ok) {

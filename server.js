@@ -34,6 +34,25 @@ try {
 }
 
 const db_firebase = firebaseInitialized ? admin.firestore() : null;
+const firebaseAuth = firebaseInitialized ? admin.auth() : null;
+
+// Verify the request's Firebase ID token belongs to the given userId.
+// If Firebase Admin isn't configured yet (no db_firebase), this fails OPEN
+// so behavior doesn't regress before the credential is added - it becomes
+// enforced automatically the moment GOOGLE_APPLICATION_CREDENTIALS_JSON is set.
+async function verifyOwnership(req, userId) {
+  if (!firebaseAuth) return true;
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return false;
+  try {
+    const decoded = await firebaseAuth.verifyIdToken(token);
+    return decoded.uid === userId;
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.warn('Token verification failed:', error.message);
+    return false;
+  }
+}
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/wellnessai';
@@ -288,7 +307,11 @@ app.post('/api/stripe/create-checkout', async (req, res) => {
 app.get('/api/subscription/status/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
+    if (!(await verifyOwnership(req, userId))) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const subDoc = await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').get();
     
     if (!subDoc.exists) {
@@ -320,6 +343,10 @@ app.post('/api/subscription/cancel', async (req, res) => {
     
     if (!userId) {
       return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    if (!(await verifyOwnership(req, userId))) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const subDoc = await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').get();
@@ -421,6 +448,10 @@ app.post('/api/backup', async (req, res) => {
       return res.status(400).json({ error: 'Missing userId or data' });
     }
 
+    if (!(await verifyOwnership(req, userId))) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const backup = {
       userId,
       data,
@@ -451,6 +482,10 @@ app.post('/api/backup', async (req, res) => {
 app.get('/api/backup/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+
+    if (!(await verifyOwnership(req, userId))) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     
     let backup;
     if (db_firebase) {
@@ -480,6 +515,10 @@ app.delete('/api/user/delete', async (req, res) => {
     
     if (!userId) {
       return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    if (!(await verifyOwnership(req, userId))) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     if (db_firebase) {

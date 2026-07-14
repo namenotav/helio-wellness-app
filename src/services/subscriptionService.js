@@ -3,6 +3,7 @@
 // "Full Taste" Strategy: Free users can taste ALL features with daily limits
 
 import productionLogger from './productionLogger';
+import authService from './authService';
 
 class SubscriptionService {
   constructor() {
@@ -245,7 +246,10 @@ class SubscriptionService {
       // Verify with server
       const API_URL = import.meta.env.VITE_API_URL || 'https://helio-wellness-app-production.up.railway.app';
       try {
+        const currentUser = authService.getCurrentUser();
+        const idToken = currentUser ? await currentUser.getIdToken() : null;
         const response = await fetch(`${API_URL}/api/subscription/status/${userId}`, {
+          headers: idToken ? { 'Authorization': `Bearer ${idToken}` } : {},
           timeout: 5000, // 5 second timeout to prevent hanging
           signal: AbortSignal.timeout(10000)
         });

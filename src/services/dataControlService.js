@@ -3,6 +3,7 @@
 
 import { showToast } from '../components/Toast';
 import productionLogger from './productionLogger';
+import authService from './authService';
 
 class DataControlService {
   constructor() {
@@ -197,12 +198,15 @@ class DataControlService {
 
       // Notify server to delete from database
       try {
+        const currentUser = authService.getCurrentUser();
+        const idToken = currentUser ? await currentUser.getIdToken() : null;
         await fetch(`${this.SERVER_URL}/api/user/delete`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {})
           },
+          body: JSON.stringify({ userId: currentUser?.uid }),
           signal: AbortSignal.timeout(10000)
         });
       } catch (error) {
