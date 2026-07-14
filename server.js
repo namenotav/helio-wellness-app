@@ -395,7 +395,7 @@ app.post('/api/stripe/create-escrow', async (req, res) => {
       paymentIntentId: paymentIntent.id
     });
   } catch (error) {
-    if(process.env.NODE_ENV!=="production")console.error('Create escrow error:', error);
+    console.error('Create escrow error:', error);
     res.status(500).json({ error: 'Failed to create escrow payment' });
   }
 });
@@ -581,7 +581,7 @@ app.post('/api/subscription/verify', async (req, res) => {
 
     res.json({ hasAccess: isActive && plan !== 'free', plan, feature: feature || null });
   } catch (error) {
-    if(process.env.NODE_ENV!=="production")console.error('Subscription verify error:', error);
+    console.error('Subscription verify error:', error);
     res.status(500).json({ error: 'Verification failed' });
   }
 });
