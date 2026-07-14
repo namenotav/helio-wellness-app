@@ -509,7 +509,7 @@ export const DashboardProvider = ({ children }) => {
         await loadAllData();
 
         // 4. Start sync service
-        syncService.startAuthCheck();
+        syncService.startAuthChecker();
         console.log('✅ [CONTEXT] Sync service started');
 
         setInitialized(true);

@@ -546,6 +546,31 @@ class GamificationService {
     }
   }
 
+  // Re-check all count-based achievements against current stats.
+  // Used when a screen loads (e.g. Profile tab) to catch achievements that
+  // should already be unlocked based on totals, without needing a new logActivity() call.
+  async checkActivityAchievements() {
+    const stats = this.data.stats
+
+    if (stats.totalSteps >= 100000 && !this.hasAchievement('marathon_master')) {
+      await this.unlockAchievement(ACHIEVEMENTS.MARATHON_MASTER)
+    }
+    if (stats.totalMeals >= 21 && !this.hasAchievement('nutrition_ninja')) {
+      await this.unlockAchievement(ACHIEVEMENTS.NUTRITION_NINJA)
+    }
+    if (stats.totalWorkouts >= 10 && !this.hasAchievement('strength_pro')) {
+      await this.unlockAchievement(ACHIEVEMENTS.STRENGTH_PRO)
+    }
+    if (stats.totalScans >= 20 && !this.hasAchievement('scanner_savvy')) {
+      await this.unlockAchievement(ACHIEVEMENTS.SCANNER_SAVVY)
+    }
+    if (stats.totalMeditations >= 10 && !this.hasAchievement('zen_master')) {
+      await this.unlockAchievement(ACHIEVEMENTS.ZEN_MASTER)
+    }
+
+    this.checkStreakAchievements()
+  }
+
   // Unlock an achievement
   async unlockAchievement(achievement) {
     if (this.hasAchievement(achievement.id)) {
