@@ -176,6 +176,12 @@ app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (
   }
 });
 
+// JSON body parsing + rate limiting for ALL routes below this point.
+// Must come AFTER the webhook route above (which needs the raw, unparsed body
+// for Stripe signature verification) but BEFORE every other route that reads req.body.
+app.use(express.json({ limit: '10mb' }));  // Increase limit for image data
+app.use(rateLimit); // Apply rate limiting to all routes
+
 // Helper function - Map Stripe product ID to plan name
 function mapStripePriceToPlan(productId) {
   const priceMap = {
@@ -389,7 +395,7 @@ app.post('/api/stripe/create-escrow', async (req, res) => {
       paymentIntentId: paymentIntent.id
     });
   } catch (error) {
-    console.error('Create escrow error:', error);
+    if(process.env.NODE_ENV!=="production")console.error('Create escrow error:', error);
     res.status(500).json({ error: 'Failed to create escrow payment' });
   }
 });
@@ -575,7 +581,7 @@ app.post('/api/subscription/verify', async (req, res) => {
 
     res.json({ hasAccess: isActive && plan !== 'free', plan, feature: feature || null });
   } catch (error) {
-    console.error('Subscription verify error:', error);
+    if(process.env.NODE_ENV!=="production")console.error('Subscription verify error:', error);
     res.status(500).json({ error: 'Verification failed' });
   }
 });
@@ -659,9 +665,6 @@ app.post('/api/subscription/cancel', async (req, res) => {
     res.status(500).json({ error: 'Failed to cancel subscription' });
   }
 });
-
-app.use(express.json({ limit: '10mb' }));  // Increase limit for image data
-app.use(rateLimit); // Apply rate limiting to all routes
 
 // SECURITY: API key from environment variables only (never hardcoded)
 const API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
