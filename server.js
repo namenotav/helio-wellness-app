@@ -27,10 +27,10 @@ try {
     admin.initializeApp({ credential, projectId: 'wellnessai-app-e01be' });
   }
   firebaseInitialized = true;
-  console.log('✅ Firebase Admin initialized');
+  if(process.env.NODE_ENV!=="production")console.log('✅ Firebase Admin initialized');
 } catch (error) {
-  console.warn('⚠️ Firebase Admin initialization failed:', error.message);
-  console.warn('Subscription features will use MongoDB fallback');
+  if(process.env.NODE_ENV!=="production")console.warn('⚠️ Firebase Admin initialization failed:', error.message);
+  if(process.env.NODE_ENV!=="production")console.warn('Subscription features will use MongoDB fallback');
 }
 
 const db_firebase = firebaseInitialized ? admin.firestore() : null;
