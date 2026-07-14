@@ -303,6 +303,42 @@ app.post('/api/stripe/create-checkout', async (req, res) => {
   }
 });
 
+// API Endpoint - Verify a user's subscription plan is genuine (anti-tampering check)
+app.post('/api/subscription/verify', async (req, res) => {
+  try {
+    const { userId, feature } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    if (!(await verifyOwnership(req, userId))) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!db_firebase) {
+      return res.status(503).json({ error: 'Verification unavailable' });
+    }
+
+    const subDoc = await db_firebase.collection('users').doc(userId).collection('subscription').doc('current').get();
+
+    if (!subDoc.exists) {
+      return res.json({ hasAccess: false, plan: 'free' });
+    }
+
+    const data = subDoc.data();
+    const now = new Date();
+    const periodEnd = data.currentPeriodEnd?.toDate() || new Date(0);
+    const isActive = data.status === 'active' && periodEnd > now;
+    const plan = isActive ? data.plan : 'free';
+
+    res.json({ hasAccess: isActive && plan !== 'free', plan, feature: feature || null });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('Subscription verify error:', error);
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
 // API Endpoint - Get subscription status
 app.get('/api/subscription/status/:userId', async (req, res) => {
   try {
@@ -621,6 +657,27 @@ app.post('/api/feedback', async (req, res) => {
   } catch (error) {
     if(process.env.NODE_ENV!=="production")console.error('Feedback error:', error);
     res.status(500).json({ error: 'Failed to submit feedback' });
+  }
+});
+
+// Support Ticket Notification Endpoint
+// NOTE: No email provider is configured yet (no SendGrid/Mailgun/etc credentials available).
+// This endpoint logs the ticket prominently so it's visible in Railway logs instead of
+// silently failing. Wire up a real email provider here once credentials are available.
+app.post('/api/support/notify', async (req, res) => {
+  try {
+    const { ticketId, userEmail, userName, subject, message, priority, planTier, slaHours } = req.body;
+
+    if (!ticketId) {
+      return res.status(400).json({ error: 'Missing ticketId' });
+    }
+
+    console.log(`🎫 SUPPORT TICKET [${priority || 'normal'}] ${ticketId} from ${userName || 'unknown'} <${userEmail || 'no-email'}> (plan: ${planTier || 'free'}, SLA: ${slaHours || 'n/a'}h)\nSubject: ${subject || '(no subject)'}\nMessage: ${message || '(no message)'}`);
+
+    res.json({ success: true, message: 'Ticket logged (email delivery not yet configured)' });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('Support notify error:', error);
+    res.status(500).json({ error: 'Failed to log ticket notification' });
   }
 });
 

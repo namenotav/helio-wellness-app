@@ -357,9 +357,14 @@ class SubscriptionService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
       
+      const currentUser = authService.getCurrentUser();
+      const idToken = currentUser ? await currentUser.getIdToken() : null;
       const response = await fetch(`${API_URL}/api/subscription/verify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {})
+        },
         body: JSON.stringify({ userId, feature: featureName }),
         signal: controller.signal
       });
