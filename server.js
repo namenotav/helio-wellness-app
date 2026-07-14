@@ -429,7 +429,9 @@ app.post('/api/backup', async (req, res) => {
       version: '1.0'
     };
 
-    if (db.memory) {
+    if (db_firebase) {
+      await db_firebase.collection('backups').doc(userId).set(backup);
+    } else if (db.memory) {
       backupsCollection.data.push(backup);
     } else {
       await backupsCollection.updateOne(
@@ -451,7 +453,10 @@ app.get('/api/backup/:userId', async (req, res) => {
     const { userId } = req.params;
     
     let backup;
-    if (db.memory) {
+    if (db_firebase) {
+      const doc = await db_firebase.collection('backups').doc(userId).get();
+      backup = doc.exists ? doc.data() : null;
+    } else if (db.memory) {
       backup = backupsCollection.data.find(b => b.userId === userId);
     } else {
       backup = await backupsCollection.findOne({ userId });
@@ -477,6 +482,9 @@ app.delete('/api/user/delete', async (req, res) => {
       return res.status(400).json({ error: 'Missing userId' });
     }
 
+    if (db_firebase) {
+      await db_firebase.collection('backups').doc(userId).delete();
+    }
     if (db.memory) {
       usersCollection.data = usersCollection.data.filter(u => u.userId !== userId);
       backupsCollection.data = backupsCollection.data.filter(b => b.userId !== userId);
