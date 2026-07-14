@@ -227,20 +227,7 @@ class UsageTrackingService {
       }
     }
 
-    // Check developer mode
-    try {
-      const devMode = localStorage.getItem('helio_dev_mode') === 'true'
-      if (devMode) {
-        return {
-          allowed: true,
-          used: 0,
-          limit: 999999,
-          remaining: 999999,
-          isUnlimited: true,
-          devMode: true
-        }
-      }
-    } catch (e) { /* ignore */ if(import.meta.env.DEV) console.warn('Usage tracking error:', e); }
+    // Dev mode bypass removed for security — use admin dashboard for testing
 
     const limit = this.freeLimits[featureName]
     

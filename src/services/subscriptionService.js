@@ -386,16 +386,7 @@ class SubscriptionService {
 
   // Check if user has reached their limit for a feature
   checkLimit(featureName) {
-    // Check if developer mode is active
-    try {
-      const devMode = localStorage.getItem('helio_dev_mode') === 'true';
-      if (devMode) {
-        if(import.meta.env.DEV)console.log(`✅ Dev mode: Unlimited ${featureName}`);
-        return { allowed: true, remaining: 999999, limit: 999999 }; // Developer mode = unlimited
-      }
-    } catch (error) {
-      if(import.meta.env.DEV)console.error('Dev mode check error:', error);
-    }
+    // Dev mode bypass removed for security — use admin dashboard for testing
 
     const plan = this.getCurrentPlan();
     const today = new Date().toISOString().split('T')[0];
