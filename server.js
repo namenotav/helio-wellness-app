@@ -160,6 +160,12 @@ app.post('/api/stripe/webhook', express.raw({type: 'application/json'}), async (
       case 'invoice.payment_failed':
         await handlePaymentFailed(event.data.object);
         break;
+      case 'account.updated':
+        await handleConnectAccountUpdate(event.data.object);
+        break;
+      case 'payment_intent.succeeded':
+        await handleEscrowPaymentSucceeded(event.data.object);
+        break;
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
@@ -178,6 +184,42 @@ function mapStripePriceToPlan(productId) {
     [process.env.STRIPE_ULTIMATE_PRICE_ID]: 'ultimate'    // £34.99 - Ultimate plan
   };
   return priceMap[productId] || 'free';
+}
+
+// Webhook handler - Stripe Connect Express account onboarding status changed
+async function handleConnectAccountUpdate(account) {
+  try {
+    const userId = account.metadata?.firebaseUserId;
+    if (!userId || !db_firebase) return;
+
+    const isActive = !!(account.charges_enabled && account.payouts_enabled);
+
+    await db_firebase.collection('users').doc(userId).update({
+      stripeConnectId: account.id,
+      stripeConnectStatus: isActive ? 'active' : 'pending'
+    });
+
+    if(process.env.NODE_ENV!=="production")console.log(`Connect account ${account.id} for user ${userId}: ${isActive ? 'active' : 'pending'}`);
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('Connect account webhook error:', error);
+  }
+}
+
+// Webhook handler - Escrow payment confirmed by Stripe (authoritative, server-side)
+async function handleEscrowPaymentSucceeded(paymentIntent) {
+  try {
+    const { battleId, escrowId } = paymentIntent.metadata || {};
+    if (!battleId || !escrowId || !db_firebase) return;
+
+    await db_firebase.collection('battle_escrow').doc(battleId).set({
+      status: 'held',
+      confirmedAt: new Date()
+    }, { merge: true });
+
+    if(process.env.NODE_ENV!=="production")console.log(`Escrow ${escrowId} confirmed held for battle ${battleId}`);
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('Escrow payment webhook error:', error);
+  }
 }
 
 // Webhook handler - Subscription updated or created
@@ -300,6 +342,205 @@ app.post('/api/stripe/create-checkout', async (req, res) => {
   } catch (error) {
     console.error('Error creating checkout session:', error);
     res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+// ===== Money Escrow Endpoints (Social Battles with money stakes) =====
+// Uses Stripe's "separate charges and transfers" Connect pattern:
+// 1. Charge the stake to the platform account (create-escrow)
+// 2. When the battle finishes, transfer the held funds to the winner's connected account (release-escrow)
+// 3. If cancelled/disputed, refund the original charge (refund-escrow)
+// These endpoints fail CLOSED (503) if Firebase isn't connected - unlike the softer IDOR
+// checks elsewhere, there is no existing fallback behavior to preserve for money movement.
+
+app.post('/api/stripe/create-escrow', async (req, res) => {
+  try {
+    const { battleId, amount, userId, participants } = req.body;
+
+    if (!battleId || !amount || !userId || !Array.isArray(participants)) {
+      return res.status(400).json({ error: 'Missing battleId, amount, userId, or participants' });
+    }
+
+    // Defense in depth: re-validate the stake range server-side (£5-£100 -> 500-10000 pence)
+    if (amount < 500 || amount > 10000) {
+      return res.status(400).json({ error: 'Stake amount must be between £5 and £100' });
+    }
+
+    if (!(await verifyOwnership(req, userId))) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!db_firebase) {
+      return res.status(503).json({ error: 'Escrow service unavailable' });
+    }
+
+    const escrowId = `escrow_${battleId}_${Date.now()}`;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'gbp',
+      metadata: { escrowId, battleId, creatorId: userId },
+      transfer_group: escrowId
+    });
+
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      escrowId,
+      paymentIntentId: paymentIntent.id
+    });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('Create escrow error:', error);
+    res.status(500).json({ error: 'Failed to create escrow payment' });
+  }
+});
+
+app.post('/api/stripe/release-escrow', async (req, res) => {
+  try {
+    const { escrowId, battleId, winnerId, amount } = req.body;
+
+    if (!escrowId || !battleId || !winnerId) {
+      return res.status(400).json({ error: 'Missing escrowId, battleId, or winnerId' });
+    }
+
+    if (!db_firebase) {
+      return res.status(503).json({ error: 'Escrow service unavailable' });
+    }
+
+    // Must be authenticated - identity checked against the escrow's own participant list below
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!firebaseAuth || !token) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    let requesterUid;
+    try {
+      requesterUid = (await firebaseAuth.verifyIdToken(token)).uid;
+    } catch {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const escrowDoc = await db_firebase.collection('battle_escrow').doc(battleId).get();
+    if (!escrowDoc.exists) {
+      return res.status(404).json({ error: 'Escrow not found' });
+    }
+    const escrow = escrowDoc.data();
+
+    if (escrow.status !== 'held') {
+      return res.status(400).json({ error: `Cannot release escrow in status: ${escrow.status}` });
+    }
+    // Only a participant of this exact battle can trigger a release
+    if (![escrow.creatorId, ...(escrow.participants || [])].includes(requesterUid)) {
+      return res.status(403).json({ error: 'Not a participant in this battle' });
+    }
+    // The winner must actually be one of the declared participants
+    if (!(escrow.participants || []).includes(winnerId)) {
+      return res.status(400).json({ error: 'Winner is not a participant in this battle' });
+    }
+
+    const winnerDoc = await db_firebase.collection('users').doc(winnerId).get();
+    const winnerData = winnerDoc.exists ? winnerDoc.data() : null;
+    if (!winnerData?.stripeConnectId || winnerData.stripeConnectStatus !== 'active') {
+      return res.status(400).json({ error: 'Winner has not completed payout onboarding' });
+    }
+
+    const transfer = await stripe.transfers.create({
+      amount: amount || escrow.amount,
+      currency: 'gbp',
+      destination: winnerData.stripeConnectId,
+      transfer_group: escrowId
+    });
+
+    res.json({ transferId: transfer.id });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('Release escrow error:', error);
+    res.status(500).json({ error: 'Failed to release escrow funds' });
+  }
+});
+
+app.post('/api/stripe/refund-escrow', async (req, res) => {
+  try {
+    const { escrowId, paymentIntentId, reason } = req.body;
+
+    if (!escrowId || !paymentIntentId) {
+      return res.status(400).json({ error: 'Missing escrowId or paymentIntentId' });
+    }
+
+    if (!db_firebase) {
+      return res.status(503).json({ error: 'Escrow service unavailable' });
+    }
+
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!firebaseAuth || !token) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    let requesterUid;
+    try {
+      requesterUid = (await firebaseAuth.verifyIdToken(token)).uid;
+    } catch {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // Find the escrow by escrowId (stored under the battleId doc key)
+    const escrowQuery = await db_firebase.collection('battle_escrow').where('escrowId', '==', escrowId).limit(1).get();
+    if (escrowQuery.empty) {
+      return res.status(404).json({ error: 'Escrow not found' });
+    }
+    const escrow = escrowQuery.docs[0].data();
+
+    if (escrow.status !== 'held' && escrow.status !== 'pending') {
+      return res.status(400).json({ error: `Cannot refund escrow in status: ${escrow.status}` });
+    }
+    // Only the creator (who paid) or a fellow participant can request a refund
+    if (![escrow.creatorId, ...(escrow.participants || [])].includes(requesterUid)) {
+      return res.status(403).json({ error: 'Not a participant in this battle' });
+    }
+
+    const refund = await stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      reason: 'requested_by_customer',
+      metadata: { escrowId, reason: reason || 'Battle cancelled' }
+    });
+
+    res.json({ refundId: refund.id });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('Refund escrow error:', error);
+    res.status(500).json({ error: 'Failed to refund escrow' });
+  }
+});
+
+app.post('/api/stripe/connect/onboard', async (req, res) => {
+  try {
+    const { userId, email, returnUrl, refreshUrl } = req.body;
+
+    if (!userId || !email) {
+      return res.status(400).json({ error: 'Missing userId or email' });
+    }
+
+    if (!(await verifyOwnership(req, userId))) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const account = await stripe.accounts.create({
+      type: 'express',
+      email,
+      capabilities: {
+        transfers: { requested: true }
+      },
+      metadata: { firebaseUserId: userId }
+    });
+
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: refreshUrl || `${req.headers.origin || 'https://helio-wellness-app-production.up.railway.app'}/dashboard?connect=refresh`,
+      return_url: returnUrl || `${req.headers.origin || 'https://helio-wellness-app-production.up.railway.app'}/dashboard?connect=success`,
+      type: 'account_onboarding'
+    });
+
+    res.json({ url: accountLink.url, accountId: account.id });
+  } catch (error) {
+    if(process.env.NODE_ENV!=="production")console.error('Connect onboarding error:', error);
+    res.status(500).json({ error: 'Failed to create Connect onboarding' });
   }
 });
 

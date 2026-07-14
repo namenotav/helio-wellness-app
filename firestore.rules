@@ -24,6 +24,17 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && 
         (resource.data.authorUid == request.auth.uid || request.auth.uid == 'k1m4yEWtsZdMFOMfwtANij9eugi2');
     }
+
+    // Money escrow for battles: only the creator and declared participants can read/write.
+    // The authoritative fund transfer/refund decisions happen server-side (Admin SDK,
+    // bypasses these rules) - these rules just gate the client's own status/display writes.
+    match /battle_escrow/{battleId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.creatorId || request.auth.uid in resource.data.participants);
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.creatorId;
+      allow update: if request.auth != null &&
+        (request.auth.uid == resource.data.creatorId || request.auth.uid in resource.data.participants);
+    }
     
     // Deny all other access
     match /{document=**} {
